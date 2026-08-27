@@ -98,6 +98,27 @@ Check-in endpoints are gated on the `X-Staff-Key` header (`STAFF_API_KEY`):
 - `GET /tickets/door/{event_slug}` — guest list with sold / checked-in counts
 - `GET /tickets/lookup/{code}` — inspect a single ticket
 
+## Deploy (Vercel — frontend)
+
+The Next.js site deploys from the repo root. Config lives in [`vercel.json`](vercel.json).
+
+1. Push this repo to GitHub / GitLab / Bitbucket.
+2. Import the project in [Vercel](https://vercel.com/new) — framework **Next.js** is auto-detected.
+3. In **Project → Settings → Environment Variables**, add:
+
+| Name | Notes |
+| ---- | ----- |
+| `NEXT_PUBLIC_API_URL` | Public URL of your FastAPI host (not localhost) |
+| `RESEND_API_KEY` | Optional — admin forgot-password emails |
+| `RESEND_FROM` | Optional — e.g. `Sweet1ne Live <hello@yourdomain.com>` |
+
+4. Deploy. Preview + production URLs are issued automatically.
+5. Point the FastAPI `CORS_ORIGINS` / `PUBLIC_SITE_URL` at your Vercel domain.
+
+Local template: copy [`.env.example`](.env.example) → `.env.local`.
+
+> The Python API under `backend/` is **not** part of the Vercel build — host it separately (Railway, Render, Fly, etc.) and set `NEXT_PUBLIC_API_URL` to that URL.
+
 ## Tests
 
 ```bash
