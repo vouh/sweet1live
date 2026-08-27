@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+dev.db
+
+# test artifacts
+.pytest_cache/
+test_*.db

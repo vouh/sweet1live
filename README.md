@@ -1,0 +1,109 @@
+# sweet1live
+
+Website and booking platform for Sweet1ne LIVE — a Next.js front end over a FastAPI backend,
+with Stripe-powered event ticketing and deposit-backed hire across the venue's seven rooms.
+
+## Stack
+
+| Layer    | Tech                                                       |
+| -------- | ---------------------------------------------------------- |
+| Frontend | Next.js 16 (App Router), React 19, Tailwind v4, GSAP/Motion |
+| Backend  | FastAPI, SQLModel, Alembic                                  |
+| Database | SQLite for local dev, Postgres/Supabase in production       |
+| Payments | Stripe Checkout (hosted) + webhooks                         |
+
+## Running locally
+
+### Backend
+
+```bash
+cd backend
+python -m venv .venv
+.venv/Scripts/activate        # macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.example .env          # then fill in your Stripe test keys
+alembic upgrade head
+python -m app.seed            # seeds the seven rooms + a sample event season
+
+uvicorn app.main:app --reload # http://localhost:8000  (docs at /docs)
+```
+
+The API runs without Stripe configured — the catalogue reads fine, and only checkout
+returns 503 until `STRIPE_SECRET_KEY` is set.
+
+### Frontend
+
+```bash
+npm install
+npm run dev                   # http://localhost:3000
+```
+
+`NEXT_PUBLIC_API_URL` in `.env.local` points the site at the API (default
+`http://localhost:8000`).
+
+### Stripe webhooks in development
+
+```bash
+stripe listen --forward-to localhost:8000/stripe/webhook
+```
+
+Paste the printed `whsec_…` into `backend/.env` as `STRIPE_WEBHOOK_SECRET`.
+
+## How payments work
+
+All money is stored and charged as **integer pence** — never floats. Prices come from the
+database, never from the client; the browser only picks *which* ticket and *how many*.
+
+**Ticket flow**
+
+1. `POST /checkout/tickets` validates the cart, moves seats into `quantity_reserved`,
+   opens a `pending` order, and returns a Stripe Checkout URL.
+2. The guest pays on Stripe's hosted page.
+3. `checkout.session.completed` arrives at `POST /stripe/webhook`. Seats move from
+   reserved to sold, and one `Ticket` row per seat is minted with a unique door code.
+4. If the guest walks away, `checkout.session.expired` (or the background sweeper, every
+   two minutes) releases the seats back to the pool.
+
+**Room flow** is the same shape: a booking is held in `pending_payment`, Stripe takes the
+room's deposit, and the webhook flips it to `confirmed`. A room never holds two
+overlapping bookings, and a published event in that room blocks the windows it runs across.
+
+**Idempotency.** Stripe delivers webhooks at least once. Every processed event id is
+written to `stripe_events` under a primary key, and `mark_order_paid` is safe to run twice —
+a redelivery can never mint a second set of tickets. The success page calls
+`POST /orders/{ref}/sync` to reconcile directly with Stripe, so guests see their tickets
+even if the webhook is delayed.
+
+## The seven rooms
+
+| Room                     | Seated | Standing | Deposit |
+| ------------------------ | -----: | -------: | ------: |
+| The Main Room            |    160 |      250 |    £500 |
+| The Lounge               |     60 |       80 |    £250 |
+| The Cellar               |     45 |       60 |    £200 |
+| The Alcove               |     24 |       30 |    £150 |
+| The Snug                 |      8 |       12 |     £50 |
+| The Gallery              |     40 |       70 |    £200 |
+| The Private Dining Room  |     30 |       45 |    £250 |
+
+Each room sells four windows a day — Daytime, Early evening, Late set, and a Full day
+exclusive that deliberately overlaps the other three.
+
+## Door operations
+
+Check-in endpoints are gated on the `X-Staff-Key` header (`STAFF_API_KEY`):
+
+- `POST /tickets/check-in` — scan a code; accepts once, rejects the second scan
+- `GET /tickets/door/{event_slug}` — guest list with sold / checked-in counts
+- `GET /tickets/lookup/{code}` — inspect a single ticket
+
+## Tests
+
+```bash
+cd backend
+python -m pytest tests/ -q
+```
+
+Covers the full purchase path with Stripe's network calls stubbed: holds, payment,
+ticket minting, duplicate webhooks, oversell protection, room clashes, and hold expiry.

@@ -1,0 +1,1747 @@
+@import "tailwindcss";
+
+@theme {
+  /* Default = dark "Nocturne & Gold" (docs/DESIGN.md).
+     Light scheme overrides live on html.light below. */
+  --color-background: #131313;
+  --color-on-background: #e5e2e1;
+  --color-surface: #131313;
+  --color-surface-dim: #131313;
+  --color-surface-bright: #3a3939;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container: #201f1f;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353534;
+  --color-surface-variant: #353534;
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #cfc6af;
+  --color-inverse-surface: #e5e2e1;
+  --color-inverse-on-surface: #313030;
+  --color-outline: #98907b;
+  --color-outline-variant: #4c4635;
+  --color-surface-tint: #e7c43f;
+
+  --color-primary: #f6d24c;
+  --color-on-primary: #3b2f00;
+  --color-primary-container: #d8b632;
+  --color-on-primary-container: #584800;
+  --color-inverse-primary: #715c00;
+
+  --color-secondary: #c9c6be;
+  --color-on-secondary: #31302b;
+  --color-secondary-container: #484740;
+  --color-on-secondary-container: #b8b5ad;
+
+  --color-tertiary: #f8d15e;
+  --color-on-tertiary: #3d2f00;
+  --color-tertiary-container: #dab546;
+  --color-on-tertiary-container: #5b4700;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-primary-fixed: #ffe17a;
+  --color-primary-fixed-dim: #e7c43f;
+  --color-on-primary-fixed: #231b00;
+  --color-on-primary-fixed-variant: #554500;
+  --color-secondary-fixed: #e6e2d9;
+  --color-secondary-fixed-dim: #c9c6be;
+  --color-on-secondary-fixed: #1c1c16;
+  --color-on-secondary-fixed-variant: #484740;
+  --color-tertiary-fixed: #ffe08c;
+  --color-tertiary-fixed-dim: #e9c352;
+  --color-on-tertiary-fixed: #241a00;
+  --color-on-tertiary-fixed-variant: #584400;
+
+  /* Layout spacing tokens used across sections/headers */
+  --spacing-gutter: 24px;
+  --spacing-section-gap-desktop: 120px;
+  --spacing-section-gap-mobile: 64px;
+  --spacing-margin-mobile: 20px;
+  --max-width-container-max: 1280px;
+
+  /* Typeface families, sourced from next/font variables set on <html> */
+  --font-headline-lg: var(--font-bodoni-moda), serif;
+  --font-price-display: var(--font-bodoni-moda), serif;
+  --font-headline-lg-mobile: var(--font-bodoni-moda), serif;
+  --font-body-lg: var(--font-hanken-grotesk), sans-serif;
+  --font-body-md: var(--font-hanken-grotesk), sans-serif;
+  --font-headline-md: var(--font-bodoni-moda), serif;
+  --font-display-lg: var(--font-bodoni-moda), serif;
+  --font-label-caps: var(--font-hanken-grotesk), sans-serif;
+
+  /* Named font sizes matching the original design system */
+  --text-headline-lg: 48px;
+  --text-headline-lg--line-height: 56px;
+  --text-price-display: 24px;
+  --text-price-display--line-height: 32px;
+  --text-headline-lg-mobile: 32px;
+  --text-headline-lg-mobile--line-height: 40px;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+  --text-headline-md: 32px;
+  --text-headline-md--line-height: 40px;
+  --text-display-lg: 72px;
+  --text-display-lg--line-height: 80px;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 16px;
+  --text-label-caps--letter-spacing: 0.1em;
+}
+
+/* Light theme — warm cream canvas + deep burgundy ink (reference luxury vibe).
+   Applied via class="light" on <html> (dark remains the default). */
+html.light {
+  --color-background: #f5efe8;
+  --color-on-background: #2c1810;
+  --color-surface: #f5efe8;
+  --color-surface-dim: #ebe3da;
+  --color-surface-bright: #faf6f1;
+  --color-surface-container-lowest: #faf6f1;
+  --color-surface-container-low: #f0e8df;
+  --color-surface-container: #ebe3da;
+  --color-surface-container-high: #e4dbd0;
+  --color-surface-container-highest: #ddd2c5;
+  --color-surface-variant: #e8dfd4;
+  --color-on-surface: #2c1810;
+  --color-on-surface-variant: #6b5348;
+  --color-inverse-surface: #2c1810;
+  --color-inverse-on-surface: #f5efe8;
+  --color-outline: #9a8578;
+  --color-outline-variant: #d9cdc0;
+  --color-surface-tint: #5c3317;
+
+  /* Dark chocolate CTAs on light theme */
+  --color-primary: #5c3317;
+  --color-on-primary: #faf6f1;
+  --color-primary-container: #2c1810;
+  --color-on-primary-container: #f5efe8;
+  --color-inverse-primary: #d4a574;
+
+  --color-secondary: #6b5348;
+  --color-on-secondary: #faf6f1;
+  --color-secondary-container: #e8dfd4;
+  --color-on-secondary-container: #2c1810;
+
+  --color-tertiary: #7a4a2e;
+  --color-on-tertiary: #faf6f1;
+  --color-tertiary-container: #c49a5a;
+  --color-on-tertiary-container: #2a1a0c;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #410002;
+}
+
+/* Site footer — deep chocolate (light) / near-black (dark) */
+.site-footer {
+  background: #1a100c;
+  color: #f5efe8;
+}
+html.light .site-footer {
+  background: #2c1810;
+}
+.site-footer a {
+  color: rgba(245, 239, 232, 0.72);
+  transition: color 0.35s ease;
+}
+.site-footer a:hover {
+  color: #f5efe8;
+}
+
+/* Full-bleed footer "Live" — same display serif, edge-to-edge, soft baseline kiss */
+.footer-live-mark {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin-top: -0.35rem;
+  line-height: 0;
+  user-select: none;
+  pointer-events: none;
+}
+.footer-live-mark__text {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  margin: 0;
+  padding: 0 clamp(0.25rem, 1.2vw, 1rem);
+  font-family: var(--font-display-lg);
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(6.5rem, 28vw, 22rem);
+  line-height: 0.78;
+  transform: translateY(0.06em);
+  padding-bottom: 0.02em;
+  color: color-mix(in srgb, #f5efe8 18%, transparent);
+  -webkit-text-stroke: 1.25px color-mix(in srgb, #f5efe8 32%, transparent);
+  paint-order: stroke fill;
+}
+.footer-live-mark__text span {
+  display: block;
+  flex: 1 1 0;
+  text-align: center;
+}
+.footer-live-mark::after {
+  content: "";
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: 46%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, #d4a574 50%, transparent) 12%,
+    color-mix(in srgb, #d4a574 50%, transparent) 88%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+@media (min-width: 768px) {
+  .footer-live-mark__text {
+    font-size: clamp(10rem, 26vw, 24rem);
+    -webkit-text-stroke-width: 2px;
+    padding: 0 clamp(0.5rem, 1.5vw, 1.5rem);
+    transform: translateY(0.05em);
+  }
+}
+
+/* Contact page — arched hero + floating card */
+.contact-arch-hero {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  min-height: 72svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  clip-path: ellipse(120% 100% at 50% 0%);
+}
+.contact-arch-hero__image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.contact-arch-hero__veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #1a100c 55%, transparent) 0%,
+    color-mix(in srgb, #1a100c 75%, transparent) 100%
+  );
+}
+.contact-float-card {
+  position: relative;
+  z-index: 10;
+  margin-top: -6rem;
+  background: var(--color-background);
+  box-shadow:
+    0 32px 80px -24px rgba(26, 16, 12, 0.35),
+    0 0 0 1px color-mix(in srgb, var(--color-outline-variant) 40%, transparent);
+}
+.contact-side-image {
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+}
+.contact-side-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, color-mix(in srgb, #1a100c 55%, transparent));
+}
+.contact-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.contact-detail-row__icon {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+  color: var(--color-primary);
+}
+@media (min-width: 1024px) {
+  .contact-float-card {
+    margin-top: -10rem;
+  }
+  .contact-side-image {
+    min-height: 100%;
+  }
+}
+
+/* Venue hire — editorial space rails */
+.venue-space-rail {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+@media (min-width: 768px) {
+  .venue-space-rail {
+    grid-template-columns: 1fr 1fr;
+    min-height: 520px;
+  }
+}
+.venue-space-rail__media {
+  position: relative;
+  min-height: 320px;
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .venue-space-rail__media {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    min-height: 520px;
+  }
+}
+.venue-space-rail__copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+}
+@media (min-width: 768px) {
+  .venue-space-rail__copy {
+    padding: 4rem 3rem;
+  }
+}
+.venue-stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-outline-variant) 50%, transparent);
+  background: var(--color-background);
+}
+
+/* Photo text stays readable via solid panels or drop-shadow — never foggy washes. */
+.on-media {
+  --color-on-background: #e5e2e1;
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #cfc6af;
+  --color-primary: #f6d24c;
+  --color-outline: #98907b;
+  color: #e5e2e1;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  overflow-x: clip;
+  transition:
+    background-color 350ms ease-out,
+    color 350ms ease-out;
+}
+
+html {
+  overflow-x: clip;
+}
+
+/* Material Symbols icon font, shared across every page */
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
+}
+.material-symbols-outlined.icon-fill {
+  font-variation-settings: "FILL" 1, "wght" 300, "GRAD" 0, "opsz" 24;
+}
+.material-symbols-outlined.icon-thin {
+  font-variation-settings: "FILL" 0, "wght" 200, "GRAD" 0, "opsz" 24;
+}
+
+/* Hairline borders + ambient spotlight — DESIGN.md "Elevation & Depth" */
+.hairline-gold {
+  border: 1px solid rgba(216, 182, 50, 0.28);
+}
+html.light .hairline-gold {
+  border-color: rgba(58, 31, 34, 0.18);
+}
+.hairline-ivory {
+  border: 1px solid rgba(229, 226, 225, 0.2);
+}
+html.light .hairline-ivory {
+  border-color: rgba(19, 19, 19, 0.15);
+}
+.ambient-glow {
+  background: transparent;
+}
+.smooth-transition {
+  transition: all 400ms ease-out;
+}
+
+/* ---------------------------------------------------------------
+   Motion: scroll reveals, parallax, and 3D card lift.
+   Driven by the <Reveal> / <Parallax> client components.
+   --------------------------------------------------------------- */
+
+/* Scroll reveal. The element starts offset/transparent and animates to
+   rest when `data-visible="true"` is set by the IntersectionObserver. */
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal-up {
+  transform: translateY(36px);
+}
+.reveal-left {
+  transform: translateX(-40px);
+}
+.reveal-right {
+  transform: translateX(40px);
+}
+.reveal-scale {
+  transform: scale(0.94);
+}
+.reveal-clip {
+  clip-path: inset(14% 10% 14% 10%);
+  opacity: 0.7;
+  transform: scale(1.04);
+  transition:
+    opacity 1100ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1100ms cubic-bezier(0.22, 1, 0.36, 1),
+    clip-path 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal-blur {
+  filter: blur(10px);
+  transition:
+    opacity 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  clip-path: inset(0% 0% 0% 0%);
+}
+
+/* Parallax layer. The component writes --parallax-y on scroll. */
+.parallax-layer {
+  transform: translate3d(0, var(--parallax-y, 0px), 0) scale(var(--parallax-scale, 1.18));
+  will-change: transform;
+}
+
+/* Slow ambient drift for hero imagery */
+@keyframes slow-pan {
+  0%,
+  100% {
+    transform: scale(1.12) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.18) translate3d(0, -1.5%, 0);
+  }
+}
+.slow-pan {
+  animation: slow-pan 28s ease-in-out infinite;
+}
+
+/* Hero imagery — full colour with warm chocolate veil, never greyscale. */
+.hero-media {
+  filter: saturate(1.15) contrast(1.04);
+}
+.hero-media-veil {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #1a100c 28%, transparent) 0%,
+    color-mix(in srgb, #2c1810 42%, transparent) 42%,
+    color-mix(in srgb, #1a100c 58%, transparent) 100%
+  );
+}
+
+/* 3D hover lift for cards and tiles — pure CSS perspective transform. */
+.tilt-3d {
+  transform-style: preserve-3d;
+  transition:
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 500ms ease-out,
+    border-color 500ms ease-out;
+  will-change: transform;
+}
+.tilt-3d:hover {
+  transform: perspective(1000px) rotateX(3deg) rotateY(-3deg) translateY(-8px) scale(1.02);
+  box-shadow: 0 34px 68px -28px rgba(0, 0, 0, 0.75);
+}
+html.light .tilt-3d:hover {
+  box-shadow: 0 30px 60px -25px rgba(19, 19, 19, 0.28);
+}
+
+/* Gold underline that grows from the left on hover — DESIGN.md tertiary action */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 1px;
+  width: 100%;
+  background-color: currentColor;
+  transform: scaleX(var(--underline-scale, 1));
+  transform-origin: left;
+  transition:
+    transform 400ms ease-out,
+    background-color 400ms ease-out;
+}
+.link-underline:hover::after {
+  background-color: var(--color-primary);
+}
+
+/* Nav link underline grow */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-link:hover::after,
+.nav-link[data-active="true"]::after {
+  transform: scaleX(1);
+}
+
+/* Hero scroll cue */
+@keyframes scroll-cue-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(8px);
+    opacity: 1;
+  }
+}
+.scroll-cue {
+  animation: scroll-cue-bob 2.4s ease-in-out infinite;
+}
+
+/* Button micro-interaction */
+.btn-ink,
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  transition:
+    opacity 0.4s ease-out,
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    letter-spacing 0.4s ease-out;
+}
+.btn-ink:hover,
+.btn-primary:hover {
+  letter-spacing: 0.12em;
+  transform: translateY(-1px);
+}
+
+/* Soft atmospheric grain — very subtle, no fog wash */
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Honour reduced-motion: keep content visible, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-up,
+  .reveal-left,
+  .reveal-right,
+  .reveal-scale,
+  .reveal-blur,
+  .reveal-clip {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    clip-path: none;
+    transition: none;
+  }
+  .parallax-layer {
+    transform: none;
+  }
+  .slow-pan {
+    animation: none;
+  }
+  .tilt-3d:hover {
+    transform: none;
+  }
+  .scroll-cue {
+    animation: none;
+  }
+  .btn-ink:hover,
+  .btn-primary:hover {
+    transform: none;
+    letter-spacing: inherit;
+  }
+  body::before {
+    display: none;
+  }
+}
+
+/* Hide scrollbars for horizontally-scrolling rails */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Thin custom scrollbar for data tables / calendars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-surface-container-low);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
+}
+
+/* Form controls on the venue hire enquiry form */
+.form-input-custom {
+  background-color: var(--color-surface-container-high);
+  border: 1px solid transparent;
+  color: var(--color-on-surface);
+  transition: border-color 0.4s ease-out;
+}
+.form-input-custom:focus {
+  border-color: var(--color-primary-container);
+  outline: none;
+  box-shadow: none;
+}
+
+.btn-primary {
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  border-radius: 0.25rem;
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+.btn-primary:hover {
+  opacity: 0.92;
+}
+
+.btn-ink {
+  background-color: var(--color-on-background);
+  color: var(--color-background);
+  border-radius: 9999px;
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+.btn-ink:hover {
+  opacity: 0.88;
+}
+
+/* Editorial experience gallery — wave stagger + outer tilts (reference collage) */
+.gallery-tilt-left {
+  transform: rotate(-3.5deg) translateY(2.75rem);
+  transform-origin: center bottom;
+}
+.gallery-tilt-right {
+  transform: rotate(3.5deg) translateY(2.75rem);
+  transform-origin: center bottom;
+}
+.gallery-level-high {
+  transform: translateY(-1.5rem);
+}
+.gallery-level-low:not(.gallery-tilt-left):not(.gallery-tilt-right) {
+  transform: translateY(2.75rem);
+}
+
+@media (max-width: 767px) {
+  .gallery-tilt-left,
+  .gallery-tilt-right,
+  .gallery-level-high,
+  .gallery-level-low:not(.gallery-tilt-left):not(.gallery-tilt-right) {
+    transform: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .experience-gallery {
+    align-items: flex-start;
+  }
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-inverse-surface);
+  border: 1px solid var(--color-inverse-surface);
+  border-radius: 0.25rem;
+  transition: all 0.4s ease-out;
+}
+.btn-secondary:hover {
+  background-color: color-mix(in srgb, var(--color-inverse-surface) 8%, transparent);
+}
+
+/* ---------------------------------------------------------------
+   Signature luxury primitives — used to give each page its own
+   editorial character while sharing one motion language.
+   --------------------------------------------------------------- */
+
+/* Masked line rise: each line sits in an overflow-hidden box and swings
+   up from below the mask. Drive it by putting data-visible on any
+   ancestor (a <Reveal>) or on the .text-rise element itself. */
+.text-rise {
+  display: block;
+  overflow: hidden;
+}
+.text-rise > * {
+  display: block;
+  transform: translateY(115%);
+  transition: transform 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--rise-delay, 0ms);
+}
+[data-visible="true"] .text-rise > *,
+.text-rise[data-visible="true"] > * {
+  transform: none;
+}
+
+/* Gold hairline that draws itself in from the left. */
+.rule-draw {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1200ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--rule-delay, 0ms);
+}
+[data-visible="true"] .rule-draw,
+.rule-draw[data-visible="true"] {
+  transform: scaleX(1);
+}
+
+/* Infinite ticker. Track must contain the content twice. */
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-x var(--marquee-duration, 42s) linear infinite;
+}
+.marquee-reverse .marquee-track {
+  animation-direction: reverse;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Frosted panel for auth / concierge cards floating over photography. */
+.glass-panel {
+  background-color: color-mix(in srgb, var(--color-surface-container) 78%, transparent);
+  backdrop-filter: blur(20px) saturate(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+/* Pinned media column for editorial split layouts. */
+.sticky-media {
+  position: sticky;
+  top: 6rem;
+}
+
+/* Slow ken-burns drift for still photography. */
+@keyframes ken-burns {
+  0% {
+    transform: scale(1.05) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.16) translate3d(1.5%, -1.5%, 0);
+  }
+}
+.ken-burns {
+  animation: ken-burns 22s ease-in-out infinite alternate;
+}
+
+/* Image frame whose child scales on group hover. */
+.zoom-frame {
+  overflow: hidden;
+}
+.zoom-target {
+  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .zoom-target {
+  transform: scale(1.07);
+}
+
+/* Oversized editorial numeral (course numbers, dates). */
+.numeral {
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.03em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-rise > * {
+    transform: none;
+    transition: none;
+  }
+  .rule-draw {
+    transform: scaleX(1);
+    transition: none;
+  }
+  .marquee-track {
+    animation: none;
+  }
+  .ken-burns {
+    animation: none;
+  }
+  .group:hover .zoom-target {
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Site navigation — centered wordmark, short labels, one CTA.
+   --------------------------------------------------------------- */
+.site-nav-bar {
+  width: 100%;
+}
+.site-nav-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+.site-nav-link {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 2px;
+}
+.site-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0.85;
+}
+.site-nav-link:hover::after,
+.site-nav-link[data-active="true"]::after {
+  transform: scaleX(1);
+}
+.site-nav-wordmark:hover .font-headline-md {
+  color: var(--color-primary);
+}
+html.dark .site-nav-wordmark:hover .font-headline-md {
+  color: inherit;
+}
+html.dark .site-nav-wordmark:hover span:first-child {
+  opacity: 0.88;
+}
+.site-nav-cta {
+  border-radius: 0;
+  letter-spacing: 0.22em;
+}
+
+/* Legacy nav swap — kept for any remaining references */
+.nav-swap {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: 1.15;
+}
+.nav-swap > span {
+  display: block;
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-swap .swap-in {
+  position: absolute;
+  inset: 0;
+  transform: translateY(105%);
+  color: var(--color-primary);
+}
+.nav-swap:hover .swap-out,
+.nav-swap[data-active="true"] .swap-out {
+  transform: translateY(-105%);
+}
+.nav-swap:hover .swap-in,
+.nav-swap[data-active="true"] .swap-in {
+  transform: translateY(0);
+}
+
+/* Hairline that grows from the centre outwards under a nav item. */
+.nav-rule {
+  position: relative;
+}
+.nav-rule::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 1px;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-rule:hover::after,
+.nav-rule[data-active="true"]::after {
+  transform: scaleX(1);
+}
+
+/* Wordmark: letterspacing opens slightly on hover. */
+.wordmark {
+  transition:
+    letter-spacing 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 400ms ease-out;
+}
+.wordmark:hover {
+  letter-spacing: 0.12em;
+}
+
+/* Header condenses once the page is scrolled. */
+.nav-shell {
+  transition:
+    padding 450ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 450ms ease-out,
+    border-color 450ms ease-out,
+    backdrop-filter 450ms ease-out;
+}
+
+/* Gold pip marking the current section. */
+.nav-pip {
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 420ms ease-out,
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-active="true"] .nav-pip {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Landing-page card hover: caption lifts, gold frame closes in. */
+.lux-card {
+  position: relative;
+  transition:
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 600ms ease-out;
+}
+.lux-card::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid var(--color-primary);
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity 560ms ease-out,
+    transform 560ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 2;
+}
+.lux-card:hover::after {
+  opacity: 0.55;
+  transform: scale(1);
+}
+.lux-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 32px 64px -30px rgba(0, 0, 0, 0.8);
+}
+
+/* Caption that slides up and reveals a gold sub-label on hover. */
+.lux-caption {
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .lux-caption {
+  transform: translateY(-6px);
+}
+.lux-subcaption {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 520ms ease-out,
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .lux-subcaption {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Wavy cream/chocolate scroll section (live-events pilot). */
+.wave-color-section {
+  --wave-cream: #f5efe8;
+  --wave-chocolate: #2c1810;
+  position: relative;
+  overflow: clip;
+}
+.wave-color-section--unified {
+  background: var(--wave-cream);
+  width: 100%;
+  height: 100%;
+}
+html.light .wave-color-section {
+  --wave-cream: #f5efe8;
+  --wave-chocolate: #2c1810;
+}
+.wave-color-section__cream {
+  background: var(--wave-cream);
+}
+.wave-color-section__media {
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.12) contrast(1.03);
+}
+.wave-color-section__media-veil {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, #2c1810 18%, transparent) 0%,
+    color-mix(in srgb, #1a100c 35%, transparent) 100%
+  );
+}
+.wave-color-section__wave {
+  line-height: 0;
+  margin-top: -1px;
+  background: var(--wave-cream);
+}
+.wave-color-section__wave-fill {
+  fill: var(--wave-chocolate);
+}
+.wave-color-section__chocolate {
+  background: var(--wave-chocolate);
+  color: #f5efe8;
+}
+
+/* Cinematic film-scrub stage (Events) — left/right unite */
+.cinematic-scroll-stage {
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.cinematic-scroll-stage__pin {
+  isolation: isolate;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  contain: paint;
+}
+.cine-assemble {
+  visibility: hidden;
+  opacity: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  contain: paint;
+}
+.cine-side-left,
+.cine-side-right {
+  will-change: transform;
+}
+.cine-image-frame {
+  background-color: #1a100c;
+}
+.cine-seam,
+.cine-link {
+  will-change: transform, opacity;
+}
+.cine-hero-media,
+.cine-hero-copy,
+.cine-veil {
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cine-hero-copy {
+    opacity: 0 !important;
+  }
+  .cine-assemble {
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  .cine-side-left,
+  .cine-side-right,
+  .cine-seam,
+  .cine-link {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Scroll-down cue — reservations hero */
+@keyframes scroll-cue-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 1;
+  }
+}
+.scroll-down-cue__chevron {
+  animation: scroll-cue-bounce 1.6s ease-in-out infinite;
+}
+.scroll-down-cue__chevron--delay {
+  animation-delay: 0.22s;
+  margin-top: -14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-down-cue__chevron,
+  .scroll-down-cue__chevron--delay {
+    animation: none;
+    opacity: 0.85;
+  }
+  .scroll-footer-reveal {
+    transform: none !important;
+  }
+}
+
+/* Horizontal arrow carousel */
+.arrow-carousel__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-outline-variant) 55%, transparent);
+  background: var(--color-background);
+  color: var(--color-on-background);
+  transition:
+    border-color 350ms ease,
+    color 350ms ease,
+    background 350ms ease,
+    opacity 350ms ease;
+}
+.arrow-carousel__btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.arrow-carousel__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.arrow-carousel__card {
+  scroll-snap-align: start;
+}
+.arrow-carousel__track {
+  scroll-snap-type: x mandatory;
+}
+
+/* Venue hire — chocolate + cream room cards */
+.venue-room-card {
+  background: var(--color-background);
+  box-shadow: 0 20px 48px -28px rgba(26, 16, 12, 0.22);
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.55s ease-out;
+}
+.venue-room-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 56px -24px rgba(26, 16, 12, 0.32);
+}
+html.light .venue-room-card {
+  box-shadow: 0 18px 44px -26px rgba(58, 31, 34, 0.16);
+}
+.venue-room-card__body {
+  background: #f5efe8;
+  color: #2c1810;
+}
+html.dark .venue-room-card__body {
+  background: var(--color-surface-container-lowest);
+  color: var(--color-on-background);
+}
+.venue-room-card__footer {
+  background: linear-gradient(135deg, #2c1810 0%, #1a100c 100%);
+  color: #f5efe8;
+}
+.venue-room-card__veil {
+  background: linear-gradient(
+    180deg,
+    transparent 30%,
+    color-mix(in srgb, #1a100c 45%, transparent) 100%
+  );
+}
+.arrow-carousel__btn--chocolate {
+  border-color: rgba(212, 165, 116, 0.45);
+  background: #2c1810;
+  color: #f5efe8;
+}
+.arrow-carousel__btn--chocolate:hover:not(:disabled) {
+  border-color: #d4a574;
+  color: #d4a574;
+  background: #1a100c;
+}
+
+/* Live events — featured set cards on chocolate band */
+.events-feature-card {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.events-feature-card:hover {
+  transform: translateY(-6px);
+}
+/* Admin login — Doxa-style layered card (chocolate over white, different heights) */
+.admin-login__frame {
+  isolation: isolate;
+}
+.admin-login__visible-field {
+  color: #2c1810 !important;
+  -webkit-text-fill-color: #2c1810 !important;
+  font-size: 16px;
+  line-height: 1.4;
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+}
+.admin-login__input {
+  color: #2c1810 !important;
+  -webkit-text-fill-color: #2c1810 !important;
+  caret-color: #2c1810;
+  font-size: 16px !important;
+  opacity: 1 !important;
+}
+.admin-login__input::placeholder {
+  color: #2c1810 !important;
+  -webkit-text-fill-color: #2c1810 !important;
+  opacity: 0.85;
+}
+.admin-login__input:-webkit-autofill,
+.admin-login__input:-webkit-autofill:hover,
+.admin-login__input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #2c1810 !important;
+  color: #2c1810 !important;
+  box-shadow: 0 0 0 1000px #f8f3ed inset !important;
+  background-color: #f8f3ed !important;
+  transition: background-color 99999s ease-in-out 0s;
+}
+@media (min-width: 768px) {
+  .admin-login__brand {
+    clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 50%, calc(100% - 28px) 100%, 0 100%);
+  }
+}
+@media (max-width: 767px) {
+  .admin-login__brand {
+    clip-path: none;
+    min-height: 260px;
+  }
+  .admin-login__form {
+    border-radius: 28px;
+  }
+}
+
+/* Staff admin dashboard — Doxa-style shell, Sweet1ne chocolate/cream */
+.admin-shell {
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  --admin-sidebar: #2c1810;
+  --admin-bg: #efe8df;
+  --admin-surface: #ffffff;
+  --admin-ink: #2c1810;
+  --admin-muted: rgba(44, 24, 16, 0.55);
+  --admin-border: rgba(44, 24, 16, 0.12);
+  --admin-accent: #c45c3a;
+  --admin-gold: #d4a574;
+  background: var(--admin-bg);
+  color: var(--admin-ink);
+}
+.admin-shell--dark {
+  --admin-sidebar: #1a100c;
+  --admin-bg: #14100e;
+  --admin-surface: #221814;
+  --admin-ink: #f5efe8;
+  --admin-muted: rgba(245, 239, 232, 0.55);
+  --admin-border: rgba(245, 239, 232, 0.12);
+  --admin-accent: #c45c3a;
+  --admin-gold: #d4a574;
+}
+
+.admin-sidebar {
+  background: var(--admin-sidebar);
+  color: #f5efe8;
+  border: 0;
+  box-shadow: none;
+  isolation: isolate;
+  overflow: hidden;
+}
+.admin-main {
+  background: var(--admin-bg);
+  color: var(--admin-ink);
+  /* Pull flush against the sidebar so the active tab has no seam */
+  margin-left: 0;
+  box-shadow: none;
+  border: 0;
+}
+.admin-sidebar__logo-ring {
+  width: 64px;
+  height: auto;
+  min-height: 40px;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+.admin-sidebar--rail .admin-sidebar__logo-ring {
+  width: 44px;
+  height: auto;
+  min-height: 32px;
+}
+
+/* Sidebar nav — prefer no scroll; hide bar if content ever overflows */
+.admin-sidebar__nav {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.admin-sidebar__nav::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+.admin-sidebar__resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.admin-sidebar__resize:hover,
+.admin-sidebar__resize:focus-visible {
+  background: rgba(212, 165, 116, 0.35);
+}
+
+/* Doxa-style active nav cutout into the main panel */
+.admin-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.1rem 0;
+  padding: 0.7rem 1rem;
+  border-radius: 1.15rem 0 0 1.15rem;
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(245, 239, 232, 0.72);
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.admin-nav-item:hover {
+  color: #f5efe8;
+  background: rgba(255, 255, 255, 0.06);
+}
+.admin-nav-item--rail {
+  justify-content: center;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  margin-inline: 0.15rem;
+}
+.admin-nav-item--danger {
+  color: #f0a090;
+}
+.admin-nav-item--danger:hover {
+  color: #ffc4b8;
+  background: rgba(196, 92, 58, 0.12);
+}
+
+/* Profile / Sign out — separated footer strip */
+.admin-sidebar__footer {
+  margin-top: auto;
+  padding-top: 0.65rem;
+  padding-bottom: 0.85rem;
+  border-top: 1px solid rgba(245, 239, 232, 0.14);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.18) 0%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+}
+.admin-nav-item--footer {
+  margin-inline: 0;
+}
+.admin-sidebar--rail .admin-sidebar__footer {
+  padding-inline: 0.35rem;
+}
+.admin-nav-item--active {
+  background: var(--admin-bg);
+  color: var(--admin-ink);
+  z-index: 2;
+  /* Overlap the main pane so no hairline / scrollbar seam appears */
+  margin-right: -2px;
+  padding-right: calc(1rem + 2px);
+}
+.admin-nav-item--active:hover {
+  background: var(--admin-bg);
+  color: var(--admin-ink);
+}
+.admin-nav-item--active::before,
+.admin-nav-item--active::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  background: transparent;
+  pointer-events: none;
+  z-index: 2;
+}
+.admin-nav-item--active::before {
+  top: -18px;
+  border-bottom-right-radius: 18px;
+  box-shadow: 5px 5px 0 5px var(--admin-bg);
+}
+.admin-nav-item--active::after {
+  bottom: -18px;
+  border-top-right-radius: 18px;
+  box-shadow: 5px -5px 0 5px var(--admin-bg);
+}
+.admin-nav-item--rail.admin-nav-item--active::before,
+.admin-nav-item--rail.admin-nav-item--active::after {
+  display: none;
+}
+.admin-nav-item--rail.admin-nav-item--active {
+  border-radius: 1rem;
+}
+
+.admin-header {
+  background: var(--admin-bg);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-icon-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--admin-border);
+  background: color-mix(in srgb, var(--admin-surface) 70%, transparent);
+  color: var(--admin-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.admin-icon-btn:hover {
+  border-color: var(--admin-gold);
+}
+.admin-icon-btn--accent {
+  border-color: color-mix(in srgb, var(--admin-accent) 35%, transparent);
+  color: var(--admin-accent);
+}
+.admin-icon-btn--accent:hover {
+  background: color-mix(in srgb, var(--admin-accent) 12%, transparent);
+}
+
+/* Doxa-style sidebar collapse / expand control */
+.admin-collapse-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: color-mix(in srgb, var(--admin-ink) 45%, transparent);
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.admin-collapse-btn:hover {
+  color: var(--admin-ink);
+  background: color-mix(in srgb, var(--admin-ink) 6%, transparent);
+}
+.admin-shell--dark .admin-collapse-btn {
+  color: color-mix(in srgb, var(--admin-ink) 55%, transparent);
+}
+
+.admin-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  background: var(--admin-accent);
+  color: #fff;
+  padding: 0.55rem 0.95rem;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: opacity 0.2s ease;
+}
+.admin-btn-danger:hover {
+  opacity: 0.92;
+}
+.admin-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 9999px;
+  background: var(--admin-accent);
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 24px -12px rgba(196, 92, 58, 0.7);
+  transition: opacity 0.2s ease;
+}
+.admin-btn-primary:hover {
+  opacity: 0.92;
+}
+.admin-btn-ink {
+  border-radius: 9999px;
+  background: var(--admin-sidebar);
+  color: #f5efe8;
+  padding: 0.75rem 1.5rem;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: opacity 0.2s ease;
+}
+.admin-btn-ink:hover {
+  opacity: 0.92;
+}
+.admin-btn-ghost {
+  border-radius: 9999px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-ink);
+  padding: 0.75rem 1.5rem;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: border-color 0.2s ease;
+}
+.admin-btn-ghost:hover {
+  border-color: var(--admin-gold);
+}
+
+.admin-seg {
+  display: inline-flex;
+  padding: 0.2rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--admin-surface) 80%, var(--admin-bg));
+  border: 1px solid var(--admin-border);
+  gap: 0.15rem;
+}
+.admin-seg__btn {
+  border-radius: 9999px;
+  padding: 0.55rem 1.1rem;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--admin-accent);
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.admin-seg__btn--on {
+  background: var(--admin-accent);
+  color: #fff;
+}
+
+.admin-input {
+  width: 100%;
+  border-radius: 9999px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  color: var(--admin-ink);
+  outline: none;
+}
+.admin-input::placeholder {
+  color: var(--admin-muted);
+}
+.admin-input:focus {
+  border-color: var(--admin-gold);
+}
+
+.admin-panel {
+  border-radius: 1.15rem;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  box-shadow: 0 18px 40px -28px rgba(44, 24, 16, 0.4);
+}
+.admin-table-head {
+  border-bottom: 1px solid var(--admin-border);
+  background: color-mix(in srgb, var(--admin-bg) 65%, var(--admin-surface));
+}
+.admin-table-row {
+  border-bottom: 1px solid var(--admin-border);
+  transition: background 0.15s ease;
+}
+.admin-table-row:last-child {
+  border-bottom: 0;
+}
+.admin-table-row:hover {
+  background: color-mix(in srgb, var(--admin-bg) 55%, var(--admin-surface));
+}
+
+.admin-kpi {
+  border-radius: 1.15rem;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-left-width: 4px;
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 12px 30px -22px rgba(44, 24, 16, 0.35);
+}
+.admin-kpi--terracotta {
+  border-left-color: #c45c3a;
+  background: color-mix(in srgb, #c45c3a 8%, var(--admin-surface));
+}
+.admin-kpi--gold {
+  border-left-color: #d4a574;
+  background: color-mix(in srgb, #d4a574 10%, var(--admin-surface));
+}
+.admin-kpi--chocolate {
+  border-left-color: #2c1810;
+  background: color-mix(in srgb, #2c1810 6%, var(--admin-surface));
+}
+.admin-shell--dark .admin-kpi--chocolate {
+  border-left-color: #d4a574;
+}
+.admin-kpi--rose {
+  border-left-color: #c45c3a;
+  background: color-mix(in srgb, #e11d48 8%, var(--admin-surface));
+}
+
+@media (max-width: 767px) {
+  .admin-sidebar {
+    width: 272px !important;
+  }
+  .admin-sidebar__resize {
+    display: none;
+  }
+  .admin-nav-item--active::before,
+  .admin-nav-item--active::after {
+    display: none;
+  }
+  .admin-nav-item--active {
+    border-radius: 1.15rem;
+    margin-right: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-sidebar {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-swap > span,
+  .nav-rule::after,
+  .wordmark,
+  .nav-shell,
+  .nav-pip,
+  .lux-card,
+  .lux-card::after,
+  .lux-caption,
+  .lux-subcaption {
+    transition: none;
+  }
+  .lux-card:hover {
+    transform: none;
+  }
+  .lux-subcaption {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Neon logo plate.
+   The supplied artwork is a glowing white wordmark on a SOLID BLACK
+   ground (no alpha), so it can't simply be dropped onto a surface.
+   `screen` discards the black and keeps the glow on dark surfaces;
+   in the light theme the artwork is inverted first so `multiply` can
+   discard the (now white) ground instead.
+   --------------------------------------------------------------- */
+.logo-neon {
+  mix-blend-mode: screen;
+}
+html.light .logo-neon {
+  filter: invert(1);
+  mix-blend-mode: multiply;
+}
+
+/* Variant for surfaces that stay dark in BOTH themes — the chocolate
+   footer and the nav when it floats over hero photography. These must
+   keep screening, so the light-theme inversion is explicitly undone. */
+.logo-neon-dark,
+html.light .logo-neon-dark {
+  filter: none;
+  mix-blend-mode: screen;
+}
