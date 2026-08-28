@@ -1,6 +1,7 @@
 "use client";
 
 import CinematicScrollStage from "@/components/motion/CinematicScrollStage";
+import { DEFAULT_LIFESTYLE } from "@/lib/images";
 
 type SlideWavePanelProps = {
   imageSrc?: string;
@@ -15,7 +16,7 @@ type SlideWavePanelProps = {
 
 /** Events dinner block — resolve frame of the cinematic scroll stage. */
 export default function SlideWavePanel({
-  imageSrc = "/images/guests-toast.png",
+  imageSrc = DEFAULT_LIFESTYLE,
   ...rest
 }: SlideWavePanelProps) {
   return <CinematicScrollStage imageSrc={imageSrc} {...rest} />;

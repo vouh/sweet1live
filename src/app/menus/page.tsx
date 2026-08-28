@@ -11,13 +11,11 @@ import ImageHover from "@/components/motion/ImageHover";
 import ScrollMarquee from "@/components/motion/ScrollMarquee";
 import DrawLine from "@/components/motion/DrawLine";
 import Magnetic from "@/components/motion/Magnetic";
+import { IMG } from "@/lib/images";
 
-const HERO =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuARBmX0OnrI9S0itRNM4RflcJeluGpx6dqkUU4ZNh_o_Oyf5S_A5Hkws6JbNgGoVIVUI-0uyBiM0R0yTdx4lFCiUw29k4FUJoDeQ0b2NTcuw25Qc3FzTVgtJNAruCxEPRbNZpKxa-xhzPCCNH5TiCec8E9OOlPLD5bTMNIsQRZ_EE-jEWlyxd6Wdv8eAyZ0SZDyzUSztI5kOdq6Y457i_b9CKsuSybtzE4KZ1seA1gzzKzmEQVTtuM";
-const PLATING =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBmrCFAAPqoEJhX1LeNwItEkRJZ69ElcMZ0lmBbY6GCqask3tTZ8hxguYb5tiEkzzEOeEKTVkd74qYqk6eZTVn391_bKqArIZQqrbalvDeMhd54rAzdOxt0yiFiERAGqehBRVpexx13nv5ofCIBCjnmPYCZTFpk2K2x2iYcOE-r1Io_z4-QXEe7CAhD5y493hWcFtFXvP8yWb3WzLZZsSLNfJWwfpUqY763JWxSEebzK1rP3aaGJ-c";
-const CELLAR =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuCfxwU2V6zl1pvyDXYC16de0MgoBIcocj5kQ4fSxc0YXiAOBj27T0SqIVVLpaBfnDPglkAAtMEgaXj_0uYoG95cGQLc3jpE411877G2F4Z8OMRy3JhP2HzJ9zxN04QBz8fx3B6SSf3A8Z4_d0UxbRwzQKpyBoyQUV1h1XR9MANU3_7g2VS7NRuQpLzI00ysEOKjHkt5N5jWmr6f7T_HJFFuGqfEsLOyDFYRB8AsnbFAqLB1hTY2_nY";
+const HERO = IMG.dining;
+const PLATING = IMG.menuPlating;
+const CELLAR = IMG.menuCellar;
 
 type Dish = { name: string; tag?: string; description: string; price: string };
 

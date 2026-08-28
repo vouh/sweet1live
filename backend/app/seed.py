@@ -14,13 +14,13 @@ from app.database import engine
 from app.models import Event, Room, TicketType
 
 IMG = {
-    "main": "/images/rooms/main-room.jpg",
-    "lounge": "/images/rooms/the-lounge.jpg",
-    "cellar": "/images/rooms/the-cellar.jpg",
-    "alcove": "/images/rooms/the-alcove.jpg",
-    "snug": "/images/rooms/the-snug.jpg",
-    "gallery": "/images/rooms/the-gallery.jpg",
-    "atrium": "/images/rooms/private-dining.jpg",
+    "main": "/images/s1.jpg",
+    "lounge": "/images/s6.jpg",
+    "cellar": "/images/s9.jpg",
+    "alcove": "/images/s8.jpg",
+    "snug": "/images/s10.jpg",
+    "gallery": "/images/s11.jpg",
+    "atrium": "/images/s4.jpg",
 }
 
 # The seven bookable spaces. hire_fee_pence is the "from" figure on the card;
@@ -194,7 +194,7 @@ def seed(session: Session) -> None:
             "doors_at": _at(friday, 20, 0),
             "starts_at": _at(friday, 20, 30),
             "ends_at": _at(friday, 23, 0),
-            "image_url": "/images/events/blue-note-quintet.jpg",
+            "image_url": "/images/s5.jpg",
             "tickets": [
                 {"name": "General admission", "price_pence": 2500, "quantity_total": 180, "sort_order": 1,
                  "description": "Standing, main floor."},
@@ -214,7 +214,7 @@ def seed(session: Session) -> None:
             "doors_at": _at(saturday, 20, 30),
             "starts_at": _at(saturday, 21, 0),
             "ends_at": _at(saturday, 23, 30),
-            "image_url": "/images/events/velvet-sessions.jpg",
+            "image_url": "/images/s6.jpg",
             "tickets": [
                 {"name": "Lounge entry", "price_pence": 3500, "quantity_total": 60, "sort_order": 1,
                  "description": "Entry with standing room at the bar."},
@@ -234,7 +234,7 @@ def seed(session: Session) -> None:
             "doors_at": _at(friday + timedelta(weeks=1), 21, 0),
             "starts_at": _at(friday + timedelta(weeks=1), 21, 30),
             "ends_at": _at(friday + timedelta(weeks=1), 23, 30),
-            "image_url": "/images/events/cellar-sessions.jpg",
+            "image_url": "/images/s9.jpg",
             "tickets": [
                 {"name": "Seat & flight", "price_pence": 3000, "quantity_total": 45, "max_per_order": 4,
                  "sort_order": 1, "description": "Reserved seat with a four-glass tasting flight."},
@@ -249,7 +249,7 @@ def seed(session: Session) -> None:
             "doors_at": _at(friday + timedelta(weeks=2), 21, 30),
             "starts_at": _at(friday + timedelta(weeks=2), 22, 0),
             "ends_at": _at(friday + timedelta(weeks=2), 0, 30) + timedelta(days=1),
-            "image_url": "/images/events/last-orders-trio.jpg",
+            "image_url": "/images/s7.jpg",
             "tickets": [
                 {"name": "Late set", "price_pence": 2500, "quantity_total": 200, "sort_order": 1,
                  "description": "Standing, late licence."},

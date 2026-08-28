@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import StickyMediaBg from "@/components/StickyMediaBg";
+import { DEFAULT_LIFESTYLE } from "@/lib/images";
 
-const DEFAULT_IMAGE = "/images/guests-toast.png";
+const DEFAULT_IMAGE = DEFAULT_LIFESTYLE;
 
 /**
  * Sticky photo only — cream card scrolls over then off as the next section arrives.

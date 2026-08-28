@@ -11,11 +11,11 @@ import SplitReveal from "@/components/motion/SplitReveal";
 import ConversionBand from "@/components/ConversionBand";
 import { useAuthModal } from "@/components/AuthModalProvider";
 import { createReservation, type ActionState } from "@/lib/api";
+import { IMG } from "@/lib/images";
 
 const TIMES = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"];
 const UNAVAILABLE = new Set(["18:00"]);
-const HERO =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuC-J7OKNApbhSMjylLXw8z58YzjUzEwkwj9oLsQBNrNRYwbvz0mM0JMlB5KeOY777TSO7OOZ43y9Dg73hgN6dAS0TOCONmoKW1_sYYZq2cYuEwfOS2rHyQcElS5JUDvmriPHbTmI2Nlg1GnNLivFDTDb5YtUO1aM9egmqqWmGNuIPdld2ELO5FsuSvRHRID2oCCH1qY9hhkQTDK7bmeOUMIo1v8_gAMD0Ld6G8z70YDYnQOVV-dWqA";
+const HERO = IMG.reservations;
 
 const NOTES = [
   { icon: "schedule", text: "Tables held for 15 minutes past reservation time." },

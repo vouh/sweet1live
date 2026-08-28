@@ -3,6 +3,14 @@
 Website and booking platform for Sweet1ne LIVE — a Next.js front end over a FastAPI backend,
 with Stripe-powered event ticketing and deposit-backed hire across the venue's seven rooms.
 
+## Documentation
+
+| Doc | Contents |
+| ----- | ---------- |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, how to run backend/frontend, API overview, deploy |
+| [docs/DATA-MODEL.md](docs/DATA-MODEL.md) | All 14 tables, columns, PKs/FKs, ERDs |
+| [docs/DESIGN.md](docs/DESIGN.md) | Visual / UX design notes |
+
 ## Stack
 
 | Layer    | Tech                                                       |
@@ -16,18 +24,24 @@ with Stripe-powered event ticketing and deposit-backed hire across the venue's s
 
 ### Backend
 
+**One command** (from repo root — creates venv, installs deps, migrates, seeds, starts):
+
 ```bash
-cd backend
-python -m venv .venv
-.venv/Scripts/activate        # macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
-
-cp .env.example .env          # then fill in your Stripe test keys
-alembic upgrade head
-python -m app.seed            # seeds the seven rooms + a sample event season
-
-uvicorn app.main:app --reload # http://localhost:8000  (docs at /docs)
+npm run backend
 ```
+
+First time only: copy `.env.example` → `.env.local` and fill in `DATABASE_URL` (and Stripe keys when you need checkout).
+
+Manual setup if you prefer: see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+| URL | Purpose |
+| ----- | --------- |
+| http://localhost:8000 | API |
+| http://localhost:8000/docs | Swagger UI |
+| http://localhost:8000/health | Health check |
+
+Config is read from **repo root `.env.local`** (shared with Next.js) — not `backend/.env`.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full env variable list and Supabase setup.
 
 The API runs without Stripe configured — the catalogue reads fine, and only checkout
 returns 503 until `STRIPE_SECRET_KEY` is set.
@@ -48,7 +62,7 @@ npm run dev                   # http://localhost:3000
 stripe listen --forward-to localhost:8000/stripe/webhook
 ```
 
-Paste the printed `whsec_…` into `backend/.env` as `STRIPE_WEBHOOK_SECRET`.
+Paste the printed `whsec_…` into `.env.local` as `STRIPE_WEBHOOK_SECRET`.
 
 ## How payments work
 

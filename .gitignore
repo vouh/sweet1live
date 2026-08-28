@@ -31,10 +31,14 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env — single local secrets file at repo root (never commit)
+.env.local
 .env*
-# ...but the templates carry no secrets and belong in the repo.
 !.env.example
+
+# legacy / duplicate env files
+backend/.env
+backend/.env.local
 
 # vercel
 .vercel

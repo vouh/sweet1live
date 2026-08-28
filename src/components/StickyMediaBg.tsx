@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import LazyBackground from "@/components/LazyBackground";
 
 /**
  * Pins only the background image. Overlay children (cards / copy) scroll
@@ -9,19 +10,21 @@ export default function StickyMediaBg({
   children,
   className = "",
   align = "start",
+  priority = false,
 }: {
   image: string;
   children: ReactNode;
   className?: string;
-  /** Where the overlay sits within the first viewport of the sticky image. */
   align?: "start" | "center";
+  priority?: boolean;
 }) {
   return (
     <section className={`relative ${className}`}>
       <div className="sticky top-0 z-0 h-[75svh] md:h-[85svh] overflow-hidden">
-        <div
+        <LazyBackground
+          src={image}
+          priority={priority}
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url('${image}')` }}
         />
       </div>
 
@@ -38,9 +41,7 @@ export default function StickyMediaBg({
   );
 }
 
-/**
- * Sticky image column for editorial splits — photo holds while copy scrolls past.
- */
+/** Sticky image column for editorial splits — photo holds while copy scrolls past. */
 export function StickyImageColumn({
   image,
   className = "",
@@ -55,10 +56,7 @@ export function StickyImageColumn({
       className={`sticky-image-col relative md:sticky md:top-24 md:self-start h-[55vw] max-h-[420px] md:h-[min(72svh,640px)] md:max-h-none overflow-hidden hairline-gold ${className}`}
       data-side={side}
     >
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url('${image}')` }}
-      />
+      <LazyBackground src={image} className="absolute inset-0 bg-cover bg-center" />
     </div>
   );
 }

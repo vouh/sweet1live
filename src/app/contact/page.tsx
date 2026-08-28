@@ -10,11 +10,10 @@ import Magnetic from "@/components/motion/Magnetic";
 import SplitReveal from "@/components/motion/SplitReveal";
 import ConversionBand from "@/components/ConversionBand";
 import { createContactMessage, type ActionState } from "@/lib/api";
+import { IMG } from "@/lib/images";
 
-const HERO =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBlhQFhEJpm2y57yZR2c7KPzkHgS1xXnlD77H9Jbmmhr8BRFc33Hcl-zwwCkOP_QNzk73rcZpLfXpIxVnxobcuGqzcx-V7KjHbEdCwvTGQ3FC_k6Z4ti-VRR29dZcDxzqL5RVOUzNpCdeidde8joP281yACreKftBEIsAfZl_n7CL96aVLj8lgvIFoh7uwrHO3A9oJQukzmtId7OOAuHMK23y6lcGFIxn8ymj2AVVrQ8-7qLaFEuaw";
-
-const LIFESTYLE = "/images/guests-toast.png";
+const HERO = IMG.contact;
+const LIFESTYLE = IMG.guests;
 
 const DETAILS = [
   { icon: "call", label: "Telephone", value: "+44 20 0000 0000" },

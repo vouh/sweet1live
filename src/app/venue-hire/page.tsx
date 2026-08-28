@@ -12,16 +12,7 @@ import SplitReveal from "@/components/motion/SplitReveal";
 import ScrollMarquee from "@/components/motion/ScrollMarquee";
 import ConversionBand from "@/components/ConversionBand";
 import { createVenueEnquiry, type ActionState } from "@/lib/api";
-
-const IMG = {
-  hero: "https://lh3.googleusercontent.com/aida-public/AB6AXuC-J7OKNApbhSMjylLXw8z58YzjUzEwkwj9oLsQBNrNRYwbvz0mM0JMlB5KeOY777TSO7OOZ43y9Dg73hgN6dAS0TOCONmoKW1_sYYZq2cYuEwfOS2rHyQcElS5JUDvmriPHbTmI2Nlg1GnNLivFDTDb5YtUO1aM9egmqqWmGNuIPdld2ELO5FsuSvRHRID2oCCH1qY9hhkQTDK7bmeOUMIo1v8_gAMD0Ld6G8z70YDYnQOVV-dWqA",
-  alcove:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuBmrCFAAPqoEJhX1LeNwItEkRJZ69ElcMZ0lmBbY6GCqask3tTZ8hxguYb5tiEkzzEOeEKTVkd74qYqk6eZTVn391_bKqArIZQqrbalvDeMhd54rAzdOxt0yiFiERAGqehBRVpexx13nv5ofCIBCjnmPYCZTFpk2K2x2iYcOE-r1Io_z4-QXEe7CAhD5y493hWcFtFXvP8yWb3WzLZZsSLNfJWwfpUqY763JWxSEebzK1rP3aaGJ-c",
-  lounge:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuCfxwU2V6zl1pvyDXYC16de0MgoBIcocj5kQ4fSxc0YXiAOBj27T0SqIVVLpaBfnDPglkAAtMEgaXj_0uYoG95cGQLc3jpE411877G2F4Z8OMRy3JhP2HzJ9zxN04QBz8fx3B6SSf3A8Z4_d0UxbRwzQKpyBoyQUV1h1XR9MANU3_7g2VS7NRuQpLzI00ysEOKjHkt5N5jWmr6f7T_HJFFuGqfEsLOyDFYRB8AsnbFAqLB1hTY2_nY",
-  pour: "https://lh3.googleusercontent.com/aida-public/AB6AXuCNmwW-zXR6NIL6kJPw5-SIR_HoLp9u2UqU_39h5p66jdzG2UOCdLBSVMrczxjol5gdWDwDUFHRN-2xdLHtII-KAAH-09lUkHmsNFYmYLkWuzRfFD__A-YzsCa_YYJnm634PDJjvHiAbauNrLk5QpSvvDzLRWpCdC4GRftnIvK_o2Kfj-En5a_Nb6wKeRxILQ6nvoBN5NOxW5jF-3InrRB0IPgIsxwar2pSEgmI2xf7LvUMsgG2Nuk",
-  toast: "/images/guests-toast.png",
-};
+import { IMG } from "@/lib/images";
 
 const SPACES = [
   {
@@ -31,7 +22,7 @@ const SPACES = [
     body: "Impress clients with cinematic atmosphere, state-of-the-art AV, and bespoke catering for high-end gatherings.",
     capacity: "Up to 250 guests",
     icon: "groups",
-    image: IMG.hero,
+    image: IMG.venueSpace1,
     reverse: false,
   },
   {
@@ -41,7 +32,7 @@ const SPACES = [
     body: "Secluded elegance for intimate tasting menus, milestone toasts, and conversations that deserve the room.",
     capacity: "Up to 24 guests",
     icon: "restaurant",
-    image: IMG.alcove,
+    image: IMG.venueSpace2,
     reverse: true,
   },
   {
@@ -51,7 +42,7 @@ const SPACES = [
     body: "Curated bottle service, premium booths, and live rhythm — celebrate with sophistication and energy.",
     capacity: "Up to 80 guests",
     icon: "local_bar",
-    image: IMG.lounge,
+    image: IMG.venueSpace3,
     reverse: false,
   },
 ];
@@ -91,7 +82,7 @@ export default function VenueHirePage() {
       <main className="bg-surface-container-lowest">
         {/* Arched sticky hero */}
         <header className="contact-arch-hero">
-          <div className="contact-arch-hero__image" style={{ backgroundImage: `url('${IMG.hero}')` }} />
+          <div className="contact-arch-hero__image" style={{ backgroundImage: `url('${IMG.venue}')` }} />
           <div className="contact-arch-hero__veil" />
           <div className="relative z-10 text-center px-margin-mobile md:px-gutter max-w-4xl mx-auto pt-24 pb-28">
             <Reveal variant="blur">
@@ -233,11 +224,11 @@ export default function VenueHirePage() {
             <div className="grid grid-cols-2 gap-4">
               <div
                 className="aspect-[3/4] bg-cover bg-center col-span-1"
-                style={{ backgroundImage: `url('${IMG.pour}')` }}
+                style={{ backgroundImage: `url('${IMG.collageA}')` }}
               />
               <div
                 className="aspect-[3/4] bg-cover bg-center col-span-1 mt-8"
-                style={{ backgroundImage: `url('${IMG.toast}')` }}
+                style={{ backgroundImage: `url('${IMG.collageB}')` }}
               />
             </div>
           </div>
@@ -250,7 +241,7 @@ export default function VenueHirePage() {
               <div className="grid grid-cols-1 lg:grid-cols-5">
                 <div
                   className="hidden lg:block lg:col-span-2 bg-cover bg-center min-h-[320px]"
-                  style={{ backgroundImage: `url('${IMG.alcove}')` }}
+                  style={{ backgroundImage: `url('${IMG.collageC}')` }}
                 />
                 <div className="lg:col-span-3 p-8 md:p-12 lg:p-14">
                   {state.success ? (

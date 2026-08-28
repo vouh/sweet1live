@@ -4,9 +4,9 @@ import { FormEvent, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useAuthModal } from "@/components/AuthModalProvider";
 import { loginAccount, registerAccount } from "@/lib/api";
+import { IMG } from "@/lib/images";
 
-const DOOR_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBlhQFhEJpm2y57yZR2c7KPzkHgS1xXnlD77H9Jbmmhr8BRFc33Hcl-zwwCkOP_QNzk73rcZpLfXpIxVnxobcuGqzcx-V7KjHbEdCwvTGQ3FC_k6Z4ti-VRR29dZcDxzqL5RVOUzNpCdeidde8joP281yACreKftBEIsAfZl_n7CL96aVLj8lgvIFoh7uwrHO3A9oJQukzmtId7OOAuHMK23y6lcGFIxn8ymj2AVVrQ8-7qLaFEuaw";
+const DOOR_IMAGE = IMG.auth;
 
 export default function AuthModal() {
   const { view, open, close } = useAuthModal();

@@ -7,6 +7,7 @@ import AuthModal from "@/components/AuthModal";
 import SmoothScroll from "@/components/motion/SmoothScroll";
 import ScrollProgress from "@/components/motion/ScrollProgress";
 import { themeInitScript } from "@/lib/theme";
+import { PRELOAD_HERO } from "@/lib/images";
 import "./globals.css";
 
 const bodoniModa = Bodoni_Moda({
@@ -48,6 +49,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <link rel="preload" as="image" href={PRELOAD_HERO} fetchPriority="high" />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {/* Material Symbols is an icon font with no next/font support; loaded globally here. */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}

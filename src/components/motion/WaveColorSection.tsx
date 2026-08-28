@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import Magnetic from "@/components/motion/Magnetic";
+import { DEFAULT_LIFESTYLE } from "@/lib/images";
 
 type WaveColorSectionProps = {
   imageSrc?: string;
@@ -27,7 +28,7 @@ type WaveColorSectionProps = {
  * Events uses CinematicScrollStage for the scroll = film scrub experience.
  */
 export default function WaveColorSection({
-  imageSrc = "/images/guests-toast.png",
+  imageSrc = DEFAULT_LIFESTYLE,
   panelEyebrow = "Dinner and a set",
   panelTitle = "The best seats are at the table",
   panelBody = "Book a table for a performance night and you keep it through the last set — no queue, no standing, no rush to leave.",

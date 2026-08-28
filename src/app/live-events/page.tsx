@@ -13,77 +13,23 @@ import MaskReveal from "@/components/motion/MaskReveal";
 import ImageHover from "@/components/motion/ImageHover";
 import DrawLine from "@/components/motion/DrawLine";
 import Magnetic from "@/components/motion/Magnetic";
+import StripPhoto from "@/components/StripPhoto";
+import { GALLERY_STRIP, IMG } from "@/lib/images";
 
-const IMG = {
-  jazz: "https://lh3.googleusercontent.com/aida-public/AB6AXuCVhAiNHJx7FH6zKDkxgIRRLQAaayI4td4mmoO0npLHb1Ve0BOF6Saxf8ZC4xhtI_uVrELRLslEj4WsPhIflZTxYGijTWFz9BVPRbx6LrJQuR0vPLgYU98HeH3PYtG26qdwE1UGVMFGry4BsVUK6qWFTe9FRwLINU_y5BebXNNSnY1fAU1SxaCyoGpKJ2xsNOgoltaG0FfAQi3CARoPJ8vjnqgP7_uqK9Ry1nHZT5TkkYMwTj4RhGE",
-  lounge:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuDSyE7FQAAqizrarMWJj1nVh1W6V581EpPcjhRCc0X2jQZpQyOqqeC-BdmMJyedcvcqWcyP36_FtSv-EVkOiwHjXl39WKNJnE-Tf2I-HS0H6UxOnWoQniw7GRsLZr4XkZMEu7T6RpR4dmiAm-EwncrjjNJTQApiFq0MDbFz4CkRdwpNe90tAN9DBiCDMiE1Q98xES8P8iaVmlVqMTffH8kHdO5ac-epNzcIlRhIQYrfGqAG-8z4lgc",
-  bar: "https://lh3.googleusercontent.com/aida-public/AB6AXuBlhQFhEJpm2y57yZR2c7KPzkHgS1xXnlD77H9Jbmmhr8BRFc33Hcl-zwwCkOP_QNzk73rcZpLfXpIxVnxobcuGqzcx-V7KjHbEdCwvTGQ3FC_k6Z4ti-VRR29dZcDxzqL5RVOUzNpCdeidde8joP281yACreKftBEIsAfZl_n7CL96aVLj8lgvIFoh7uwrHO3A9oJQukzmtId7OOAuHMK23y6lcGFIxn8ymj2AVVrQ8-7qLaFEuaw",
-  alcove:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuBmrCFAAPqoEJhX1LeNwItEkRJZ69ElcMZ0lmBbY6GCqask3tTZ8hxguYb5tiEkzzEOeEKTVkd74qYqk6eZTVn391_bKqArIZQqrbalvDeMhd54rAzdOxt0yiFiERAGqehBRVpexx13nv5ofCIBCjnmPYCZTFpk2K2x2iYcOE-r1Io_z4-QXEe7CAhD5y493hWcFtFXvP8yWb3WzLZZsSLNfJWwfpUqY763JWxSEebzK1rP3aaGJ-c",
-  cellar:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuCfxwU2V6zl1pvyDXYC16de0MgoBIcocj5kQ4fSxc0YXiAOBj27T0SqIVVLpaBfnDPglkAAtMEgaXj_0uYoG95cGQLc3jpE411877G2F4Z8OMRy3JhP2HzJ9zxN04QBz8fx3B6SSf3A8Z4_d0UxbRwzQKpyBoyQUV1h1XR9MANU3_7g2VS7NRuQpLzI00ysEOKjHkt5N5jWmr6f7T_HJFFuGqfEsLOyDFYRB8AsnbFAqLB1hTY2_nY",
-  room: "https://lh3.googleusercontent.com/aida-public/AB6AXuC-J7OKNApbhSMjylLXw8z58YzjUzEwkwj9oLsQBNrNRYwbvz0mM0JMlB5KeOY777TSO7OOZ43y9Dg73hgN6dAS0TOCONmoKW1_sYYZq2cYuEwfOS2rHyQcElS5JUDvmriPHbTmI2Nlg1GnNLivFDTDb5YtUO1aM9egmqqWmGNuIPdld2ELO5FsuSvRHRID2oCCH1qY9hhkQTDK7bmeOUMIo1v8_gAMD0Ld6G8z70YDYnQOVV-dWqA",
-};
-
-const STRIP = [IMG.jazz, IMG.lounge, IMG.bar, IMG.room, "/images/guests-toast.png", IMG.alcove];
+const STRIP = GALLERY_STRIP;
 
 const FEATURED = [
-  {
-    image: IMG.jazz,
-    act: "Blue Note Quintet",
-    genre: "Modal jazz · Hard bop",
-    meta: "Fri 15 Nov · Main Room · 20:30",
-    price: "From £25",
-  },
-  {
-    image: IMG.lounge,
-    act: "Velvet Sessions",
-    genre: "Soul · R&B",
-    meta: "Sat 16 Nov · The Lounge · 21:00",
-    price: "From £35",
-  },
-  {
-    image: IMG.cellar,
-    act: "Cellar Sessions",
-    genre: "Acoustic · Tasting",
-    meta: "Fri 13 Dec · The Cellar · 21:30",
-    price: "From £30",
-  },
-  {
-    image: IMG.bar,
-    act: "The Last Orders Trio",
-    genre: "Standards",
-    meta: "Fri 6 Dec · Main Room · 22:00",
-    price: "From £25",
-  },
+  { image: IMG.featured1, act: "Blue Note Quintet", genre: "Modal jazz · Hard bop", meta: "Fri 15 Nov · Main Room · 20:30", price: "From £25" },
+  { image: IMG.featured2, act: "Velvet Sessions", genre: "Soul · R&B", meta: "Sat 16 Nov · The Lounge · 21:00", price: "From £35" },
+  { image: IMG.featured3, act: "Cellar Sessions", genre: "Acoustic · Tasting", meta: "Fri 13 Dec · The Cellar · 21:30", price: "From £30" },
+  { image: IMG.featured4, act: "The Last Orders Trio", genre: "Standards", meta: "Fri 6 Dec · Main Room · 22:00", price: "From £25" },
 ];
 
 const PERFORMERS = [
-  {
-    image: IMG.jazz,
-    name: "Marcus Adeyemi",
-    role: "Tenor saxophone",
-    bio: "Leads the Friday quintet — never the same solo twice.",
-  },
-  {
-    image: IMG.lounge,
-    name: "Nina Calloway",
-    role: "Vocals",
-    bio: "Soul standards at half tempo. Holds a room without raising her voice.",
-  },
-  {
-    image: IMG.alcove,
-    name: "Tomas Brandt",
-    role: "Piano",
-    bio: "Classically trained, jazz-ruined. Tuesdays in the Alcove.",
-  },
-  {
-    image: IMG.bar,
-    name: "The Last Orders",
-    role: "Trio",
-    bio: "Standards until close — brass, brushes, and nowhere else to be.",
-  },
+  { image: IMG.performer1, name: "Marcus Adeyemi", role: "Tenor saxophone", bio: "Leads the Friday quintet — never the same solo twice." },
+  { image: IMG.performer2, name: "Nina Calloway", role: "Vocals", bio: "Soul standards at half tempo. Holds a room without raising her voice." },
+  { image: IMG.performer3, name: "Tomas Brandt", role: "Piano", bio: "Classically trained, jazz-ruined. Tuesdays in the Alcove." },
+  { image: IMG.performer4, name: "The Last Orders", role: "Trio", bio: "Standards until close — brass, brushes, and nowhere else to be." },
 ];
 
 export default function LiveEventsPage() {
@@ -92,7 +38,7 @@ export default function LiveEventsPage() {
       <Nav active="/live-events" overlay />
       <main className="flex-grow">
         {/* Cinematic film scrub: hero → dolly → dinner resolve */}
-        <CinematicScrollStage imageSrc={IMG.lounge} />
+        <CinematicScrollStage imageSrc={IMG.liveHero} />
 
         <div className="relative z-10 bg-background">
           {/* Marquee rhythm band */}
@@ -136,7 +82,7 @@ export default function LiveEventsPage() {
                     <Parallax className="h-full w-full" speed={0.12}>
                       <div
                         className="h-full w-full bg-cover bg-center"
-                        style={{ backgroundImage: `url('${IMG.jazz}')` }}
+                        style={{ backgroundImage: `url('${IMG.liveJazz}')` }}
                       />
                     </Parallax>
                   </ImageHover>
@@ -158,7 +104,7 @@ export default function LiveEventsPage() {
                     <Parallax className="h-full w-full" speed={0.12}>
                       <div
                         className="h-full w-full bg-cover bg-center"
-                        style={{ backgroundImage: `url('${IMG.bar}')` }}
+                        style={{ backgroundImage: `url('${IMG.liveBar}')` }}
                       />
                     </Parallax>
                   </ImageHover>
@@ -249,18 +195,13 @@ export default function LiveEventsPage() {
               >
                 {STRIP.map((src, i) => (
                   <Reveal
-                    key={src}
+                    key={`${src}-${i}`}
                     delay={i * 70}
                     variant="up"
                     className={`shrink-0 ${i % 2 === 0 ? "md:translate-y-6" : "md:-translate-y-4"}`}
                   >
                     <div className="lux-card relative aspect-square w-[70vw] sm:w-[280px] md:w-[260px] overflow-hidden">
-                      <ImageHover className="absolute inset-0" strength={10}>
-                        <div
-                          className="absolute inset-0 bg-cover bg-center"
-                          style={{ backgroundImage: `url('${src}')` }}
-                        />
-                      </ImageHover>
+                      <StripPhoto src={src} />
                     </div>
                   </Reveal>
                 ))}

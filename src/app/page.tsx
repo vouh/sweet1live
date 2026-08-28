@@ -11,21 +11,8 @@ import MaskReveal from "@/components/motion/MaskReveal";
 import ScrollMarquee from "@/components/motion/ScrollMarquee";
 import BrandCloser, { FooterFlyover } from "@/components/BrandCloser";
 import StickyMediaBg, { StickyImageColumn } from "@/components/StickyMediaBg";
-
-const IMG = {
-  bar: "https://lh3.googleusercontent.com/aida-public/AB6AXuBlhQFhEJpm2y57yZR2c7KPzkHgS1xXnlD77H9Jbmmhr8BRFc33Hcl-zwwCkOP_QNzk73rcZpLfXpIxVnxobcuGqzcx-V7KjHbEdCwvTGQ3FC_k6Z4ti-VRR29dZcDxzqL5RVOUzNpCdeidde8joP281yACreKftBEIsAfZl_n7CL96aVLj8lgvIFoh7uwrHO3A9oJQukzmtId7OOAuHMK23y6lcGFIxn8ymj2AVVrQ8-7qLaFEuaw",
-  wagyu:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuARBmX0OnrI9S0itRNM4RflcJeluGpx6dqkUU4ZNh_o_Oyf5S_A5Hkws6JbNgGoVIVUI-0uyBiM0R0yTdx4lFCiUw29k4FUJoDeQ0b2NTcuw25Qc3FzTVgtJNAruCxEPRbNZpKxa-xhzPCCNH5TiCec8E9OOlPLD5bTMNIsQRZ_EE-jEWlyxd6Wdv8eAyZ0SZDyzUSztI5kOdq6Y457i_b9CKsuSybtzE4KZ1seA1gzzKzmEQVTtuM",
-  jazz: "https://lh3.googleusercontent.com/aida-public/AB6AXuCVhAiNHJx7FH6zKDkxgIRRLQAaayI4td4mmoO0npLHb1Ve0BOF6Saxf8ZC4xhtI_uVrELRLslEj4WsPhIflZTxYGijTWFz9BVPRbx6LrJQuR0vPLgYU98HeH3PYtG26qdwE1UGVMFGry4BsVUK6qWFTe9FRwLINU_y5BebXNNSnY1fAU1SxaCyoGpKJ2xsNOgoltaG0FfAQi3CARoPJ8vjnqgP7_uqK9Ry1nHZT5TkkYMwTj4RhGE",
-  lounge:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuDSyE7FQAAqizrarMWJj1nVh1W6V581EpPcjhRCc0X2jQZpQyOqqeC-BdmMJyedcvcqWcyP36_FtSv-EVkOiwHjXl39WKNJnE-Tf2I-HS0H6UxOnWoQniw7GRsLZr4XkZMEu7T6RpR4dmiAm-EwncrjjNJTQApiFq0MDbFz4CkRdwpNe90tAN9DBiCDMiE1Q98xES8P8iaVmlVqMTffH8kHdO5ac-epNzcIlRhIQYrfGqAG-8z4lgc",
-  alcove:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuBmrCFAAPqoEJhX1LeNwItEkRJZ69ElcMZ0lmBbY6GCqask3tTZ8hxguYb5tiEkzzEOeEKTVkd74qYqk6eZTVn391_bKqArIZQqrbalvDeMhd54rAzdOxt0yiFiERAGqehBRVpexx13nv5ofCIBCjnmPYCZTFpk2K2x2iYcOE-r1Io_z4-QXEe7CAhD5y493hWcFtFXvP8yWb3WzLZZsSLNfJWwfpUqY763JWxSEebzK1rP3aaGJ-c",
-  cellar:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuCfxwU2V6zl1pvyDXYC16de0MgoBIcocj5kQ4fSxc0YXiAOBj27T0SqIVVLpaBfnDPglkAAtMEgaXj_0uYoG95cGQLc3jpE411877G2F4Z8OMRy3JhP2HzJ9zxN04QBz8fx3B6SSf3A8Z4_d0UxbRwzQKpyBoyQUV1h1XR9MANU3_7g2VS7NRuQpLzI00ysEOKjHkt5N5jWmr6f7T_HJFFuGqfEsLOyDFYRB8AsnbFAqLB1hTY2_nY",
-  pour: "https://lh3.googleusercontent.com/aida-public/AB6AXuCNmwW-zXR6NIL6kJPw5-SIR_HoLp9u2UqU_39h5p66jdzG2UOCdLBSVMrczxjol5gdWDwDUFHRN-2xdLHtII-KAAH-09lUkHmsNFYmYLkWuzRfFD__A-YzsCa_YYJnm634PDJjvHiAbauNrLk5QpSvvDzLRWpCdC4GRftnIvK_o2Kfj-En5a_Nb6wKeRxILQ6nvoBN5NOxW5jF-3InrRB0IPgIsxwar2pSEgmI2xf7LvUMsgG2Nuk",
-  room: "https://lh3.googleusercontent.com/aida-public/AB6AXuC-J7OKNApbhSMjylLXw8z58YzjUzEwkwj9oLsQBNrNRYwbvz0mM0JMlB5KeOY777TSO7OOZ43y9Dg73hgN6dAS0TOCONmoKW1_sYYZq2cYuEwfOS2rHyQcElS5JUDvmriPHbTmI2Nlg1GnNLivFDTDb5YtUO1aM9egmqqWmGNuIPdld2ELO5FsuSvRHRID2oCCH1qY9hhkQTDK7bmeOUMIo1v8_gAMD0Ld6G8z70YDYnQOVV-dWqA",
-};
+import StripPhoto from "@/components/StripPhoto";
+import { GALLERY_STRIP, IMG } from "@/lib/images";
 
 const BEST_SELLERS = [
   { image: IMG.cellar, name: "Château Margaux", meta: "2015 · Bordeaux", price: "£240" },
@@ -33,58 +20,16 @@ const BEST_SELLERS = [
   { image: IMG.alcove, name: "Black Truffle Tagliatelle", meta: "Hand-rolled", price: "£28" },
 ];
 
-const STRIP = [
-  IMG.bar,
-  IMG.jazz,
-  IMG.lounge,
-  IMG.alcove,
-  "/images/guests-toast.png",
-  IMG.cellar,
-  IMG.pour,
-];
+const STRIP = GALLERY_STRIP;
 
-/** Editorial gallery — staggered heights + alternating captions + outer tilts. */
 const EXPERIENCES = [
-  {
-    image: IMG.jazz,
-    label: "Live Lounge Experience",
-    href: "/live-events",
-    caption: "below" as const,
-    tilt: "left" as const,
-    level: "low" as const,
-  },
-  {
-    image: IMG.wagyu,
-    label: "Fine Dining Cuisine",
-    href: "/menus",
-    caption: "above" as const,
-    tilt: "none" as const,
-    level: "high" as const,
-  },
-  {
-    image: IMG.bar,
-    label: "Signature Cocktails",
-    href: "/menus",
-    caption: "below" as const,
-    tilt: "none" as const,
-    level: "low" as const,
-  },
-  {
-    image: IMG.alcove,
-    label: "Private Dining Rooms",
-    href: "/venue-hire",
-    caption: "above" as const,
-    tilt: "none" as const,
-    level: "high" as const,
-  },
-  {
-    image: IMG.cellar,
-    label: "Wine & Spirits Selection",
-    href: "/venue-hire",
-    caption: "below" as const,
-    tilt: "right" as const,
-    level: "low" as const,
-  },
+  { image: IMG.jazz, label: "Live Lounge Experience", href: "/live-events", caption: "below" as const, tilt: "left" as const, level: "low" as const },
+  { image: IMG.wagyu, label: "Fine Dining Cuisine", href: "/menus", caption: "above" as const, tilt: "none" as const, level: "high" as const },
+  { image: IMG.bar, label: "Signature Cocktails", href: "/menus", caption: "below" as const, tilt: "none" as const, level: "low" as const },
+  { image: IMG.alcove, label: "Private Dining Rooms", href: "/venue-hire", caption: "above" as const, tilt: "none" as const, level: "high" as const },
+  { image: IMG.cellar, label: "Wine & Spirits Selection", href: "/venue-hire", caption: "below" as const, tilt: "right" as const, level: "low" as const },
+  { image: IMG.experience5, label: "Late Night Atmosphere", href: "/live-events", caption: "above" as const, tilt: "none" as const, level: "high" as const },
+  { image: IMG.experience6, label: "Celebrations & Toasts", href: "/reservations", caption: "below" as const, tilt: "left" as const, level: "low" as const },
 ];
 
 export default function HomePage() {
@@ -96,7 +41,7 @@ export default function HomePage() {
         <section className="sticky top-0 z-0 h-[100svh] flex flex-col justify-center overflow-hidden">
           <div
             className="absolute inset-0 bg-cover bg-center slow-pan"
-            style={{ backgroundImage: `url('${IMG.bar}')` }}
+            style={{ backgroundImage: `url('${IMG.hero}')` }}
           />
 
           <div className="relative z-10 w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter text-center flex flex-col items-center">
@@ -156,7 +101,7 @@ export default function HomePage() {
 
             <div className="order-1 md:order-2">
               <MaskReveal>
-                <StickyImageColumn image={IMG.wagyu} side="right" />
+                <StickyImageColumn image={IMG.stickyA} side="right" />
               </MaskReveal>
             </div>
           </div>
@@ -178,7 +123,7 @@ export default function HomePage() {
           <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 md:items-start">
             <div>
               <MaskReveal>
-                <StickyImageColumn image={IMG.pour} side="left" />
+                <StickyImageColumn image={IMG.stickyB} side="left" />
               </MaskReveal>
             </div>
 
@@ -258,7 +203,7 @@ export default function HomePage() {
         </section>
 
         {/* ---------- Social toast — only the photo sticks; cream card scrolls off ---------- */}
-        <StickyMediaBg image="/images/guests-toast.png">
+        <StickyMediaBg image={IMG.bandA}>
           <Reveal variant="blur">
             <div className="max-w-xl bg-background p-8 md:p-12 hairline-gold">
               <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest block mb-4">
@@ -319,17 +264,12 @@ export default function HomePage() {
           >
             {STRIP.map((src, i) => (
               <div
-                key={src}
+                key={`${src}-${i}`}
                 className={`lux-card relative aspect-[4/5] w-[82vw] sm:w-[52vw] md:w-[360px] lg:w-[400px] shrink-0 overflow-hidden ${
                   i % 2 === 0 ? "md:translate-y-4" : "md:-translate-y-3"
                 }`}
               >
-                <ImageHover className="absolute inset-0" strength={10}>
-                  <div
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url('${src}')` }}
-                  />
-                </ImageHover>
+                <StripPhoto src={src} />
               </div>
             ))}
           </HorizontalScroll>
@@ -417,7 +357,7 @@ export default function HomePage() {
         </section>
 
         {/* ---------- Booking banner — sticky photo only; copy scrolls over then off ---------- */}
-        <StickyMediaBg image={IMG.room} align="center">
+        <StickyMediaBg image={IMG.bandB} align="center">
           <Reveal
             variant="blur"
             className="on-media max-w-3xl mx-auto text-center drop-shadow-[0_2px_24px_rgba(0,0,0,0.85)]"
