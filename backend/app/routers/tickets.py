@@ -4,24 +4,17 @@ Gated on a shared staff key rather than guest JWTs — the door tablet is not a
 guest account.
 """
 
-import secrets
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, SQLModel, select
 
-from app.config import settings
+from app.auth import require_staff
 from app.database import get_db
 from app.fulfilment import serialize_ticket
 from app.models import Event, Ticket, TicketPublic
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
-
-
-def require_staff(x_staff_key: str | None = Header(default=None, alias="X-Staff-Key")) -> None:
-    # compare_digest keeps the check constant-time.
-    if not x_staff_key or not secrets.compare_digest(x_staff_key, settings.staff_api_key):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Staff key required")
 
 
 class CheckInRequest(SQLModel):

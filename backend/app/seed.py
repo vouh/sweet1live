@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from sqlmodel import Session, SQLModel, select
 
 from app.database import engine
-from app.models import Event, Room, TicketType
+from app.models import Event, MenuItem, Room, TicketType
 
 IMG = {
     "main": "/images/s1.jpg",
@@ -144,6 +144,86 @@ ROOMS: list[dict] = [
         "image_url": IMG["atrium"],
         "features": "Chef's table,Bespoke menu,AV for speeches,Private cloakroom,Step-free access",
         "sort_order": 7,
+    },
+]
+
+
+# The card as it reads on the public menus page. Prices in pence, like
+# everything else that touches money.
+MENU_ITEMS: list[dict] = [
+    {
+        "course": "Small Plates",
+        "name": "Truffle Arancini",
+        "tag": "VG",
+        "description": (
+            "Crispy wild mushroom risotto balls with a molten mozzarella centre, "
+            "over black truffle aioli."
+        ),
+        "price_pence": 1400,
+        "sort_order": 1,
+    },
+    {
+        "course": "Small Plates",
+        "name": "Scallop Crudo",
+        "tag": "GF",
+        "description": "Hand-dived scallops, dressed with yuzu kosho, finger lime, and estate olive oil.",
+        "price_pence": 1800,
+        "sort_order": 2,
+    },
+    {
+        "course": "Small Plates",
+        "name": "Charred Octopus",
+        "tag": "GF",
+        "description": "Slow-braised then wood-fired octopus, smoked paprika potato purée, caper salsa verde.",
+        "price_pence": 2200,
+        "sort_order": 3,
+    },
+    {
+        "course": "Mains",
+        "name": "Miso Black Cod",
+        "description": (
+            "Sustainably sourced black cod in sweet Saikyo miso, roasted until caramelised, "
+            "with pickled ginger shoot."
+        ),
+        "price_pence": 4200,
+        "sort_order": 1,
+    },
+    {
+        "course": "Mains",
+        "name": "Dry-Aged Ribeye",
+        "tag": "GF",
+        "description": "35-day dry-aged British ribeye, charcoal grilled, bone marrow butter and watercress. 300g.",
+        "price_pence": 5500,
+        "sort_order": 2,
+    },
+    {
+        "course": "Mains",
+        "name": "Black Truffle Tagliatelle",
+        "tag": "VG",
+        "description": "Hand-rolled pasta folded through aged parmesan cream, finished with shaved winter truffle.",
+        "price_pence": 2800,
+        "sort_order": 3,
+    },
+    {
+        "course": "The Cellar",
+        "name": "Château Margaux 2015",
+        "description": "Bordeaux, France. Cassis, violet, and a long graphite finish.",
+        "price_pence": 24000,
+        "sort_order": 1,
+    },
+    {
+        "course": "The Cellar",
+        "name": "Midnight Velvet",
+        "description": "Premium vodka, fresh espresso, dark chocolate, silky foam top. Our signature pour.",
+        "price_pence": 1600,
+        "sort_order": 2,
+    },
+    {
+        "course": "The Cellar",
+        "name": "Blanc de Blancs",
+        "description": "Grower champagne — brioche, white peach, a fine persistent bead.",
+        "price_pence": 9500,
+        "sort_order": 3,
     },
 ]
 
@@ -286,6 +366,17 @@ def seed(session: Session) -> None:
                     setattr(existing, key, value)
                 session.add(existing)
 
+    # Menu items are staff-editable in the admin, so seed inserts only — never
+    # overwrite a dish somebody has since reworded or repriced.
+    for spec in MENU_ITEMS:
+        existing_item = session.exec(
+            select(MenuItem).where(
+                MenuItem.course == spec["course"], MenuItem.name == spec["name"]
+            )
+        ).first()
+        if existing_item is None:
+            session.add(MenuItem(**spec))
+
     session.commit()
 
 
@@ -293,7 +384,10 @@ def main() -> None:
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
         seed(session)
-    print(f"Seeded {len(ROOMS)} rooms and the sample event season.")
+    print(
+        f"Seeded {len(ROOMS)} rooms, the sample event season, "
+        f"and {len(MENU_ITEMS)} menu items."
+    )
 
 
 if __name__ == "__main__":

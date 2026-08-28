@@ -461,6 +461,52 @@ class RoomBookingPublic(SQLModel):
     created_at: datetime
 
 
+# ---------- Menu ----------
+
+
+class MenuItemBase(SQLModel):
+    # "Small Plates", "Mains", "The Cellar" — the course the dish sits under.
+    course: str = Field(max_length=80, index=True)
+    name: str = Field(min_length=1, max_length=200)
+    description: str = Field(default="", max_length=600)
+    # Dietary flag shown as a chip on the public menu, e.g. "VG" / "GF".
+    tag: str = Field(default="", max_length=20)
+    price_pence: int = Field(default=0, ge=0)
+    sort_order: int = 0
+    is_active: bool = True
+
+
+class MenuItem(MenuItemBase, table=True):
+    __tablename__ = "menu_items"
+
+    id: str = Field(default_factory=_uuid, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class MenuItemCreate(MenuItemBase):
+    pass
+
+
+class MenuItemUpdate(SQLModel):
+    """Every field optional — the admin form PATCHes only what changed."""
+
+    course: str | None = Field(default=None, max_length=80)
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=600)
+    tag: str | None = Field(default=None, max_length=20)
+    price_pence: int | None = Field(default=None, ge=0)
+    sort_order: int | None = None
+    is_active: bool | None = None
+
+
+class MenuItemPublic(MenuItemBase):
+    id: str
+    currency: str
+    created_at: datetime
+    updated_at: datetime
+
+
 # ---------- Stripe webhook idempotency ledger ----------
 
 

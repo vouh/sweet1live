@@ -1,8 +1,9 @@
+import secrets
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel import Session, select
 
@@ -72,3 +73,13 @@ def get_optional_user(
 def get_user_by_email(db: Session, email: str) -> User | None:
     statement = select(User).where(User.email == email.lower())
     return db.exec(statement).first()
+
+
+def require_staff(x_staff_key: str | None = Header(default=None, alias="X-Staff-Key")) -> None:
+    """Gate for staff-only surfaces — the admin API and the door tablet.
+
+    A shared key, not a guest JWT: neither the back office nor the door is a
+    guest account. compare_digest keeps the check constant-time.
+    """
+    if not x_staff_key or not secrets.compare_digest(x_staff_key, settings.staff_api_key):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Staff key required")

@@ -11,6 +11,7 @@ from app.config import settings
 from app.database import engine
 from app.inventory import expire_stale_holds
 from app.routers import (
+    admin,
     auth,
     checkout,
     contact,
@@ -79,6 +80,7 @@ app.include_router(checkout.router)
 app.include_router(orders.router)
 app.include_router(tickets.router)
 app.include_router(webhooks.router)
+app.include_router(admin.router)
 
 
 @app.get("/health")
