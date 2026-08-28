@@ -10,6 +10,7 @@ import {
   type Room,
   type RoomSlot,
 } from "@/lib/ticketing";
+import { roomPhoto } from "@/lib/images";
 
 const EVENT_TYPES = [
   { value: "private-dinner", label: "Private dinner" },
@@ -154,7 +155,7 @@ export default function RoomBookingFlow({ rooms }: { rooms: Room[] }) {
               >
                 <div
                   className="relative aspect-[3/2] bg-cover bg-center bg-surface-container"
-                  style={{ backgroundImage: `url('${option.image_url}')` }}
+                  style={{ backgroundImage: `url('${roomPhoto(option.slug)}')` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e]/80 to-transparent" />
                   {selected && (

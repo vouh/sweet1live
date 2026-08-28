@@ -1,9 +1,12 @@
 /**
- * Sweet1ne LIVE venue photography — flat /public/images/s1.jpg … s41.jpg
+ * Sweet1ne LIVE venue photography — flat /public/images/s1.webp … s41.webp
  * Logo stays /images/logo.png
+ *
+ * WebP (not AVIF): best fit for CSS background-image — fast decode, one file per
+ * shot, excellent browser support. Run `npm run images:webp` to regenerate.
  */
 
-export const s = (n: number) => `/images/s${n}.jpg`;
+export const s = (n: number) => `/images/s${n}.webp`;
 
 export const LOGO = "/images/logo.png";
 
@@ -71,7 +74,7 @@ export const IMG = {
   experience6: s(41),
 } as const;
 
-/** Seven bookable rooms — flat paths for API seed */
+/** Seven bookable rooms — resolved on the frontend, not stored in the DB */
 export const ROOM_PHOTOS = {
   main: s(1),
   lounge: s(6),
@@ -82,13 +85,38 @@ export const ROOM_PHOTOS = {
   atrium: s(4),
 } as const;
 
-/** Sample event season — flat paths for API seed */
+const ROOM_SLUG_TO_PHOTO: Record<string, string> = {
+  "main-room": ROOM_PHOTOS.main,
+  "the-lounge": ROOM_PHOTOS.lounge,
+  "the-cellar": ROOM_PHOTOS.cellar,
+  "the-alcove": ROOM_PHOTOS.alcove,
+  "the-snug": ROOM_PHOTOS.snug,
+  "the-gallery": ROOM_PHOTOS.gallery,
+  "private-dining": ROOM_PHOTOS.atrium,
+};
+
+/** Sample event season — resolved on the frontend, not stored in the DB */
 export const EVENT_PHOTOS = {
   blueNote: s(5),
   velvet: s(6),
   cellar: s(9),
   lastOrders: s(7),
 } as const;
+
+const EVENT_SLUG_TO_PHOTO: Record<string, string> = {
+  "blue-note-quintet": EVENT_PHOTOS.blueNote,
+  "velvet-sessions": EVENT_PHOTOS.velvet,
+  "cellar-sessions": EVENT_PHOTOS.cellar,
+  "last-orders-trio": EVENT_PHOTOS.lastOrders,
+};
+
+export function roomPhoto(slug: string): string {
+  return ROOM_SLUG_TO_PHOTO[slug] ?? DEFAULT_LIFESTYLE;
+}
+
+export function eventPhoto(slug: string): string {
+  return EVENT_SLUG_TO_PHOTO[slug] ?? IMG.jazz;
+}
 
 export const DEFAULT_LIFESTYLE = IMG.guests;
 
