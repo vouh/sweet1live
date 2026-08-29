@@ -1,5 +1,4 @@
-# One-command backend dev server (Windows).
-# Usage: npm run backend
+# Backend dev server (Windows). Usage: npm run backend
 
 $ErrorActionPreference = "Stop"
 
@@ -8,6 +7,9 @@ $Backend = Join-Path $Root "backend"
 $VenvDir = Join-Path $Backend ".venv"
 $VenvPython = Join-Path $VenvDir "Scripts\python.exe"
 $VenvPip = Join-Path $VenvDir "Scripts\pip.exe"
+$Requirements = Join-Path $Backend "requirements.txt"
+$DepsStamp = Join-Path $VenvDir ".deps-synced"
+$SeedStamp = Join-Path $VenvDir ".seeded"
 $EnvLocal = Join-Path $Root ".env.local"
 $EnvExample = Join-Path $Root ".env.example"
 
@@ -28,16 +30,27 @@ if (-not (Test-Path $VenvPython)) {
     Pop-Location
 }
 
-Write-Host "Installing Python dependencies..."
-& $VenvPip install -q -r (Join-Path $Backend "requirements.txt")
+$needsPip = -not (Test-Path $DepsStamp)
+if (-not $needsPip -and (Test-Path $Requirements)) {
+    $needsPip = (Get-Item $Requirements).LastWriteTimeUtc -gt (Get-Item $DepsStamp).LastWriteTimeUtc
+}
+
+if ($needsPip) {
+    Write-Host "Installing Python dependencies..."
+    & $VenvPip install -q -r $Requirements
+    New-Item -ItemType File -Path $DepsStamp -Force | Out-Null
+}
 
 Push-Location $Backend
 
 Write-Host "Applying database migrations..."
 & $VenvPython -m alembic upgrade head
 
-Write-Host "Seeding rooms and events (idempotent)..."
-& $VenvPython -m app.seed
+if (-not (Test-Path $SeedStamp) -or $env:BACKEND_SEED -eq "1") {
+    Write-Host "Seeding rooms and events (first run)..."
+    & $VenvPython -m app.seed
+    New-Item -ItemType File -Path $SeedStamp -Force | Out-Null
+}
 
 Write-Host ""
 Write-Host "API:  http://localhost:8000" -ForegroundColor Green

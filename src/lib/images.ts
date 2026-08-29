@@ -10,6 +10,9 @@ export const s = (n: number) => `/images/s${n}.webp`;
 
 export const LOGO = "/images/logo.png";
 
+/** Home hero background loop (landscape 16:9, from SWEET1NE FINAL) */
+export const HERO_VIDEO = "/videos/brunch-vibes.mp4?v=3";
+
 /** Full catalogue — for assigning across pages, not sliders */
 export const ALL_PHOTOS = Array.from({ length: 41 }, (_, i) => s(i + 1));
 

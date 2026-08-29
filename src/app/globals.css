@@ -471,6 +471,26 @@ html.light .hairline-ivory {
   animation: slow-pan 28s ease-in-out infinite;
 }
 
+/* Hero video — no stretch; use contain if you prefer full frame over fill */
+.hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Home hero — tagline flourishes around the booking link */
+.hero-book-panel__flourish {
+  width: 3.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+}
+@media (min-width: 768px) {
+  .hero-book-panel__flourish {
+    width: 5.5rem;
+  }
+}
+
 /* Hero imagery — full colour with warm chocolate veil, never greyscale. */
 .hero-media {
   filter: saturate(1.15) contrast(1.04);
@@ -1499,6 +1519,12 @@ html.dark .venue-room-card__body {
 .admin-icon-btn--accent:hover {
   background: color-mix(in srgb, var(--admin-accent) 12%, transparent);
 }
+/* Armed destructive action — one more click and it's gone */
+.admin-icon-btn--armed {
+  border-color: #e11d48;
+  background: color-mix(in srgb, #e11d48 14%, transparent);
+  color: #e11d48;
+}
 
 /* Doxa-style sidebar collapse / expand control */
 .admin-collapse-btn {
@@ -1626,6 +1652,46 @@ html.dark .venue-room-card__body {
 }
 .admin-input:focus {
   border-color: var(--admin-gold);
+}
+
+/* Form controls inside panels — square-shouldered, unlike the pill search box */
+.admin-select,
+.admin-field {
+  border-radius: 0.6rem;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-ink);
+  padding: 0.5rem 0.7rem;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.admin-select {
+  text-transform: capitalize;
+}
+.admin-field {
+  width: 100%;
+}
+.admin-select:focus,
+.admin-field:focus {
+  border-color: var(--admin-gold);
+}
+.admin-select:disabled,
+.admin-field:disabled {
+  opacity: 0.55;
+}
+.admin-field::placeholder {
+  color: var(--admin-muted);
+}
+.admin-label {
+  display: block;
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+  margin-bottom: 0.4rem;
 }
 
 .admin-panel {

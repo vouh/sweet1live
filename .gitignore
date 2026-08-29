@@ -50,6 +50,10 @@ next-env.d.ts
 # source JPGs — site serves WebP from public/images/
 public/images/s*.jpg
 
+# hero video originals — site ships public/videos/brunch-vibes.mp4 only
+public/videos/*.source.mp4
+public/videos/*FINAL*.mp4
+
 /src/generated/prisma
 
 # prisma

@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "images:webp": "node scripts/convert-images.mjs"
+    "images:webp": "node scripts/convert-images.mjs",
+    "video:compress": "node scripts/compress-hero-video.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -20,6 +21,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

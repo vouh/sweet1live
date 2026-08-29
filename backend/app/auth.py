@@ -81,5 +81,12 @@ def require_staff(x_staff_key: str | None = Header(default=None, alias="X-Staff-
     A shared key, not a guest JWT: neither the back office nor the door is a
     guest account. compare_digest keeps the check constant-time.
     """
+    if not settings.staff_api_key:
+        # An unset key must not read as "wrong key" — that looks like a login
+        # problem and sends people hunting in the wrong place.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="STAFF_API_KEY is not configured on the API.",
+        )
     if not x_staff_key or not secrets.compare_digest(x_staff_key, settings.staff_api_key):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Staff key required")

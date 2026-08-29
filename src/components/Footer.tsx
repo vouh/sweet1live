@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import BrandTagline from "@/components/BrandTagline";
 import { useAuthModal } from "@/components/AuthModalProvider";
 
 export default function Footer() {
@@ -23,9 +24,10 @@ export default function Footer() {
             <h3 className="font-headline-md text-[26px] md:text-[30px] leading-snug mb-4 text-[#f5efe8]">
               Join our foodie community and get updates on new dishes.
             </h3>
-            <p className="font-body-md text-body-md text-white/65 mb-8 max-w-sm">
+            <p className="font-body-md text-body-md text-white/65 mb-4 max-w-sm">
               Late-night hospitality, live rhythm, and seasonal tasting notes — delivered with care.
             </p>
+            <BrandTagline variant="footer" className="mb-8 max-w-sm" />
             {joined ? (
               <p className="font-label-caps text-label-caps tracking-widest uppercase text-[#d4a574]">
                 You&apos;re on the list

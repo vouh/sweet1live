@@ -10,6 +10,7 @@ import Magnetic from "@/components/motion/Magnetic";
 import SplitReveal from "@/components/motion/SplitReveal";
 import ConversionBand from "@/components/ConversionBand";
 import { createContactMessage, type ActionState } from "@/lib/api";
+import BrandTagline from "@/components/BrandTagline";
 import { IMG } from "@/lib/images";
 
 const HERO = IMG.contact;
@@ -37,6 +38,7 @@ export default function ContactPage() {
           <div className="contact-arch-hero__veil" />
           <div className="relative z-10 text-center px-margin-mobile md:px-gutter max-w-3xl mx-auto pt-24 pb-32">
             <Reveal variant="blur">
+              <BrandTagline variant="eyebrow" onMedia className="mb-5" />
               <span className="font-label-caps text-label-caps text-[#d4a574] uppercase tracking-[0.45em] block mb-6">
                 Concierge
               </span>

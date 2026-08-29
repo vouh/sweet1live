@@ -12,7 +12,9 @@ import ScrollMarquee from "@/components/motion/ScrollMarquee";
 import BrandCloser, { FooterFlyover } from "@/components/BrandCloser";
 import StickyMediaBg, { StickyImageColumn } from "@/components/StickyMediaBg";
 import StripPhoto from "@/components/StripPhoto";
-import { GALLERY_STRIP, IMG } from "@/lib/images";
+import HeroVideo from "@/components/HeroVideo";
+import { HeroBookPanel } from "@/components/BrandTagline";
+import { GALLERY_STRIP, HERO_VIDEO, IMG } from "@/lib/images";
 
 const BEST_SELLERS = [
   { image: IMG.cellar, name: "Château Margaux", meta: "2015 · Bordeaux", price: "£240" },
@@ -38,34 +40,13 @@ export default function HomePage() {
       <Nav active="/" overlay />
       <main>
         {/* ---------- Hero — sticky so following content flies over ---------- */}
-        <section className="sticky top-0 z-0 h-[100svh] flex flex-col justify-center overflow-hidden">
-          <div
-            className="absolute inset-0 bg-cover bg-center slow-pan"
-            style={{ backgroundImage: `url('${IMG.hero}')` }}
-          />
+        <section className="sticky top-0 z-0 h-[100svh] flex flex-col justify-end overflow-hidden pb-16 md:pb-24">
+          <HeroVideo src={HERO_VIDEO} />
+          <h1 className="sr-only">Sweet1ne Live</h1>
 
           <div className="relative z-10 w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter text-center flex flex-col items-center">
-            <Reveal variant="blur">
-              <h1 className="font-display-lg text-[clamp(3.25rem,12vw,9.5rem)] leading-[0.92] uppercase tracking-[0.02em] text-white drop-shadow-[0_4px_40px_rgba(0,0,0,0.55)] hero-entrance">
-                Savor luxury
-              </h1>
-            </Reveal>
-            <Reveal delay={160}>
-              <p className="font-headline-md text-[17px] md:text-[20px] leading-relaxed text-white/88 max-w-xl mx-auto mt-6 md:mt-8 drop-shadow-[0_2px_16px_rgba(0,0,0,0.5)]">
-                An exquisite dining journey where culinary artistry meets world-class cocktails in
-                an atmosphere of timeless elegance.
-              </p>
-            </Reveal>
-            <Reveal delay={280}>
-              <Link
-                href="/reservations"
-                className="group mt-10 md:mt-12 inline-flex items-center gap-3 font-headline-md text-[18px] md:text-[22px] text-white underline underline-offset-[10px] decoration-white/45 hover:decoration-white transition-colors"
-              >
-                Reserve a Table
-                <span className="material-symbols-outlined text-[22px] transition-transform duration-400 group-hover:translate-x-1 group-hover:-translate-y-1">
-                  arrow_outward
-                </span>
-              </Link>
+            <Reveal delay={120}>
+              <HeroBookPanel />
             </Reveal>
           </div>
         </section>

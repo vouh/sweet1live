@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useAuthModal } from "@/components/AuthModalProvider";
 import { loginAccount, registerAccount } from "@/lib/api";
+import BrandTagline from "@/components/BrandTagline";
 import { IMG } from "@/lib/images";
 
 const DOOR_IMAGE = IMG.auth;
@@ -115,9 +116,10 @@ export default function AuthModal() {
             <span className="material-symbols-outlined">close</span>
           </button>
 
-          <span className="font-label-caps text-label-caps text-primary uppercase tracking-[0.3em] block mb-3">
+          <span className="font-label-caps text-label-caps text-primary uppercase tracking-[0.3em] block mb-2">
             Sweet1ne Live
           </span>
+          <BrandTagline variant="eyebrow" className="mb-4 text-on-surface-variant/80" />
           <h2 className="font-headline-md text-headline-md uppercase tracking-[0.03em] mb-2">
             {title}
           </h2>

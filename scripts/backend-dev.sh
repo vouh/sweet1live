@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# One-command backend dev server (macOS / Linux).
-# Usage: npm run backend
+# Backend dev server. Usage: npm run backend
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BACKEND="$ROOT/backend"
 VENV="$BACKEND/.venv"
+PY="$VENV/bin/python"
+PIP="$VENV/bin/pip"
+REQ="$BACKEND/requirements.txt"
+DEPS_STAMP="$VENV/.deps-synced"
+SEED_STAMP="$VENV/.seeded"
 ENV_LOCAL="$ROOT/.env.local"
 ENV_EXAMPLE="$ROOT/.env.example"
 
@@ -20,25 +24,31 @@ if [[ ! -f "$ENV_LOCAL" ]]; then
   exit 1
 fi
 
-if [[ ! -x "$VENV/bin/python" ]]; then
+if [[ ! -x "$PY" ]]; then
   echo "Creating Python virtualenv..."
   python3 -m venv "$VENV"
 fi
 
-echo "Installing Python dependencies..."
-"$VENV/bin/pip" install -q -r "$BACKEND/requirements.txt"
+if [[ ! -f "$DEPS_STAMP" ]] || [[ "$REQ" -nt "$DEPS_STAMP" ]]; then
+  echo "Installing Python dependencies..."
+  "$PIP" install -q -r "$REQ"
+  touch "$DEPS_STAMP"
+fi
 
 cd "$BACKEND"
 
 echo "Applying database migrations..."
-"$VENV/bin/python" -m alembic upgrade head
+"$PY" -m alembic upgrade head
 
-echo "Seeding rooms and events (idempotent)..."
-"$VENV/bin/python" -m app.seed
+if [[ ! -f "$SEED_STAMP" ]] || [[ "${BACKEND_SEED:-}" == "1" ]]; then
+  echo "Seeding rooms and events (first run)..."
+  "$PY" -m app.seed
+  touch "$SEED_STAMP"
+fi
 
 echo ""
 echo "API:   http://localhost:8000"
 echo "Docs:  http://localhost:8000/docs"
 echo ""
 
-exec "$VENV/bin/python" -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+exec "$PY" -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000

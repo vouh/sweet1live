@@ -3,6 +3,7 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import DrawLine from "@/components/motion/DrawLine";
 import Magnetic from "@/components/motion/Magnetic";
+import BrandTagline from "@/components/BrandTagline";
 import ScrollMarquee from "@/components/motion/ScrollMarquee";
 
 /**
@@ -33,9 +34,7 @@ export default function BrandCloser() {
           Live
         </p>
         <DrawLine className="mx-auto mt-8 h-px w-40 text-primary" orientation="horizontal" />
-        <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.35em] mt-6">
-          Late Night · Fine Dining · Live Music
-        </p>
+        <BrandTagline variant="closer" className="mt-6" />
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Magnetic>
             <Link href="/reservations" className="btn-ink font-label-caps text-label-caps px-8 py-4">

@@ -11,6 +11,7 @@ import ImageHover from "@/components/motion/ImageHover";
 import ScrollMarquee from "@/components/motion/ScrollMarquee";
 import DrawLine from "@/components/motion/DrawLine";
 import Magnetic from "@/components/motion/Magnetic";
+import BrandTagline from "@/components/BrandTagline";
 import { IMG } from "@/lib/images";
 
 const HERO = IMG.dining;
@@ -120,6 +121,7 @@ export default function MenusPage() {
 
           <div className="relative z-10 w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter">
             <Reveal>
+              <BrandTagline variant="eyebrow" onMedia className="mb-4" />
               <span className="font-label-caps text-label-caps text-[#d4a574] uppercase tracking-[0.35em] block mb-6">
                 The Kitchen
               </span>

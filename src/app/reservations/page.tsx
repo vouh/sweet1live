@@ -11,6 +11,7 @@ import SplitReveal from "@/components/motion/SplitReveal";
 import ConversionBand from "@/components/ConversionBand";
 import { useAuthModal } from "@/components/AuthModalProvider";
 import { createReservation, type ActionState } from "@/lib/api";
+import BrandTagline from "@/components/BrandTagline";
 import { IMG } from "@/lib/images";
 
 const TIMES = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"];
@@ -43,6 +44,7 @@ export default function ReservationsPage() {
             />
             <div className="absolute inset-0 bg-[#1a100c]/40" />
             <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-margin-mobile">
+              <BrandTagline variant="eyebrow" onMedia className="mb-5" />
               <span className="font-label-caps text-label-caps text-[#d4a574] uppercase tracking-[0.4em] block mb-6">
                 Bookings
               </span>

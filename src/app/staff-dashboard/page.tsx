@@ -1,262 +1,184 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback } from "react";
+import {
+  AdminError,
+  AdminLoading,
+  AdminPageHeader,
+  StatCard,
+  StatGrid,
+  useAdminResource,
+} from "@/components/admin/AdminUI";
+import { adminApi, formatMoney, formatRelative } from "@/lib/adminApi";
 
-type Guest = {
-  name: string;
-  email: string;
-  phone: string;
-  party: string;
-  date: string;
-  time: string;
-  status: "Confirmed" | "Pending" | "Seated" | "Cancelled";
-};
-
-const GUESTS: Guest[] = [
-  {
-    name: "Amelia Hart",
-    email: "amelia.h@email.com",
-    phone: "+44 7700 900121",
-    party: "2",
-    date: "27 Aug",
-    time: "20:00",
-    status: "Confirmed",
-  },
-  {
-    name: "James Okonkwo",
-    email: "james.o@email.com",
-    phone: "+44 7700 900214",
-    party: "4",
-    date: "27 Aug",
-    time: "20:30",
-    status: "Pending",
-  },
-  {
-    name: "Sofia Mendes",
-    email: "sofia.m@email.com",
-    phone: "+44 7700 900338",
-    party: "6",
-    date: "28 Aug",
-    time: "19:30",
-    status: "Confirmed",
-  },
-  {
-    name: "Noah Patel",
-    email: "noah.p@email.com",
-    phone: "+44 7700 900451",
-    party: "2",
-    date: "28 Aug",
-    time: "21:00",
-    status: "Seated",
-  },
-  {
-    name: "Elena Rossi",
-    email: "elena.r@email.com",
-    phone: "+44 7700 900562",
-    party: "3",
-    date: "29 Aug",
-    time: "20:00",
-    status: "Cancelled",
-  },
-];
-
-const KPIS = [
-  {
-    title: "Reservations Tonight",
-    icon: "event_seat",
-    value: "42",
-    meta: "+12% vs last Fri",
-    tone: "terracotta",
-  },
-  {
-    title: "Events (7 days)",
-    icon: "mic",
-    value: "5",
-    meta: "2 sold out",
-    tone: "gold",
-  },
-  {
-    title: "Collection Orders",
-    icon: "shopping_basket",
-    value: "18",
-    meta: "4 pending",
-    tone: "chocolate",
-  },
-  {
-    title: "Open Enquiries",
-    icon: "mail",
-    value: "7",
-    meta: "Needs action",
-    tone: "rose",
-  },
-] as const;
-
-const STATUS_STYLE: Record<Guest["status"], string> = {
-  Confirmed: "bg-emerald-500/15 text-emerald-700 border-emerald-600/25 dark:text-emerald-300",
-  Pending: "bg-amber-500/15 text-amber-800 border-amber-600/25 dark:text-amber-200",
-  Seated: "bg-[var(--admin-ink)]/10 text-[var(--admin-ink)] border-[var(--admin-ink)]/20",
-  Cancelled: "bg-rose-500/10 text-rose-700 border-rose-500/20 dark:text-rose-300",
-};
-
-const KPI_TONE: Record<(typeof KPIS)[number]["tone"], string> = {
-  terracotta: "admin-kpi--terracotta",
-  gold: "admin-kpi--gold",
-  chocolate: "admin-kpi--chocolate",
-  rose: "admin-kpi--rose",
+const ACTIVITY_ICON: Record<string, string> = {
+  reservation: "event_seat",
+  "venue-hire": "apartment",
+  enquiry: "mail",
+  order: "payments",
 };
 
 export default function StaffDashboardPage() {
-  const [query, setQuery] = useState("");
-  const [view, setView] = useState<"cards" | "table">("cards");
+  const load = useCallback(() => adminApi.overview(), []);
+  const { data, error, initialising, reload } = useAdminResource(load, []);
 
-  const filtered = GUESTS.filter((g) => {
-    const q = query.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      g.name.toLowerCase().includes(q) ||
-      g.email.toLowerCase().includes(q) ||
-      g.phone.toLowerCase().includes(q)
-    );
-  });
+  if (error) return <AdminError message={error} onRetry={reload} />;
+  if (initialising || !data) return <AdminLoading label="Reading tonight's book…" />;
 
   return (
     <>
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-        <div>
-          <h2 className="font-headline-lg text-[28px] md:text-[36px] leading-tight">
-            Guest Management
-          </h2>
-          <p className="font-body-md text-[var(--admin-muted)] mt-2 max-w-xl">
-            Search tonight&apos;s book, confirm covers, and keep the floor moving.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="admin-seg" role="group" aria-label="View mode">
-            <button
-              type="button"
-              className={view === "cards" ? "admin-seg__btn admin-seg__btn--on" : "admin-seg__btn"}
-              onClick={() => setView("cards")}
+      <AdminPageHeader
+        title="Tonight at Sweet1ne"
+        blurb="Live numbers straight from the booking database — covers, tickets, deposits, and anything still waiting on a staff reply."
+        actions={
+          <>
+            <Link href="/staff-dashboard/reservations" className="admin-btn-ghost">
+              Reservations
+            </Link>
+            <Link href="/staff-dashboard/events" className="admin-btn-primary">
+              <span className="material-symbols-outlined text-[18px]">mic</span>
+              Events
+            </Link>
+          </>
+        }
+      />
+
+      <StatGrid>
+        <StatCard
+          icon="event_seat"
+          tone="terracotta"
+          label="Covers today"
+          value={data.covers_today}
+          meta={`${data.reservations_today} reservation${data.reservations_today === 1 ? "" : "s"} · ${data.reservations_pending} to confirm`}
+        />
+        <StatCard
+          icon="confirmation_number"
+          tone="gold"
+          label="Tickets sold"
+          value={data.tickets_sold_upcoming}
+          meta={`${data.upcoming_events} upcoming · ${data.events_sold_out} sold out`}
+        />
+        <StatCard
+          icon="apartment"
+          tone="chocolate"
+          label="Hire bookings"
+          value={data.bookings_confirmed}
+          meta={`${data.bookings_pending} awaiting deposit`}
+        />
+        <StatCard
+          icon="payments"
+          tone="rose"
+          label="Taken (30 days)"
+          value={formatMoney(data.revenue_30d_pence, data.currency)}
+          meta={`${data.paid_orders_30d} paid order${data.paid_orders_30d === 1 ? "" : "s"}`}
+        />
+      </StatGrid>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <section className="admin-panel lg:col-span-2 p-6 md:p-7">
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <h3 className="font-headline-md text-[20px]">Latest activity</h3>
+            <Link
+              href="/staff-dashboard/notifications"
+              className="font-label-caps text-[10px] tracking-[0.2em] uppercase text-[var(--admin-accent)]"
             >
-              Cards
-            </button>
-            <button
-              type="button"
-              className={view === "table" ? "admin-seg__btn admin-seg__btn--on" : "admin-seg__btn"}
-              onClick={() => setView("table")}
-            >
-              Table
-            </button>
+              All alerts
+            </Link>
           </div>
-          <Link href="/staff-dashboard/reservations" className="admin-btn-primary">
-            <span className="material-symbols-outlined text-[18px]">person_add</span>
-            New reservation
-          </Link>
-        </div>
-      </div>
 
-      {view === "cards" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-          {KPIS.map((kpi) => (
-            <article key={kpi.title} className={`admin-kpi ${KPI_TONE[kpi.tone]}`}>
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <span className="material-symbols-outlined text-[22px] opacity-80">{kpi.icon}</span>
-                <p className="font-display-lg text-[34px] leading-none">{kpi.value}</p>
-              </div>
-              <h3 className="font-label-caps text-[10px] tracking-[0.2em] uppercase opacity-70">
-                {kpi.title}
-              </h3>
-              <p className="font-body-md text-sm mt-1 opacity-60">{kpi.meta}</p>
-            </article>
-          ))}
-        </div>
-      )}
-
-      <div className="flex flex-col sm:flex-row gap-3 mb-5">
-        <div className="flex-1 relative">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--admin-muted)] text-[20px]">
-            search
-          </span>
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search guests by name, email, or phone"
-            className="admin-input"
-          />
-        </div>
-        <button type="button" className="admin-btn-ink">
-          Search
-        </button>
-        <button type="button" className="admin-btn-ghost">
-          Export CSV
-        </button>
-      </div>
-
-      <div className="admin-panel overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] text-left">
-            <thead>
-              <tr className="admin-table-head">
-                {["Name", "Phone", "Party", "Date", "Time", "Status", "Action"].map((h) => (
-                  <th
-                    key={h}
-                    className="px-5 py-4 font-label-caps text-[10px] tracking-[0.2em] uppercase text-[var(--admin-muted)]"
+          {data.activity.length === 0 ? (
+            <p className="font-body-md text-[var(--admin-muted)] py-8 text-center">
+              Nothing has come through yet. New bookings, orders, and messages land here.
+            </p>
+          ) : (
+            <ul className="flex flex-col">
+              {data.activity.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    href={item.href}
+                    className="flex items-start gap-4 py-3.5 border-b border-[var(--admin-border)] last:border-0 group"
                   >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((g) => (
-                <tr key={g.email} className="admin-table-row">
-                  <td className="px-5 py-4">
-                    <p className="font-headline-md text-[16px]">{g.name}</p>
-                    <p className="text-sm text-[var(--admin-muted)] mt-0.5">{g.email}</p>
-                  </td>
-                  <td className="px-5 py-4 font-body-md text-sm opacity-80">{g.phone}</td>
-                  <td className="px-5 py-4 font-body-md text-sm">{g.party}</td>
-                  <td className="px-5 py-4 font-body-md text-sm">{g.date}</td>
-                  <td className="px-5 py-4 numeral font-body-md text-sm">{g.time}</td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-flex rounded-full border px-2.5 py-1 font-label-caps text-[9px] tracking-[0.16em] uppercase ${STATUS_STYLE[g.status]}`}
-                    >
-                      {g.status}
+                    <span className="admin-icon-btn shrink-0">
+                      <span className="material-symbols-outlined text-[18px]">
+                        {ACTIVITY_ICON[item.kind] ?? "bolt"}
+                      </span>
                     </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        aria-label={`View ${g.name}`}
-                        className="admin-icon-btn"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">visibility</span>
-                      </button>
-                      <Link
-                        href="/staff-dashboard/reservations"
-                        aria-label={`Edit booking for ${g.name}`}
-                        className="admin-icon-btn admin-icon-btn--accent"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">edit_calendar</span>
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-headline-md text-[15px] truncate group-hover:text-[var(--admin-accent)] transition-colors">
+                        {item.title}
+                      </span>
+                      <span className="block text-sm text-[var(--admin-muted)] mt-0.5 truncate">
+                        {item.detail}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-xs text-[var(--admin-muted)] whitespace-nowrap pt-1">
+                      {formatRelative(item.at)}
+                    </span>
+                  </Link>
+                </li>
               ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-[var(--admin-muted)]">
-                    No guests match that search.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            </ul>
+          )}
+        </section>
+
+        <section className="admin-panel p-6 md:p-7">
+          <h3 className="font-headline-md text-[20px] mb-5">Needs a person</h3>
+          <ul className="flex flex-col gap-3">
+            <QueueRow
+              href="/staff-dashboard/reservations?status=pending"
+              icon="event_seat"
+              label="Reservations to confirm"
+              count={data.reservations_pending}
+            />
+            <QueueRow
+              href="/staff-dashboard/venue-hire"
+              icon="apartment"
+              label="Hire deposits unpaid"
+              count={data.bookings_pending}
+            />
+            <QueueRow
+              href="/staff-dashboard/enquiries"
+              icon="mail"
+              label="Enquiries in the inbox"
+              count={data.open_enquiries}
+            />
+            <QueueRow
+              href="/staff-dashboard/guests"
+              icon="group"
+              label="Guest accounts"
+              count={data.guests_total}
+            />
+          </ul>
+        </section>
       </div>
     </>
+  );
+}
+
+function QueueRow({
+  href,
+  icon,
+  label,
+  count,
+}: {
+  href: string;
+  icon: string;
+  label: string;
+  count: number;
+}) {
+  return (
+    <li>
+      <Link
+        href={href}
+        className="flex items-center gap-3 rounded-xl border border-[var(--admin-border)] px-4 py-3 hover:border-[var(--admin-gold)] transition-colors"
+      >
+        <span className="material-symbols-outlined text-[20px] text-[var(--admin-gold)]">
+          {icon}
+        </span>
+        <span className="flex-1 font-body-md text-sm">{label}</span>
+        <span className="font-display-lg text-[22px] leading-none">{count}</span>
+      </Link>
+    </li>
   );
 }

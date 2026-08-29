@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Magnetic from "@/components/motion/Magnetic";
+import { HeroBookPanel } from "@/components/BrandTagline";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -119,15 +120,9 @@ export default function CinematicScrollStage({
             Intimate jazz, headline lounge sets, and ticketed nights where the room, the music, and
             the pour move together.
           </p>
-          <Link
-            href="/reservations"
-            className="group mt-10 inline-flex items-center gap-3 font-headline-md text-[18px] text-white underline underline-offset-[10px] decoration-white/45 transition-colors hover:decoration-white md:mt-12 md:text-[22px]"
-          >
-            Book for the show
-            <span className="material-symbols-outlined text-[22px] transition-transform duration-400 group-hover:translate-x-1 group-hover:-translate-y-1">
-              arrow_outward
-            </span>
-          </Link>
+          <div className="mt-10 md:mt-12">
+            <HeroBookPanel href="/reservations" label="Book for the show" />
+          </div>
         </div>
 
         <div

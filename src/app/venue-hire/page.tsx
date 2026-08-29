@@ -12,6 +12,7 @@ import SplitReveal from "@/components/motion/SplitReveal";
 import ScrollMarquee from "@/components/motion/ScrollMarquee";
 import ConversionBand from "@/components/ConversionBand";
 import { createVenueEnquiry, type ActionState } from "@/lib/api";
+import BrandTagline from "@/components/BrandTagline";
 import { IMG } from "@/lib/images";
 
 const SPACES = [
@@ -86,6 +87,7 @@ export default function VenueHirePage() {
           <div className="contact-arch-hero__veil" />
           <div className="relative z-10 text-center px-margin-mobile md:px-gutter max-w-4xl mx-auto pt-24 pb-28">
             <Reveal variant="blur">
+              <BrandTagline variant="eyebrow" onMedia className="mb-5" />
               <span className="font-label-caps text-label-caps text-[#d4a574] uppercase tracking-[0.45em] block mb-6">
                 Private events
               </span>
