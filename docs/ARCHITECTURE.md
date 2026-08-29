@@ -91,7 +91,7 @@ npm run backend
 This script automatically:
 
 1. Ensures `.env.local` exists (copies from `.env.example` on first run)
-2. Creates `backend/.venv` if missing
+2. Creates `backend/venv` if missing
 3. Installs Python dependencies
 4. Runs `alembic upgrade head`
 5. Seeds rooms and events (idempotent)

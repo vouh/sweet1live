@@ -54,6 +54,9 @@ public/images/s*.jpg
 public/videos/*.source.mp4
 public/videos/*FINAL*.mp4
 
+# Stripe CLI binary (run scripts/install-stripe-cli.ps1)
+tools/stripe/stripe.exe
+
 /src/generated/prisma
 
 # prisma

@@ -7,7 +7,8 @@ with Stripe-powered event ticketing and deposit-backed hire across the venue's s
 
 | Doc | Contents |
 | ----- | ---------- |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, how to run backend/frontend, API overview, deploy |
+| [docs/BACKEND-SETUP.md](docs/BACKEND-SETUP.md) | **Run the backend**, env file, Stripe + webhook listener, testing |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, API overview, deploy |
 | [docs/DATA-MODEL.md](docs/DATA-MODEL.md) | All 14 tables, columns, PKs/FKs, ERDs |
 | [docs/DESIGN.md](docs/DESIGN.md) | Visual / UX design notes |
 
@@ -24,15 +25,19 @@ with Stripe-powered event ticketing and deposit-backed hire across the venue's s
 
 ### Backend
 
-**One command** (from repo root — creates venv, installs deps, migrates, seeds, starts):
+See **[docs/BACKEND-SETUP.md](docs/BACKEND-SETUP.md)** for full steps (venv, uvicorn, Stripe, webhooks).
 
-```bash
-npm run backend
+Quick start:
+
+```powershell
+cd backend
+venv\scripts\activate
+uvicorn app.main:app --reload
 ```
 
-First time only: copy `.env.example` → `.env.local` and fill in `DATABASE_URL` (and Stripe keys when you need checkout).
+Or from repo root: `npm run backend` (first-time setup + start).
 
-Manual setup if you prefer: see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+First time: copy `.env.example` → `.env.local` and set `DATABASE_URL`.
 
 | URL | Purpose |
 | ----- | --------- |
@@ -41,7 +46,6 @@ Manual setup if you prefer: see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | http://localhost:8000/health | Health check |
 
 Config is read from **repo root `.env.local`** (shared with Next.js) — not `backend/.env`.
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full env variable list and Supabase setup.
 
 The API runs without Stripe configured — the catalogue reads fine, and only checkout
 returns 503 until `STRIPE_SECRET_KEY` is set.
@@ -58,11 +62,13 @@ npm run dev                   # http://localhost:3000
 
 ### Stripe webhooks in development
 
+See [docs/BACKEND-SETUP.md](docs/BACKEND-SETUP.md#stripe-cli--webhook-listener).
+
 ```bash
 stripe listen --forward-to localhost:8000/stripe/webhook
 ```
 
-Paste the printed `whsec_…` into `.env.local` as `STRIPE_WEBHOOK_SECRET`.
+Paste the printed `whsec_…` into `.env.local` as `STRIPE_WEBHOOK_SECRET`, then restart the backend.
 
 ## How payments work
 

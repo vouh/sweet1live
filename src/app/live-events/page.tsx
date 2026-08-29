@@ -19,10 +19,10 @@ import { GALLERY_STRIP, IMG } from "@/lib/images";
 const STRIP = GALLERY_STRIP;
 
 const FEATURED = [
-  { image: IMG.featured1, act: "Blue Note Quintet", genre: "Modal jazz · Hard bop", meta: "Fri 15 Nov · Main Room · 20:30", price: "From £25" },
-  { image: IMG.featured2, act: "Velvet Sessions", genre: "Soul · R&B", meta: "Sat 16 Nov · The Lounge · 21:00", price: "From £35" },
-  { image: IMG.featured3, act: "Cellar Sessions", genre: "Acoustic · Tasting", meta: "Fri 13 Dec · The Cellar · 21:30", price: "From £30" },
-  { image: IMG.featured4, act: "The Last Orders Trio", genre: "Standards", meta: "Fri 6 Dec · Main Room · 22:00", price: "From £25" },
+  { slug: "blue-note-quintet", image: IMG.featured1, act: "Blue Note Quintet", genre: "Modal jazz · Hard bop", meta: "Fri 15 Nov · Main Room · 20:30", price: "From £25" },
+  { slug: "velvet-sessions", image: IMG.featured2, act: "Velvet Sessions", genre: "Soul · R&B", meta: "Sat 16 Nov · The Lounge · 21:00", price: "From £35" },
+  { slug: "cellar-sessions", image: IMG.featured3, act: "Cellar Sessions", genre: "Acoustic · Tasting", meta: "Fri 13 Dec · The Cellar · 21:30", price: "From £30" },
+  { slug: "last-orders-trio", image: IMG.featured4, act: "The Last Orders Trio", genre: "Standards", meta: "Fri 6 Dec · Main Room · 22:00", price: "From £25" },
 ];
 
 const PERFORMERS = [
@@ -73,7 +73,7 @@ export default function LiveEventsPage() {
                   at 20:30 — intimate, precise, and gone before you want it to be.
                 </p>
                 <Magnetic>
-                  <ArrowLink href="/reservations">Book the first set</ArrowLink>
+                  <ArrowLink href="/live-events/blue-note-quintet">Get tickets</ArrowLink>
                 </Magnetic>
               </Reveal>
               <Reveal variant="right" delay={120} className="order-1 md:order-2">
@@ -150,7 +150,7 @@ export default function LiveEventsPage() {
                     className="shrink-0 w-[78vw] sm:w-[340px] md:w-[320px]"
                   >
                     <Link
-                      href="/reservations"
+                      href={`/live-events/${item.slug}`}
                       className="events-feature-card arrow-carousel__card group flex h-full flex-col overflow-hidden hairline-gold"
                     >
                       <div className="relative aspect-[4/5] overflow-hidden">

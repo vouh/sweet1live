@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 
 $Root = Split-Path -Parent $PSScriptRoot
 $Backend = Join-Path $Root "backend"
-$VenvDir = Join-Path $Backend ".venv"
+$VenvDir = Join-Path $Backend "venv"
 $VenvPython = Join-Path $VenvDir "Scripts\python.exe"
 $VenvPip = Join-Path $VenvDir "Scripts\pip.exe"
 $Requirements = Join-Path $Backend "requirements.txt"
@@ -26,7 +26,7 @@ if (-not (Test-Path $EnvLocal)) {
 if (-not (Test-Path $VenvPython)) {
     Write-Host "Creating Python virtualenv..."
     Push-Location $Backend
-    python -m venv .venv
+    python -m venv venv
     Pop-Location
 }
 

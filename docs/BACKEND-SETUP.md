@@ -1,0 +1,300 @@
+# Backend setup & Stripe webhooks
+
+Step-by-step guide for running the FastAPI API locally and configuring Stripe payments.
+
+For system design and API overview, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+---
+
+## Prerequisites
+
+- **Python 3.11+** (`python --version`)
+- **Node.js** (for the Next.js frontend — separate terminal)
+- **Repo root `.env.local`** — one file shared by frontend and backend (copy from `.env.example`)
+
+---
+
+## Environment file (`.env.local`)
+
+Create at the **repository root** (`SWEET1LIVE/.env.local`), not inside `backend/`.
+
+Both Next.js and FastAPI read this file. It has three sections:
+
+| Section | Who uses it |
+|---------|-------------|
+| **1. Frontend** | `NEXT_PUBLIC_*` vars (safe in the browser) |
+| **2. Backend** | Database, Supabase, auth, staff |
+| **3. Stripe** | Payment keys (server-only) |
+
+Minimum to start the API:
+
+```env
+DATABASE_URL=postgresql+psycopg2://...   # or sqlite:///./dev.db for local-only
+CORS_ORIGINS=["http://localhost:3000"]
+```
+
+The catalogue (menus, events, rooms) works without Stripe. Checkout needs Stripe keys (below).
+
+---
+
+## Run the backend
+
+### First time only
+
+From the repo root:
+
+```powershell
+cd backend
+python -m venv venv
+venv\scripts\activate
+pip install -r requirements.txt
+python -m alembic upgrade head
+python -m app.seed
+```
+
+`app.seed` loads sample rooms and events (safe to run again — it updates, doesn't duplicate).
+
+### Every day (recommended)
+
+**Easiest — run script** (sets execution policy for you):
+
+```powershell
+cd backend
+.\run.ps1
+```
+
+**Or manually** from the repo root:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+cd backend
+venv\scripts\activate
+uvicorn app.main:app --reload
+```
+
+Both `venv` and `.venv` work — `.venv` is a shortcut to the same folder.
+
+Or without activating the venv:
+
+```powershell
+cd backend
+venv\Scripts\python.exe -m uvicorn app.main:app --reload
+```
+
+**Why `app.main:app`?** The FastAPI app lives in `backend/app/main.py` inside the `app` package — not `main.py` at the root of `backend/`.
+
+### Alternative: npm script
+
+From the repo root (does venv/deps/migrate/seed on first run, then starts Uvicorn):
+
+```bash
+npm run backend
+```
+
+Use this if you prefer one command; daily Python workflow above is fine too.
+
+### URLs
+
+| URL | Purpose |
+|-----|---------|
+| http://localhost:8000 | API |
+| http://localhost:8000/docs | Swagger UI (try endpoints in the browser) |
+| http://localhost:8000/health | Health check — `"stripe": true` if secret key is set |
+
+Restart the backend after changing `.env.local`.
+
+---
+
+## Stripe setup
+
+Sweet1ne uses **Stripe Checkout** (hosted payment page). The backend creates a session; the guest pays on Stripe's site. This is **not** the "Payment Link" flow from many YouTube tutorials (fixed link + copy/paste amount).
+
+### Keys you need
+
+| Variable | Required? | Where to get it |
+|----------|-----------|-----------------|
+| `STRIPE_SECRET_KEY` | Yes (for checkout) | Stripe Dashboard → **Developers → API keys → Secret key** (`sk_test_…` or `sk_live_…`) |
+| `STRIPE_WEBHOOK_SECRET` | Yes (for orders to confirm) | See **Stripe CLI listener** below (`whsec_…`) |
+
+**Not used by this project:**
+
+- **Publishable key** (`pk_…`) — only needed if you embed Stripe.js on your own page
+- **Restricted key** (`rk_…`) — optional limited API key; use the secret key above instead
+
+Add to `.env.local` section **3. STRIPE**:
+
+```env
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+### Test mode vs live mode
+
+- **Local development:** use **Test mode** in Stripe Dashboard (toggle top-right). Use `sk_test_…` and test card `4242 4242 4242 4242`.
+- **Production:** use `sk_live_…` — charges real money; test cards do not work.
+
+Your secret key and webhook secret must be from the **same mode** (both test or both live).
+
+---
+
+## Stripe CLI & webhook listener
+
+Stripe sends payment confirmations to your server via **webhooks**. Locally, your machine isn't on the public internet, so the **Stripe CLI** forwards events to `localhost`.
+
+### 1. Install Stripe CLI (one time)
+
+**Option A — Windows (winget)**
+
+```powershell
+winget install Stripe.StripeCli
+```
+
+Close and reopen PowerShell, then check:
+
+```powershell
+stripe --version
+```
+
+If you still get `stripe is not recognized`:
+
+**Option B — Manual download**
+
+1. Download: https://github.com/stripe/stripe-cli/releases/latest (`stripe_*_windows_x86_64.zip`)
+2. Unzip `stripe.exe` to a folder, e.g. `C:\Tools\stripe\`
+3. Add that folder to your **PATH**, or run with full path:
+   ```powershell
+   C:\Tools\stripe\stripe.exe listen --forward-to localhost:8000/stripe/webhook
+   ```
+4. Open a **new** terminal after changing PATH
+
+**Option C — Fix broken winget install**
+
+If `winget list Stripe.StripeCli` shows installed but `stripe` doesn't run, reinstall from https://stripe.com/docs/stripe-cli#install
+
+### 2. Log in (one time)
+
+```powershell
+stripe login
+```
+
+Complete the browser prompt.
+
+### 3. Run three terminals
+
+**Terminal 1 — Backend**
+
+```powershell
+cd backend
+venv\scripts\activate
+uvicorn app.main:app --reload
+```
+
+**Terminal 2 — Stripe listener** (keep open while testing payments)
+
+```powershell
+.\scripts\stripe-listen.ps1
+```
+
+Or directly (if `stripe` is on PATH):
+
+```powershell
+stripe listen --forward-to localhost:8000/stripe/webhook
+```
+
+You'll see output like:
+
+```text
+Ready! Your webhook signing secret is whsec_xxxxxxxxxxxxxxxx
+```
+
+Copy the **`whsec_…`** value into `.env.local`:
+
+```env
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxx
+```
+
+**Restart the backend** (Terminal 1) so it loads the new secret.
+
+**Terminal 3 — Frontend**
+
+```powershell
+npm run dev
+```
+
+Open http://localhost:3000
+
+> **Important:** Run `stripe listen` whenever you test checkout locally. If you close Terminal 2, webhooks stop reaching your API.
+
+### Production webhooks
+
+On a deployed API (Railway, Render, etc.):
+
+1. Stripe Dashboard → **Developers → Webhooks → Add endpoint**
+2. URL: `https://your-api-domain.com/stripe/webhook`
+3. Events: at least `checkout.session.completed`, `checkout.session.expired`
+4. Copy the endpoint **Signing secret** → `STRIPE_WEBHOOK_SECRET` in production env
+
+No Stripe CLI needed in production.
+
+---
+
+## Test that Stripe works
+
+### 1. Config check
+
+- http://localhost:8000/health → `"stripe": true`
+- http://localhost:3000/staff-dashboard/settings → **Stripe webhooks** shows configured (after `STRIPE_WEBHOOK_SECRET` is set)
+
+### 2. End-to-end checkout (best test)
+
+1. Backend + `stripe listen` + frontend all running
+2. Go to **Live & Events**, pick an event, buy a ticket
+3. On Stripe Checkout, pay with test card (test mode only):
+   - **4242 4242 4242 4242**
+   - Any future expiry, any CVC
+4. In the **stripe listen** terminal, look for:
+   ```text
+   checkout.session.completed [200]
+   ```
+5. You should reach the success page; the order is marked paid in the database.
+
+### 3. Quick webhook pipe test (optional)
+
+With `stripe listen` running:
+
+```powershell
+stripe trigger checkout.session.completed
+```
+
+This proves Stripe → your server works, but it won't match a real order in your DB. Use the ticket checkout flow for a full test.
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `ModuleNotFoundError: app` | Run uvicorn from **`backend/`** directory |
+| Checkout returns 503 | Set `STRIPE_SECRET_KEY` in `.env.local`, restart backend |
+| Payment succeeds but order stays pending | Run `stripe listen`, set `STRIPE_WEBHOOK_SECRET`, restart backend |
+| Webhook signature error | `whsec_…` must match the **current** `stripe listen` session; re-copy after restarting listen |
+| Test card declined on live key | Switch to **test mode** and `sk_test_…` for local dev |
+| `stripe` not recognized | Install Stripe CLI (see above); restart terminal; or use full path to `stripe.exe` |
+| Activate.ps1 not found | Use **`venv`**, not `.venv`: `backend\venv\Scripts\Activate.ps1` |
+
+---
+
+## Quick reference
+
+```powershell
+# Backend (daily)
+cd backend
+venv\scripts\activate
+uvicorn app.main:app --reload
+
+# Stripe webhooks (while testing payments)
+stripe listen --forward-to localhost:8000/stripe/webhook
+
+# Frontend
+npm run dev
+```

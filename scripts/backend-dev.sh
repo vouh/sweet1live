@@ -5,7 +5,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BACKEND="$ROOT/backend"
-VENV="$BACKEND/.venv"
+VENV="$BACKEND/venv"
 PY="$VENV/bin/python"
 PIP="$VENV/bin/pip"
 REQ="$BACKEND/requirements.txt"

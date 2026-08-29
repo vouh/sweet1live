@@ -246,8 +246,40 @@ def seed(session: Session) -> None:
     today = datetime.utcnow()
     friday = _next_weekday(today, 4)
     saturday = _next_weekday(today, 5)
+    demo_night = today + timedelta(days=30)
 
     events: list[dict] = [
+        {
+            "slug": "ticket-demo",
+            "title": "Ticket Demo Night",
+            "subtitle": "Stripe test · Not a real performance",
+            "description": (
+                "A sandbox event for testing ticket checkout end-to-end. Use Stripe test mode "
+                "and card 4242 4242 4242 4242 — no real charge."
+            ),
+            "room": "main-room",
+            "doors_at": _at(demo_night, 19, 0),
+            "starts_at": _at(demo_night, 19, 30),
+            "ends_at": _at(demo_night, 22, 0),
+            "tickets": [
+                {
+                    "name": "Demo ticket",
+                    "price_pence": 100,
+                    "quantity_total": 999,
+                    "max_per_order": 4,
+                    "sort_order": 1,
+                    "description": "£1 test tier — ideal for checkout smoke tests.",
+                },
+                {
+                    "name": "Demo VIP",
+                    "price_pence": 500,
+                    "quantity_total": 50,
+                    "max_per_order": 2,
+                    "sort_order": 2,
+                    "description": "£5 test tier with a lower cap.",
+                },
+            ],
+        },
         {
             "slug": "blue-note-quintet",
             "title": "Blue Note Quintet",
