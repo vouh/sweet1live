@@ -11,6 +11,7 @@ import SplitReveal from "@/components/motion/SplitReveal";
 import ConversionBand from "@/components/ConversionBand";
 import { createContactMessage, type ActionState } from "@/lib/api";
 import BrandTagline from "@/components/BrandTagline";
+import FormSecurityFields from "@/components/FormSecurityFields";
 import { IMG } from "@/lib/images";
 
 const HERO = IMG.contact;
@@ -86,7 +87,8 @@ export default function ContactPage() {
                       <p className="font-body-md text-body-md text-on-surface-variant mb-10">
                         Every detail helps us prepare before we reply.
                       </p>
-                      <form action={formAction} className="flex flex-col gap-6">
+                      <form action={formAction} className="flex flex-col gap-6 relative">
+                        <FormSecurityFields />
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                           <Field label="Full name" name="name" type="text" placeholder="Your name" />
                           <Field label="Email" name="email" type="email" placeholder="you@email.com" />

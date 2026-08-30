@@ -1,8 +1,17 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AdminError,
+  AdminBulkBar,
+  AdminDetailModal,
+  AdminRowActions,
+  AdminRowCheckbox,
+  confirmDelete,
+  useBulkSelect,
+  reservationDetailFields,
+} from "@/components/admin/AdminTableTools";
+import {
+  AdminErrorModal,
   AdminFilter,
   AdminLoading,
   AdminNotice,
@@ -18,7 +27,11 @@ import {
   useAdminResource,
   useDebounced,
 } from "@/components/admin/AdminUI";
-import { adminApi, formatDate, type AdminReservation } from "@/lib/adminApi";
+import {
+  adminApi,
+  formatDate,
+  type AdminReservation,
+} from "@/lib/adminApi";
 
 const STATUSES = ["pending", "confirmed", "seated", "completed", "cancelled"] as const;
 
@@ -30,47 +43,55 @@ const FILTERS = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
-const COLUMNS = ["Guest", "Party", "Date", "Time", "Notes", "Status", "Set status"];
+const COLUMNS = ["Guest", "Party", "Date", "Time", "Notes", "Status", "Set status", "Actions"];
 
 export default function AdminReservationsPage() {
   const [status, setStatus] = useState("");
   const [query, setQuery] = useState("");
   const search = useDebounced(query);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [rows, setRows] = useState<AdminReservation[] | null>(null);
+  const [rows, setRows] = useState<AdminReservation[]>([]);
+  const [detail, setDetail] = useState<AdminReservation | null>(null);
 
-  const load = useCallback(async () => {
-    const result = await adminApi.reservations({ status, q: search });
-    setRows(result);
-    return result;
-  }, [status, search]);
+  const load = useCallback(
+    () => adminApi.reservations({ status: status || undefined, q: search || undefined }),
+    [status, search]
+  );
 
-  const { error, initialising, reload } = useAdminResource(load, [status, search]);
+  const { data, error, initialising, reload, refreshing } = useAdminResource(load, [status, search]);
+
+  useEffect(() => {
+    if (data) setRows(data);
+  }, [data]);
+
+  const visibleIds = useMemo(() => rows.map((row) => row.id), [rows]);
+  const bulk = useBulkSelect(visibleIds);
 
   const totals = useMemo(() => {
-    const list = rows ?? [];
-    const live = list.filter((row) => row.status !== "cancelled");
+    const live = rows.filter((row) => row.status !== "cancelled");
     return {
-      count: list.length,
+      count: rows.length,
       covers: live.reduce((sum, row) => sum + row.party_size, 0),
-      pending: list.filter((row) => row.status === "pending").length,
-      cancelled: list.length - live.length,
+      pending: rows.filter((row) => row.status === "pending").length,
+      cancelled: rows.length - live.length,
     };
   }, [rows]);
 
   async function changeStatus(reservation: AdminReservation, next: string) {
     setBusyId(reservation.id);
     setNotice(null);
-    // Optimistic — the row flips immediately, and we roll it back if the write fails.
     setRows((current) =>
-      (current ?? []).map((row) => (row.id === reservation.id ? { ...row, status: next } : row))
+      current.map((row) => (row.id === reservation.id ? { ...row, status: next } : row))
     );
     try {
       await adminApi.setReservationStatus(reservation.id, next);
+      reload();
     } catch (err) {
       setRows((current) =>
-        (current ?? []).map((row) =>
+        current.map((row) =>
           row.id === reservation.id ? { ...row, status: reservation.status } : row
         )
       );
@@ -80,24 +101,54 @@ export default function AdminReservationsPage() {
     }
   }
 
-  if (error) return <AdminError message={error} onRetry={reload} />;
+  async function deleteOne(row: AdminReservation) {
+    if (!(await confirmDelete(`reservation for ${row.name}`))) return;
+    setDeletingId(row.id);
+    setNotice(null);
+    try {
+      await adminApi.deleteReservation(row.id);
+      bulk.clear();
+      reload();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not delete that reservation.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function deleteSelected() {
+    if (bulk.count === 0) return;
+    if (!(await confirmDelete("reservation", bulk.count))) return;
+    setBulkBusy(true);
+    setNotice(null);
+    try {
+      await adminApi.bulkDeleteReservations(bulk.selectedIds);
+      bulk.clear();
+      reload();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not delete those reservations.");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  const emptyColSpan = COLUMNS.length + 1;
 
   return (
     <>
-      <AdminPageHeader
-        title="Reservations"
-        blurb="Every table booked through the site, straight from the reservations table. Change a status here and the guest record changes with it."
-        actions={
-          <button type="button" onClick={reload} className="admin-btn-ghost">
-            Refresh
-          </button>
-        }
-      />
+      <AdminErrorModal error={error} onRetry={reload} />
+      <AdminPageHeader title="Reservations" onRefresh={reload} refreshing={refreshing} />
 
       <StatGrid>
         <StatCard icon="event_seat" tone="terracotta" label="Reservations" value={totals.count} />
-        <StatCard icon="group" tone="gold" label="Covers" value={totals.covers} />
-        <StatCard icon="pending" tone="chocolate" label="To confirm" value={totals.pending} />
+        <StatCard
+          icon="group"
+          tone="gold"
+          label="Covers"
+          value={totals.covers}
+          meta="Total guests across every non-cancelled reservation"
+        />
+        <StatCard icon="pending" tone="chocolate" label="Pending" value={totals.pending} />
         <StatCard icon="cancel" tone="rose" label="Cancelled" value={totals.cancelled} />
       </StatGrid>
 
@@ -112,14 +163,47 @@ export default function AdminReservationsPage() {
         <AdminFilter options={FILTERS} value={status} onChange={setStatus} label="Status filter" />
       </AdminToolbar>
 
+      <AdminBulkBar
+        count={bulk.count}
+        onDelete={deleteSelected}
+        onClear={bulk.clear}
+        busy={bulkBusy}
+        noun="reservation"
+      />
+
       {initialising ? (
         <AdminLoading label="Loading the book…" />
       ) : (
-        <AdminTable columns={COLUMNS} minWidth={900}>
-          {(rows ?? []).map((row) => (
+        <AdminTable
+          columns={COLUMNS}
+          minWidth={980}
+          selectable
+          allSelected={bulk.allSelected}
+          someSelected={bulk.someSelected}
+          onToggleAll={bulk.toggleAll}
+        >
+          {rows.map((row) => (
             <tr key={row.id} className="admin-table-row">
+              <td className="px-5 py-4 w-12">
+                <AdminRowCheckbox
+                  checked={bulk.selected.has(row.id)}
+                  onChange={() => bulk.toggle(row.id)}
+                  label={`Select reservation for ${row.name}`}
+                />
+              </td>
               <td className="px-5 py-4">
-                <p className="font-headline-md text-[16px]">{row.name}</p>
+                <p className="font-headline-md text-[16px] flex items-center gap-1.5">
+                  {row.name}
+                  {row.status === "pending" && (
+                    <span
+                      title="Needs confirmation"
+                      aria-label="Needs confirmation"
+                      className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] font-bold leading-none shrink-0"
+                    >
+                      !
+                    </span>
+                  )}
+                </p>
                 <p className="text-sm text-[var(--admin-muted)] mt-0.5">{row.email}</p>
               </td>
               <td className="px-5 py-4 font-body-md text-sm">{row.party_size}</td>
@@ -142,11 +226,19 @@ export default function AdminReservationsPage() {
                   onChange={(next) => changeStatus(row, next)}
                 />
               </td>
+              <td className="px-5 py-4">
+                <AdminRowActions
+                  viewLabel={row.name}
+                  onView={() => setDetail(row)}
+                  onDelete={() => deleteOne(row)}
+                  deleting={deletingId === row.id}
+                />
+              </td>
             </tr>
           ))}
-          {(rows ?? []).length === 0 && (
+          {rows.length === 0 && (
             <AdminTableEmpty
-              colSpan={COLUMNS.length}
+              colSpan={emptyColSpan}
               message={
                 query || status
                   ? "No reservations match that filter."
@@ -156,6 +248,13 @@ export default function AdminReservationsPage() {
           )}
         </AdminTable>
       )}
+
+      <AdminDetailModal
+        open={detail !== null}
+        title={detail ? `Reservation — ${detail.name}` : ""}
+        fields={detail ? reservationDetailFields(detail) : []}
+        onClose={() => setDetail(null)}
+      />
     </>
   );
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import {
-  AdminError,
+  AdminErrorModal,
   AdminFilter,
   AdminLoading,
   AdminPageHeader,
@@ -41,7 +41,7 @@ const KIND_ICON: Record<string, string> = {
 export default function AdminNotificationsPage() {
   const [filter, setFilter] = useState("all");
   const load = useCallback(() => adminApi.notifications(), []);
-  const { data, error, initialising, reload } = useAdminResource(load, []);
+  const { data, error, initialising, reload, refreshing } = useAdminResource(load, []);
 
   const counts = useMemo(() => {
     const list = data ?? [];
@@ -58,19 +58,10 @@ export default function AdminNotificationsPage() {
     [data, filter]
   );
 
-  if (error) return <AdminError message={error} onRetry={reload} />;
-
   return (
     <>
-      <AdminPageHeader
-        title="Notifications"
-        blurb="Everything the floor should know about right now, derived live from the database — unconfirmed tables, unpaid deposits, new enquiries, and events running out of tickets."
-        actions={
-          <button type="button" onClick={reload} className="admin-btn-ghost">
-            Refresh
-          </button>
-        }
-      />
+      <AdminErrorModal error={error} onRetry={reload} />
+      <AdminPageHeader title="Notifications" onRefresh={reload} refreshing={refreshing} />
 
       <StatGrid>
         <StatCard icon="notifications" tone="terracotta" label="Alerts" value={counts.all} />

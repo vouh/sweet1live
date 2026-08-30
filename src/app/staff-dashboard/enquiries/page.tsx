@@ -2,9 +2,19 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
-  AdminError,
+  AdminBulkBar,
+  AdminDetailModal,
+  AdminRowCheckbox,
+  AdminSelectHeader,
+  confirmDelete,
+  enquiryDetailFields,
+  useBulkSelect,
+} from "@/components/admin/AdminTableTools";
+import {
+  AdminErrorModal,
   AdminFilter,
   AdminLoading,
+  AdminNotice,
   AdminPageHeader,
   AdminSearch,
   AdminToolbar,
@@ -22,38 +32,86 @@ const KINDS = [
   { value: "venue", label: "Hire enquiries" },
 ];
 
+function enquiryKey(item: AdminEnquiry) {
+  return `${item.kind}-${item.id}`;
+}
+
 export default function AdminEnquiriesPage() {
   const [kind, setKind] = useState("all");
   const [query, setQuery] = useState("");
   const search = useDebounced(query);
   const [open, setOpen] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [deletingKey, setDeletingKey] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [detail, setDetail] = useState<AdminEnquiry | null>(null);
 
   const load = useCallback(() => adminApi.enquiries({ kind, q: search }), [kind, search]);
-  const { data, error, initialising, reload } = useAdminResource(load, [kind, search]);
+  const { data, error, initialising, reload, refreshing } = useAdminResource(load, [kind, search]);
+
+  const items = data ?? [];
+  const visibleKeys = useMemo(() => items.map(enquiryKey), [items]);
+  const bulk = useBulkSelect(visibleKeys);
 
   const totals = useMemo(() => {
-    const list = data ?? [];
     return {
-      all: list.length,
-      contact: list.filter((item) => item.kind === "contact").length,
-      venue: list.filter((item) => item.kind === "venue").length,
-      // The API sorts newest first, so the last row is the longest-waiting one.
-      oldest: list.length ? list[list.length - 1].created_at : null,
+      all: items.length,
+      contact: items.filter((item) => item.kind === "contact").length,
+      venue: items.filter((item) => item.kind === "venue").length,
+      oldest: items.length ? items[items.length - 1].created_at : null,
     };
-  }, [data]);
+  }, [items]);
 
-  if (error) return <AdminError message={error} onRetry={reload} />;
+  async function deleteOne(item: AdminEnquiry) {
+    if (!(await confirmDelete(`enquiry from ${item.name}`))) return;
+    const key = enquiryKey(item);
+    setDeletingKey(key);
+    setNotice(null);
+    try {
+      await adminApi.deleteEnquiry(item.kind, item.id);
+      bulk.clear();
+      if (open === key) setOpen(null);
+      if (detail && enquiryKey(detail) === key) setDetail(null);
+      reload();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not delete that enquiry.");
+    } finally {
+      setDeletingKey(null);
+    }
+  }
+
+  async function deleteSelected() {
+    if (bulk.count === 0) return;
+    if (!(await confirmDelete("enquiry", bulk.count))) return;
+    setBulkBusy(true);
+    setNotice(null);
+    try {
+      const refs = bulk.selectedIds.map((key) => {
+        const item = items.find((row) => enquiryKey(row) === key);
+        return item ? { kind: item.kind, id: item.id } : null;
+      }).filter(Boolean) as { kind: "contact" | "venue"; id: string }[];
+      await adminApi.bulkDeleteEnquiries(refs);
+      bulk.clear();
+      setOpen(null);
+      setDetail(null);
+      reload();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not delete those enquiries.");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  const allSelected = visibleKeys.length > 0 && visibleKeys.every((key) => bulk.selected.has(key));
 
   return (
     <>
+      <AdminErrorModal error={error} onRetry={reload} />
       <AdminPageHeader
         title="Enquiries"
         blurb="One inbox for the contact form and the venue-hire enquiry form. Open a message to read it in full and reply by email."
-        actions={
-          <button type="button" onClick={reload} className="admin-btn-ghost">
-            Refresh
-          </button>
-        }
+        onRefresh={reload}
+        refreshing={refreshing}
       />
 
       <StatGrid>
@@ -69,14 +127,36 @@ export default function AdminEnquiriesPage() {
         />
       </StatGrid>
 
+      {notice && <AdminNotice message={notice} onDismiss={() => setNotice(null)} />}
+
       <AdminToolbar>
         <AdminSearch value={query} onChange={setQuery} placeholder="Search by name, email, or subject" />
         <AdminFilter options={KINDS} value={kind} onChange={setKind} label="Enquiry type" />
       </AdminToolbar>
 
+      {items.length > 0 && (
+        <div className="admin-panel px-4 py-3 mb-4 flex items-center gap-3">
+          <AdminSelectHeader
+            checked={allSelected}
+            indeterminate={bulk.someSelected && !allSelected}
+            onChange={bulk.toggleAll}
+            label="Select all enquiries"
+          />
+          <span className="text-sm text-[var(--admin-muted)]">Select all on this page</span>
+        </div>
+      )}
+
+      <AdminBulkBar
+        count={bulk.count}
+        onDelete={deleteSelected}
+        onClear={bulk.clear}
+        busy={bulkBusy}
+        noun="enquiry"
+      />
+
       {initialising ? (
         <AdminLoading label="Opening the inbox…" />
-      ) : (data ?? []).length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="admin-panel p-12 text-center text-[var(--admin-muted)]">
           <span className="material-symbols-outlined text-[30px] opacity-50 block mb-2">
             mark_email_read
@@ -85,20 +165,32 @@ export default function AdminEnquiriesPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {(data ?? []).map((item) => (
+          {items.map((item) => (
             <EnquiryCard
-              key={`${item.kind}-${item.id}`}
+              key={enquiryKey(item)}
               enquiry={item}
-              expanded={open === `${item.kind}-${item.id}`}
+              expanded={open === enquiryKey(item)}
+              selected={bulk.selected.has(enquiryKey(item))}
+              onToggleSelect={() => bulk.toggle(enquiryKey(item))}
               onToggle={() =>
                 setOpen((current) =>
-                  current === `${item.kind}-${item.id}` ? null : `${item.kind}-${item.id}`
+                  current === enquiryKey(item) ? null : enquiryKey(item)
                 )
               }
+              onView={() => setDetail(item)}
+              onDelete={() => deleteOne(item)}
+              deleting={deletingKey === enquiryKey(item)}
             />
           ))}
         </div>
       )}
+
+      <AdminDetailModal
+        open={detail !== null}
+        title={detail ? detail.subject : ""}
+        fields={detail ? enquiryDetailFields(detail) : []}
+        onClose={() => setDetail(null)}
+      />
     </>
   );
 }
@@ -106,52 +198,94 @@ export default function AdminEnquiriesPage() {
 function EnquiryCard({
   enquiry,
   expanded,
+  selected,
+  onToggleSelect,
   onToggle,
+  onView,
+  onDelete,
+  deleting,
 }: {
   enquiry: AdminEnquiry;
   expanded: boolean;
+  selected: boolean;
+  onToggleSelect: () => void;
   onToggle: () => void;
+  onView: () => void;
+  onDelete: () => void;
+  deleting: boolean;
 }) {
   const isVenue = enquiry.kind === "venue";
   const replySubject = encodeURIComponent(`Re: ${enquiry.subject}`);
 
   return (
     <article className="admin-panel overflow-hidden">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
-        className="w-full text-left px-5 py-4 flex items-start gap-4 hover:bg-[color-mix(in_srgb,var(--admin-bg)_55%,var(--admin-surface))] transition-colors"
-      >
-        <span className="admin-icon-btn shrink-0">
-          <span className="material-symbols-outlined text-[18px]">
-            {isVenue ? "apartment" : "mail"}
-          </span>
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-2 flex-wrap">
-            <span className="font-headline-md text-[16px]">{enquiry.subject}</span>
-            <StatusBadge
-              status={isVenue ? "hire" : "message"}
-              tone={isVenue ? "accent" : "neutral"}
-            />
-          </span>
-          <span className="block text-sm text-[var(--admin-muted)] mt-1">
-            {enquiry.name} · {enquiry.email}
-          </span>
-          {!expanded && enquiry.message && (
-            <span className="block text-sm text-[var(--admin-muted)] mt-1.5 line-clamp-1 opacity-80">
-              {enquiry.message}
+      <div className="flex items-stretch">
+        <div className="flex items-center px-4 border-r border-[var(--admin-border)]">
+          <AdminRowCheckbox
+            checked={selected}
+            onChange={onToggleSelect}
+            label={`Select enquiry from ${enquiry.name}`}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          className="flex-1 text-left px-5 py-4 flex items-start gap-4 hover:bg-[color-mix(in_srgb,var(--admin-bg)_55%,var(--admin-surface))] transition-colors min-w-0"
+        >
+          <span className="admin-icon-btn shrink-0">
+            <span className="material-symbols-outlined text-[18px]">
+              {isVenue ? "apartment" : "mail"}
             </span>
-          )}
-        </span>
-        <span className="shrink-0 text-xs text-[var(--admin-muted)] whitespace-nowrap pt-1">
-          {formatRelative(enquiry.created_at)}
-        </span>
-      </button>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-2 flex-wrap">
+              <span className="font-headline-md text-[16px]">{enquiry.subject}</span>
+              <StatusBadge
+                status={isVenue ? "hire" : "message"}
+                tone={isVenue ? "accent" : "neutral"}
+              />
+            </span>
+            <span className="block text-sm text-[var(--admin-muted)] mt-1">
+              {enquiry.name} · {enquiry.email}
+            </span>
+            {!expanded && enquiry.message && (
+              <span className="block text-sm text-[var(--admin-muted)] mt-1.5 line-clamp-1 opacity-80">
+                {enquiry.message}
+              </span>
+            )}
+          </span>
+          <span className="shrink-0 text-xs text-[var(--admin-muted)] whitespace-nowrap pt-1">
+            {formatRelative(enquiry.created_at)}
+          </span>
+        </button>
+        <div className="flex items-center gap-1.5 px-4 border-l border-[var(--admin-border)]">
+          <button
+            type="button"
+            onClick={onView}
+            aria-label={`View enquiry from ${enquiry.name}`}
+            title="View details"
+            className="admin-icon-btn !w-9 !h-9"
+          >
+            <span className="material-symbols-outlined text-[18px]">visibility</span>
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={deleting}
+            aria-label={`Delete enquiry from ${enquiry.name}`}
+            title="Delete"
+            className="admin-icon-btn !w-9 !h-9 text-rose-600 hover:border-rose-400 disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {deleting ? "hourglass_top" : "delete"}
+            </span>
+          </button>
+        </div>
+      </div>
 
       {expanded && (
-        <div className="px-5 pb-5 pt-1 border-t border-[var(--admin-border)]">
+        <div className="px-5 pb-5 pt-1 border-t border-[var(--admin-border)] ml-[52px]">
           {isVenue && (
             <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-4">
               <Detail label="Event type" value={enquiry.event_type?.replace(/-/g, " ") ?? "—"} />

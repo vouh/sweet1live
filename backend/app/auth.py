@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 
 from app.config import settings
 from app.database import get_db
-from app.models import User
+from app.models import StaffMember, User
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -24,8 +24,18 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 def create_access_token(user_id: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expire_hours)
-    payload = {"sub": user_id, "exp": expire}
+    payload = {"sub": user_id, "exp": expire, "typ": "user"}
     return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
+
+
+def create_staff_token(staff_id: str) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expire_hours)
+    payload = {"sub": staff_id, "exp": expire, "typ": "staff"}
+    return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
+
+
+def _decode_token(token: str) -> dict:
+    return jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
 
 
 def get_current_user(
@@ -35,7 +45,9 @@ def get_current_user(
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     try:
-        payload = jwt.decode(credentials.credentials, settings.jwt_secret, algorithms=["HS256"])
+        payload = _decode_token(credentials.credentials)
+        if payload.get("typ") == "staff":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
         user_id = payload.get("sub")
     except jwt.PyJWTError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
@@ -61,7 +73,9 @@ def get_optional_user(
     if credentials is None or credentials.scheme.lower() != "bearer":
         return None
     try:
-        payload = jwt.decode(credentials.credentials, settings.jwt_secret, algorithms=["HS256"])
+        payload = _decode_token(credentials.credentials)
+        if payload.get("typ") == "staff":
+            return None
     except jwt.PyJWTError:
         return None
 
@@ -90,3 +104,65 @@ def require_staff(x_staff_key: str | None = Header(default=None, alias="X-Staff-
         )
     if not x_staff_key or not secrets.compare_digest(x_staff_key, settings.staff_api_key):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Staff key required")
+
+
+def get_staff_from_token(token: str, db: Session) -> StaffMember | None:
+    try:
+        payload = _decode_token(token)
+    except jwt.PyJWTError:
+        return None
+    if payload.get("typ") != "staff":
+        return None
+    staff_id = payload.get("sub")
+    if not staff_id:
+        return None
+    staff = db.get(StaffMember, staff_id)
+    # Allow-list "active" rather than deny-list a specific bad status: a
+    # suspended (or invited-but-not-yet-activated) account's existing JWT
+    # must stop working the moment their status changes, not just be blocked
+    # from issuing a *new* token at login.
+    if staff is None or staff.status != "active":
+        return None
+    return staff
+
+
+def get_current_staff(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> StaffMember:
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    staff = get_staff_from_token(credentials.credentials, db)
+    if staff is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid staff token")
+    return staff
+
+
+def require_staff_access(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    x_staff_key: str | None = Header(default=None, alias="X-Staff-Key"),
+    db: Session = Depends(get_db),
+) -> StaffMember | None:
+    """Staff JWT when present; shared API key as M2M fallback (full access)."""
+    if credentials and credentials.scheme.lower() == "bearer":
+        staff = get_staff_from_token(credentials.credentials, db)
+        if staff:
+            return staff
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid staff token")
+
+    if not settings.staff_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="STAFF_API_KEY is not configured on the API.",
+        )
+    if not x_staff_key or not secrets.compare_digest(x_staff_key, settings.staff_api_key):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Staff authentication required")
+    return None
+
+
+def require_super_admin(staff: StaffMember = Depends(get_current_staff), db: Session = Depends(get_db)) -> StaffMember:
+    from app.rbac import staff_is_super_admin
+
+    if not staff_is_super_admin(db, staff):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Super admin required")
+    return staff

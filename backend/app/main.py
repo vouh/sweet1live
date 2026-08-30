@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.security_middleware import SecurityMiddleware
 from sqlmodel import Session, SQLModel
 
 from app.config import settings
@@ -16,15 +18,20 @@ from app.routers import (
     checkout,
     contact,
     events,
+    menus,
     orders,
     reservations,
     rooms,
+    staff_auth,
+    staff_rbac,
     tickets,
     venue_enquiries,
     webhooks,
 )
+from app.staff_seed import init_rbac
 
 logger = logging.getLogger(__name__)
+logging.getLogger("sweet1ne.security").setLevel(logging.WARNING)
 
 SWEEP_INTERVAL_SECONDS = 120
 
@@ -50,6 +57,8 @@ async def _sweep_expired_holds() -> None:
 async def lifespan(_app: FastAPI):
     # Ensures new tables exist even before migrations run.
     SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        init_rbac(session)
 
     sweeper = asyncio.create_task(_sweep_expired_holds())
     try:
@@ -62,6 +71,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="Sweet1neLIVE API", lifespan=lifespan)
 
+app.add_middleware(SecurityMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -73,9 +83,12 @@ app.add_middleware(
 app.include_router(reservations.router)
 app.include_router(venue_enquiries.router)
 app.include_router(auth.router)
+app.include_router(staff_auth.router)
+app.include_router(staff_rbac.router)
 app.include_router(contact.router)
 app.include_router(rooms.router)
 app.include_router(events.router)
+app.include_router(menus.router)
 app.include_router(checkout.router)
 app.include_router(orders.router)
 app.include_router(tickets.router)

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 import gsap from "gsap";
@@ -12,13 +13,31 @@ gsap.registerPlugin(ScrollTrigger);
 export const LENIS_SCROLL_ROOT =
   typeof document !== "undefined" ? document.documentElement : null;
 
+function isAdminPath(pathname: string | null) {
+  return Boolean(
+    pathname?.startsWith("/staff-dashboard") || pathname?.startsWith("/admin")
+  );
+}
+
 /**
  * Smooth scrolling (Lenis) + GSAP ScrollTrigger sync.
+ * Disabled on staff/admin routes — those shells use their own scroll panels.
  */
 export default function SmoothScroll({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const lenisRef = useRef<Lenis | null>(null);
+  const adminRoute = isAdminPath(pathname);
 
   useEffect(() => {
+    if (adminRoute) {
+      if (lenisRef.current) {
+        lenisRef.current.destroy();
+        lenisRef.current = null;
+        ScrollTrigger.scrollerProxy(document.documentElement, {});
+      }
+      return;
+    }
+
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) return;
 
@@ -74,7 +93,7 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       lenisRef.current = null;
       ScrollTrigger.scrollerProxy(root, {});
     };
-  }, []);
+  }, [adminRoute]);
 
   return <>{children}</>;
 }

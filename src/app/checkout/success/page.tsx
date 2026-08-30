@@ -4,6 +4,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import BrandCloser, { FooterFlyover } from "@/components/BrandCloser";
+import CheckoutAnalytics from "@/components/CheckoutAnalytics";
 import {
   formatEventTime,
   formatLongDate,
@@ -40,7 +41,10 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
           {!result.ok ? (
             <Problem message={result.message} reference={ref} />
           ) : result.data.status === "paid" ? (
-            <Confirmed order={result.data} />
+            <>
+              <CheckoutAnalytics order={result.data} />
+              <Confirmed order={result.data} />
+            </>
           ) : (
             <Processing order={result.data} />
           )}
@@ -56,18 +60,21 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
 
 function Confirmed({ order }: { order: Order }) {
   const isRoom = order.kind === "room_deposit";
+  const isCollection = order.kind === "food_collection";
 
   return (
     <Reveal>
       <div className="text-center flex flex-col items-center gap-5">
         <span className="material-symbols-outlined text-primary text-5xl">check_circle</span>
         <h1 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase tracking-[0.03em]">
-          {isRoom ? "Room held" : "You're in"}
+          {isRoom ? "Room held" : isCollection ? "Order confirmed" : "You're in"}
         </h1>
         <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md">
           {isRoom
             ? "Your deposit is paid and the date is yours. Our events team will be in touch to shape the evening."
-            : "Payment received. Your tickets are below and a copy is on its way to your inbox."}
+            : isCollection
+              ? "Payment received. Head to the bar at your collection time — show this reference if asked."
+              : "Payment received. Your tickets are below and a copy is on its way to your inbox."}
         </p>
         <p className="font-label-caps text-label-caps uppercase tracking-[0.25em] text-on-surface-variant">
           Reference <span className="numeral text-primary">{order.reference}</span>
@@ -93,7 +100,7 @@ function Confirmed({ order }: { order: Order }) {
         </ul>
         <div className="flex items-center justify-between gap-5 pt-5 mt-2 border-t border-outline-variant/25">
           <span className="font-label-caps text-label-caps uppercase tracking-[0.2em] text-on-surface-variant">
-            {isRoom ? "Deposit paid" : "Total paid"}
+            {isRoom ? "Deposit paid" : isCollection ? "Total paid" : "Total paid"}
           </span>
           <span className="numeral font-price-display text-[24px] text-primary">
             {formatPrice(order.subtotal_pence, order.currency)}

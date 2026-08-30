@@ -6,6 +6,7 @@ import { AuthModalProvider } from "@/components/AuthModalProvider";
 import AuthModal from "@/components/AuthModal";
 import SmoothScroll from "@/components/motion/SmoothScroll";
 import ScrollProgress from "@/components/motion/ScrollProgress";
+import Analytics from "@/components/Analytics";
 import { themeInitScript } from "@/lib/theme";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { PRELOAD_HERO } from "@/lib/images";
@@ -60,6 +61,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col overflow-x-clip selection:bg-primary-container selection:text-on-primary-container">
+        <Analytics />
         <ThemeProvider>
           <AuthProvider>
             <AuthModalProvider>

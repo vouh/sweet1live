@@ -8,17 +8,25 @@ Money is integer pence throughout, matching the rest of the codebase.
 """
 
 from datetime import date as date_type, datetime, timedelta
+from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from pydantic import Field
 from sqlmodel import Session, SQLModel, func, select
 
-from app.auth import require_staff
+from app.admin_permissions import require_permission
+from app.auth import require_staff_access
 from app.config import settings
 from app.database import get_db
-from app.fulfilment import serialize_booking
+from app.fulfilment import mark_order_cancelled, serialize_booking
+from app.storage import upload_menu_image
 from app.models import (
     ContactMessage,
     Event,
+    MenuCategory,
+    MenuCategoryCreate,
+    MenuCategoryPublic,
+    MenuCategoryUpdate,
     MenuItem,
     MenuItemCreate,
     MenuItemPublic,
@@ -36,7 +44,7 @@ from app.models import (
     VenueEnquiry,
 )
 
-router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_staff)])
+router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_staff_access)])
 
 # Status vocabularies. The API is the only place these are enforced, so the
 # admin UI can offer exactly these and nothing else.
@@ -87,6 +95,7 @@ class AdminOverview(SQLModel):
     open_enquiries: int
     bookings_pending: int
     bookings_confirmed: int
+    collection_pending: int
     revenue_30d_pence: int
     paid_orders_30d: int
     guests_total: int
@@ -160,15 +169,24 @@ def _recent_activity(db: Session, limit: int) -> list[ActivityItem]:
 
     orders = db.exec(select(Order).order_by(Order.created_at.desc()).limit(FEED_PER_SOURCE)).all()
     for row in orders:
-        label = "Ticket order" if row.kind == "tickets" else "Room deposit"
+        label = {
+            "tickets": "Ticket order",
+            "room_deposit": "Room deposit",
+            "food_collection": "Collection order",
+        }.get(row.kind, "Order")
+        href = (
+            "/staff-dashboard/collection"
+            if row.kind == "food_collection"
+            else "/staff-dashboard/finance"
+        )
         items.append(
             ActivityItem(
                 id=f"order:{row.id}",
-                kind="order",
+                kind="order" if row.kind != "food_collection" else "collection",
                 title=f"{label} {row.reference} — {row.customer_name}",
                 detail=f"{row.subtotal_pence / 100:.2f} {row.currency.upper()} · {row.status}",
                 at=row.created_at,
-                href="/staff-dashboard/finance",
+                href=href,
             )
         )
 
@@ -176,7 +194,7 @@ def _recent_activity(db: Session, limit: int) -> list[ActivityItem]:
     return items[:limit]
 
 
-@router.get("/overview", response_model=AdminOverview)
+@router.get("/overview", response_model=AdminOverview, dependencies=[require_permission("dashboard.view")])
 def overview(db: Session = Depends(get_db)):
     today = date_type.today()
     now = datetime.utcnow()
@@ -211,6 +229,7 @@ def overview(db: Session = Depends(get_db)):
         open_enquiries=_count(db, ContactMessage) + _count(db, VenueEnquiry),
         bookings_pending=_count(db, RoomBooking, RoomBooking.status == "pending_payment"),
         bookings_confirmed=_count(db, RoomBooking, RoomBooking.status == "confirmed"),
+        collection_pending=_count(db, Order, Order.kind == "food_collection", Order.status == "pending"),
         revenue_30d_pence=sum(o.subtotal_pence for o in paid_recent),
         paid_orders_30d=len(paid_recent),
         guests_total=_count(db, User),
@@ -227,7 +246,44 @@ class StatusUpdate(SQLModel):
     status: str
 
 
-@router.get("/reservations", response_model=list[ReservationPublic])
+class BulkDeleteRequest(SQLModel):
+    ids: list[str] = Field(min_length=1, max_length=200)
+
+
+class BulkDeleteResult(SQLModel):
+    deleted: int
+
+
+class EnquiryRef(SQLModel):
+    kind: Literal["contact", "venue"]
+    id: str
+
+
+class BulkDeleteEnquiriesRequest(SQLModel):
+    items: list[EnquiryRef] = Field(min_length=1, max_length=200)
+
+
+def _delete_order(db: Session, order: Order) -> None:
+    """Remove an order and its line items. Pending ticket holds are released first."""
+    if order.status == "pending" and order.kind == "tickets":
+        mark_order_cancelled(db, order)
+    elif order.status == "paid" and order.kind == "tickets":
+        for item in db.exec(select(OrderItem).where(OrderItem.order_id == order.id)).all():
+            if not item.ticket_type_id:
+                continue
+            ticket_type = db.get(TicketType, item.ticket_type_id)
+            if ticket_type:
+                ticket_type.quantity_sold = max(0, ticket_type.quantity_sold - item.quantity)
+                db.add(ticket_type)
+
+    for ticket in db.exec(select(Ticket).where(Ticket.order_id == order.id)).all():
+        db.delete(ticket)
+    for item in db.exec(select(OrderItem).where(OrderItem.order_id == order.id)).all():
+        db.delete(item)
+    db.delete(order)
+
+
+@router.get("/reservations", response_model=list[ReservationPublic], dependencies=[require_permission("reservations.view")])
 def list_reservations(
     db: Session = Depends(get_db),
     status_filter: str | None = Query(default=None, alias="status"),
@@ -241,7 +297,7 @@ def list_reservations(
     return [row for row in rows if _matches(q, row.name, row.email, row.notes)]
 
 
-@router.patch("/reservations/{reservation_id}", response_model=ReservationPublic)
+@router.patch("/reservations/{reservation_id}", response_model=ReservationPublic, dependencies=[require_permission("reservations.edit")])
 def update_reservation(
     reservation_id: str, payload: StatusUpdate, db: Session = Depends(get_db)
 ):
@@ -259,6 +315,28 @@ def update_reservation(
     db.commit()
     db.refresh(reservation)
     return reservation
+
+
+@router.delete("/reservations/{reservation_id}", status_code=204, dependencies=[require_permission("reservations.delete")])
+def delete_reservation(reservation_id: str, db: Session = Depends(get_db)):
+    reservation = db.get(Reservation, reservation_id)
+    if reservation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reservation not found")
+    db.delete(reservation)
+    db.commit()
+
+
+@router.post("/reservations/bulk-delete", response_model=BulkDeleteResult, dependencies=[require_permission("reservations.delete")])
+def bulk_delete_reservations(payload: BulkDeleteRequest, db: Session = Depends(get_db)):
+    deleted = 0
+    for reservation_id in payload.ids:
+        reservation = db.get(Reservation, reservation_id)
+        if reservation is None:
+            continue
+        db.delete(reservation)
+        deleted += 1
+    db.commit()
+    return BulkDeleteResult(deleted=deleted)
 
 
 # =====================================================================
@@ -346,7 +424,7 @@ def _admin_event(db: Session, event: Event, rooms: dict[str, Room]) -> AdminEven
     )
 
 
-@router.get("/events", response_model=list[AdminEvent])
+@router.get("/events", response_model=list[AdminEvent], dependencies=[require_permission("events.view")])
 def list_events(
     db: Session = Depends(get_db),
     status_filter: str | None = Query(default=None, alias="status"),
@@ -371,7 +449,7 @@ def list_events(
     ]
 
 
-@router.patch("/events/{event_id}", response_model=AdminEvent)
+@router.patch("/events/{event_id}", response_model=AdminEvent, dependencies=[require_permission("events.edit")])
 def update_event(event_id: str, payload: StatusUpdate, db: Session = Depends(get_db)):
     if payload.status not in EVENT_STATUSES:
         raise HTTPException(
@@ -399,7 +477,7 @@ def _menu_public(item: MenuItem) -> MenuItemPublic:
     return MenuItemPublic(**item.model_dump(), currency=settings.currency)
 
 
-@router.get("/menus", response_model=list[MenuItemPublic])
+@router.get("/menus", response_model=list[MenuItemPublic], dependencies=[require_permission("menus.view")])
 def list_menu_items(
     db: Session = Depends(get_db),
     course: str | None = None,
@@ -412,7 +490,7 @@ def list_menu_items(
     return [_menu_public(row) for row in rows if _matches(q, row.name, row.description, row.course)]
 
 
-@router.post("/menus", response_model=MenuItemPublic, status_code=201)
+@router.post("/menus", response_model=MenuItemPublic, status_code=201, dependencies=[require_permission("menus.edit")])
 def create_menu_item(payload: MenuItemCreate, db: Session = Depends(get_db)):
     item = MenuItem(**payload.model_dump())
     db.add(item)
@@ -421,7 +499,7 @@ def create_menu_item(payload: MenuItemCreate, db: Session = Depends(get_db)):
     return _menu_public(item)
 
 
-@router.patch("/menus/{item_id}", response_model=MenuItemPublic)
+@router.patch("/menus/{item_id}", response_model=MenuItemPublic, dependencies=[require_permission("menus.edit")])
 def update_menu_item(item_id: str, payload: MenuItemUpdate, db: Session = Depends(get_db)):
     item = db.get(MenuItem, item_id)
     if item is None:
@@ -436,12 +514,152 @@ def update_menu_item(item_id: str, payload: MenuItemUpdate, db: Session = Depend
     return _menu_public(item)
 
 
-@router.delete("/menus/{item_id}", status_code=204)
+@router.delete("/menus/{item_id}", status_code=204, dependencies=[require_permission("menus.delete")])
 def delete_menu_item(item_id: str, db: Session = Depends(get_db)):
     item = db.get(MenuItem, item_id)
     if item is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Menu item not found")
     db.delete(item)
+    db.commit()
+
+
+class MenuImageUploadResult(SQLModel):
+    url: str
+
+
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+MAX_IMAGE_BYTES = 8 * 1024 * 1024
+
+
+@router.post("/menus/upload", response_model=MenuImageUploadResult, status_code=201, dependencies=[require_permission("menus.edit")])
+async def upload_menu_photo(file: UploadFile = File(...)):
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Upload a JPEG, PNG, WebP, or GIF image.",
+        )
+    content = await file.read()
+    if len(content) > MAX_IMAGE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Images must be under 8MB."
+        )
+    url = upload_menu_image(file.filename or "photo.jpg", content, file.content_type)
+    return MenuImageUploadResult(url=url)
+
+
+# ---------- Menu categories ----------
+# A managed list, separate from the free-text `course` column on dishes, so
+# the admin settings modal can rename/reorder/add without a schema change —
+# and the public menu keeps a consistent, typo-free set of category names.
+
+
+class AdminMenuCategoryView(MenuCategoryPublic):
+    dish_count: int
+
+
+def _category_dish_count(db: Session, name: str) -> int:
+    return db.exec(
+        select(func.count()).select_from(MenuItem).where(MenuItem.course == name)
+    ).one()
+
+
+def _category_name_taken(db: Session, name: str, exclude_id: str | None = None) -> bool:
+    row = db.exec(
+        select(MenuCategory).where(func.lower(MenuCategory.name) == name.lower())
+    ).first()
+    if row is None:
+        return False
+    return exclude_id is None or row.id != exclude_id
+
+
+@router.get("/menu-categories", response_model=list[AdminMenuCategoryView], dependencies=[require_permission("menus.view")])
+def list_menu_categories(db: Session = Depends(get_db)):
+    categories = db.exec(
+        select(MenuCategory).order_by(MenuCategory.sort_order, MenuCategory.name)
+    ).all()
+    return [
+        AdminMenuCategoryView(
+            id=category.id,
+            name=category.name,
+            sort_order=category.sort_order,
+            created_at=category.created_at,
+            dish_count=_category_dish_count(db, category.name),
+        )
+        for category in categories
+    ]
+
+
+@router.post("/menu-categories", response_model=MenuCategoryPublic, status_code=201, dependencies=[require_permission("menus.edit")])
+def create_menu_category(payload: MenuCategoryCreate, db: Session = Depends(get_db)):
+    name = payload.name.strip()
+    if not name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Category name is required"
+        )
+    if _category_name_taken(db, name):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f'A category named "{name}" already exists.',
+        )
+    top = db.exec(select(func.max(MenuCategory.sort_order))).first()
+    category = MenuCategory(name=name, sort_order=(top + 1) if top is not None else 0)
+    db.add(category)
+    db.commit()
+    db.refresh(category)
+    return category
+
+
+@router.patch("/menu-categories/{category_id}", response_model=MenuCategoryPublic, dependencies=[require_permission("menus.edit")])
+def update_menu_category(
+    category_id: str, payload: MenuCategoryUpdate, db: Session = Depends(get_db)
+):
+    category = db.get(MenuCategory, category_id)
+    if category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+
+    updates = payload.model_dump(exclude_unset=True)
+    if "name" in updates:
+        new_name = (updates["name"] or "").strip()
+        if not new_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Category name is required"
+            )
+        if _category_name_taken(db, new_name, exclude_id=category.id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f'A category named "{new_name}" already exists.',
+            )
+        # `course` is a plain string, not a foreign key — renaming here has to
+        # walk every dish that used the old name to keep them in sync.
+        if new_name != category.name:
+            for dish in db.exec(select(MenuItem).where(MenuItem.course == category.name)).all():
+                dish.course = new_name
+                db.add(dish)
+        updates["name"] = new_name
+
+    for key, value in updates.items():
+        setattr(category, key, value)
+    db.add(category)
+    db.commit()
+    db.refresh(category)
+    return category
+
+
+@router.delete("/menu-categories/{category_id}", status_code=204, dependencies=[require_permission("menus.delete")])
+def delete_menu_category(category_id: str, db: Session = Depends(get_db)):
+    category = db.get(MenuCategory, category_id)
+    if category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+    dish_count = _category_dish_count(db, category.name)
+    if dish_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"{dish_count} dish{'es' if dish_count != 1 else ''} still use "
+                f'"{category.name}". Delete or move those dishes first.'
+            ),
+        )
+    db.delete(category)
     db.commit()
 
 
@@ -471,7 +689,7 @@ class AdminVenueHire(SQLModel):
     bookings: list[RoomBookingPublic]
 
 
-@router.get("/venue-hire", response_model=AdminVenueHire)
+@router.get("/venue-hire", response_model=AdminVenueHire, dependencies=[require_permission("venue_hire.view")])
 def venue_hire(
     db: Session = Depends(get_db),
     status_filter: str | None = Query(default=None, alias="status"),
@@ -517,7 +735,7 @@ def venue_hire(
     )
 
 
-@router.patch("/venue-hire/{booking_id}", response_model=RoomBookingPublic)
+@router.patch("/venue-hire/{booking_id}", response_model=RoomBookingPublic, dependencies=[require_permission("venue_hire.edit")])
 def update_booking(booking_id: str, payload: StatusUpdate, db: Session = Depends(get_db)):
     if payload.status not in BOOKING_STATUSES:
         raise HTTPException(
@@ -535,6 +753,28 @@ def update_booking(booking_id: str, payload: StatusUpdate, db: Session = Depends
     db.commit()
     db.refresh(booking)
     return serialize_booking(db, booking)
+
+
+@router.delete("/venue-hire/{booking_id}", status_code=204, dependencies=[require_permission("venue_hire.delete")])
+def delete_booking(booking_id: str, db: Session = Depends(get_db)):
+    booking = db.get(RoomBooking, booking_id)
+    if booking is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
+    db.delete(booking)
+    db.commit()
+
+
+@router.post("/venue-hire/bulk-delete", response_model=BulkDeleteResult, dependencies=[require_permission("venue_hire.delete")])
+def bulk_delete_bookings(payload: BulkDeleteRequest, db: Session = Depends(get_db)):
+    deleted = 0
+    for booking_id in payload.ids:
+        booking = db.get(RoomBooking, booking_id)
+        if booking is None:
+            continue
+        db.delete(booking)
+        deleted += 1
+    db.commit()
+    return BulkDeleteResult(deleted=deleted)
 
 
 # =====================================================================
@@ -555,7 +795,7 @@ class AdminEnquiry(SQLModel):
     created_at: datetime
 
 
-@router.get("/enquiries", response_model=list[AdminEnquiry])
+@router.get("/enquiries", response_model=list[AdminEnquiry], dependencies=[require_permission("enquiries.view")])
 def list_enquiries(
     db: Session = Depends(get_db),
     kind: str = Query(default="all", pattern="^(all|contact|venue)$"),
@@ -603,6 +843,34 @@ def list_enquiries(
     return [item for item in items if _matches(q, item.name, item.email, item.subject, item.message)]
 
 
+@router.delete("/enquiries/{kind}/{enquiry_id}", status_code=204, dependencies=[require_permission("enquiries.delete")])
+def delete_enquiry(kind: Literal["contact", "venue"], enquiry_id: str, db: Session = Depends(get_db)):
+    if kind == "contact":
+        row = db.get(ContactMessage, enquiry_id)
+    else:
+        row = db.get(VenueEnquiry, enquiry_id)
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Enquiry not found")
+    db.delete(row)
+    db.commit()
+
+
+@router.post("/enquiries/bulk-delete", response_model=BulkDeleteResult, dependencies=[require_permission("enquiries.delete")])
+def bulk_delete_enquiries(payload: BulkDeleteEnquiriesRequest, db: Session = Depends(get_db)):
+    deleted = 0
+    for item in payload.items:
+        if item.kind == "contact":
+            row = db.get(ContactMessage, item.id)
+        else:
+            row = db.get(VenueEnquiry, item.id)
+        if row is None:
+            continue
+        db.delete(row)
+        deleted += 1
+    db.commit()
+    return BulkDeleteResult(deleted=deleted)
+
+
 # =====================================================================
 # Guests
 # =====================================================================
@@ -623,7 +891,7 @@ class AdminGuest(SQLModel):
     last_seen_at: datetime | None
 
 
-@router.get("/guests", response_model=list[AdminGuest])
+@router.get("/guests", response_model=list[AdminGuest], dependencies=[require_permission("guests.view")])
 def list_guests(
     db: Session = Depends(get_db),
     q: str | None = None,
@@ -718,6 +986,8 @@ class AdminOrderRow(SQLModel):
     customer_email: str
     subtotal_pence: int
     currency: str
+    charged_currency: str | None = None
+    charged_amount_pence: int | None = None
     created_at: datetime
     paid_at: datetime | None
     summary: str
@@ -731,6 +1001,7 @@ class AdminFinance(SQLModel):
     gross_paid_pence: int
     tickets_pence: int
     deposits_pence: int
+    collection_pence: int
     pending_pence: int
     refunded_pence: int
     paid_count: int
@@ -740,7 +1011,7 @@ class AdminFinance(SQLModel):
     orders: list[AdminOrderRow]
 
 
-@router.get("/finance", response_model=AdminFinance)
+@router.get("/finance", response_model=AdminFinance, dependencies=[require_permission("finance.view")])
 def finance(
     db: Session = Depends(get_db),
     days: int = Query(default=90, ge=1, le=730),
@@ -772,7 +1043,11 @@ def finance(
     def summarise(order: Order) -> str:
         items = items_by_order.get(order.id, [])
         if not items:
-            return "Room deposit" if order.kind == "room_deposit" else "—"
+            if order.kind == "room_deposit":
+                return "Room deposit"
+            if order.kind == "food_collection":
+                return "Collection order"
+            return "—"
         return ", ".join(f"{item.quantity} × {item.description}" for item in items)
 
     return AdminFinance(
@@ -782,6 +1057,7 @@ def finance(
         gross_paid_pence=gross,
         tickets_pence=sum(o.subtotal_pence for o in paid if o.kind == "tickets"),
         deposits_pence=sum(o.subtotal_pence for o in paid if o.kind == "room_deposit"),
+        collection_pence=sum(o.subtotal_pence for o in paid if o.kind == "food_collection"),
         pending_pence=sum(o.subtotal_pence for o in pending),
         refunded_pence=sum(o.subtotal_pence for o in refunded),
         paid_count=len(paid),
@@ -798,6 +1074,8 @@ def finance(
                 customer_email=order.customer_email,
                 subtotal_pence=order.subtotal_pence,
                 currency=order.currency,
+                charged_currency=order.charged_currency,
+                charged_amount_pence=order.charged_amount_pence,
                 created_at=order.created_at,
                 paid_at=order.paid_at,
                 summary=summarise(order),
@@ -806,6 +1084,76 @@ def finance(
             for order in shown
         ],
     )
+
+
+class AdminOrderLine(SQLModel):
+    description: str
+    quantity: int
+    unit_price_pence: int
+
+
+class AdminOrderDetail(AdminOrderRow):
+    items: list[AdminOrderLine]
+    ticket_codes: list[str]
+
+
+@router.get("/orders/{order_id}", response_model=AdminOrderDetail, dependencies=[require_permission("finance.view")])
+def get_order_detail(order_id: str, db: Session = Depends(get_db)):
+    order = db.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    items = db.exec(select(OrderItem).where(OrderItem.order_id == order.id)).all()
+    tickets = db.exec(select(Ticket).where(Ticket.order_id == order.id)).all()
+    summary = ", ".join(f"{item.quantity} × {item.description}" for item in items) or "—"
+
+    return AdminOrderDetail(
+        id=order.id,
+        reference=order.reference,
+        status=order.status,
+        kind=order.kind,
+        customer_name=order.customer_name,
+        customer_email=order.customer_email,
+        subtotal_pence=order.subtotal_pence,
+        currency=order.currency,
+        charged_currency=order.charged_currency,
+        charged_amount_pence=order.charged_amount_pence,
+        created_at=order.created_at,
+        paid_at=order.paid_at,
+        summary=summary,
+        stripe_payment_intent_id=order.stripe_payment_intent_id,
+        items=[
+            AdminOrderLine(
+                description=item.description,
+                quantity=item.quantity,
+                unit_price_pence=item.unit_price_pence,
+            )
+            for item in items
+        ],
+        ticket_codes=[ticket.code for ticket in tickets],
+    )
+
+
+@router.delete("/orders/{order_id}", status_code=204, dependencies=[require_permission("finance.delete")])
+def delete_order(order_id: str, db: Session = Depends(get_db)):
+    order = db.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+    _delete_order(db, order)
+    db.commit()
+
+
+@router.post("/orders/bulk-delete", response_model=BulkDeleteResult, dependencies=[require_permission("finance.delete")])
+def bulk_delete_orders(payload: BulkDeleteRequest, db: Session = Depends(get_db)):
+    deleted = 0
+    for order_id in payload.ids:
+        order = db.get(Order, order_id)
+        if order is None:
+            continue
+        _delete_order(db, order)
+        deleted += 1
+    db.commit()
+    return BulkDeleteResult(deleted=deleted)
 
 
 # =====================================================================
@@ -838,7 +1186,7 @@ class AdminSettingsView(SQLModel):
     tables: list[TableCount]
 
 
-@router.get("/settings", response_model=AdminSettingsView)
+@router.get("/settings", response_model=AdminSettingsView, dependencies=[require_permission("settings.manage")])
 def admin_settings(db: Session = Depends(get_db)):
     backend = settings.database_url.split("://", 1)[0] if "://" in settings.database_url else "unknown"
     rooms = db.exec(select(Room)).all()
@@ -852,7 +1200,7 @@ def admin_settings(db: Session = Depends(get_db)):
         session_hours=settings.jwt_expire_hours,
         stripe_enabled=settings.stripe_enabled,
         stripe_webhook_configured=bool(settings.stripe_webhook_secret),
-        email_configured=False,
+        email_configured=bool(settings.resend_api_key),
         supabase_configured=bool(settings.supabase_url),
         rooms_active=sum(1 for room in rooms if room.is_active),
         rooms_total=len(rooms),
@@ -887,7 +1235,7 @@ class AdminNotification(SQLModel):
     href: str
 
 
-@router.get("/notifications", response_model=list[AdminNotification])
+@router.get("/notifications", response_model=list[AdminNotification], dependencies=[require_permission("notifications.view")])
 def notifications(db: Session = Depends(get_db), limit: int = Query(default=40, ge=1, le=100)):
     """Derived from the tables themselves — there is no notifications table, so
     nothing here is 'read' or dismissible. It is the floor's alert list: what

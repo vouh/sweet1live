@@ -7,6 +7,8 @@ paths funnel through `mark_order_paid`, so it must be safe to run twice.
 
 from datetime import datetime
 
+import logging
+
 from sqlmodel import Session, select
 
 from app.config import settings
@@ -52,7 +54,60 @@ def mint_tickets(db: Session, order: Order) -> list[Ticket]:
     return tickets
 
 
-def mark_order_paid(db: Session, order: Order, payment_intent_id: str | None = None) -> Order:
+logger = logging.getLogger(__name__)
+
+
+def _normalize_stripe_amount(
+    order: Order,
+    stripe_currency: str | None,
+    stripe_amount_total: int | None,
+) -> None:
+    """Record the ledger in `settings.currency` when Stripe charged something else."""
+    if not settings.convert_foreign_payments:
+        return
+    if not stripe_currency or stripe_amount_total is None:
+        return
+
+    base = settings.currency.lower()
+    charged = stripe_currency.lower()
+    if charged == base:
+        return
+    if order.charged_currency is not None:
+        return
+
+    try:
+        from app.exchange_rates import convert_minor_units
+
+        ledger_pence = convert_minor_units(stripe_amount_total, charged, base)
+        order.charged_currency = charged
+        order.charged_amount_pence = stripe_amount_total
+        order.subtotal_pence = ledger_pence
+        order.currency = base
+        logger.info(
+            "Order %s: converted %s %s to %s %s",
+            order.reference,
+            charged,
+            stripe_amount_total,
+            base,
+            ledger_pence,
+        )
+    except Exception:  # noqa: BLE001 - keep the checkout amount if FX is unavailable
+        logger.exception(
+            "Order %s: FX conversion failed (%s %s); keeping checkout amount",
+            order.reference,
+            charged,
+            stripe_amount_total,
+        )
+
+
+def mark_order_paid(
+    db: Session,
+    order: Order,
+    payment_intent_id: str | None = None,
+    *,
+    stripe_currency: str | None = None,
+    stripe_amount_total: int | None = None,
+) -> Order:
     if payment_intent_id and not order.stripe_payment_intent_id:
         order.stripe_payment_intent_id = payment_intent_id
 
@@ -81,6 +136,8 @@ def mark_order_paid(db: Session, order: Order, payment_intent_id: str | None = N
         except Exception:  # noqa: BLE001 - oversell is better than losing a paid order
             pass
 
+    _normalize_stripe_amount(order, stripe_currency, stripe_amount_total)
+
     order.status = "paid"
     order.paid_at = datetime.utcnow()
 
@@ -93,6 +150,7 @@ def mark_order_paid(db: Session, order: Order, payment_intent_id: str | None = N
             booking.status = "confirmed"
             booking.confirmed_at = datetime.utcnow()
             db.add(booking)
+    # food_collection: payment alone confirms the kitchen order — no inventory step.
 
     db.add(order)
     db.commit()

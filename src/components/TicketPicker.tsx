@@ -8,6 +8,7 @@ import {
   startTicketCheckout,
   type VenueEvent,
 } from "@/lib/ticketing";
+import { trackEvent } from "@/lib/analytics";
 
 export default function TicketPicker({ event }: { event: VenueEvent }) {
   const { user } = useAuth();
@@ -55,6 +56,7 @@ export default function TicketPicker({ event }: { event: VenueEvent }) {
 
     setPending(true);
     setError(null);
+    trackEvent("ticket_checkout_started", { event: event.slug, items: lines.length });
 
     const result = await startTicketCheckout({
       event_slug: event.slug,

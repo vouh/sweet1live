@@ -8,7 +8,7 @@ export default function StaffDashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="admin-root">
+    <div className="admin-root h-dvh overflow-hidden">
       <AdminShell>{children}</AdminShell>
     </div>
   );

@@ -75,6 +75,8 @@ def sync_order(
                 db,
                 order,
                 payment_intent if isinstance(payment_intent, str) else None,
+                stripe_currency=session.get("currency"),
+                stripe_amount_total=session.get("amount_total"),
             )
 
     return serialize_order(db, order)

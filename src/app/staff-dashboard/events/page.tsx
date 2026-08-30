@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
-  AdminError,
+  AdminErrorModal,
   AdminFilter,
   AdminLoading,
   AdminNotice,
@@ -40,7 +40,7 @@ export default function AdminEventsPage() {
     return result;
   }, [when, search]);
 
-  const { error, initialising, reload } = useAdminResource(load, [when, search]);
+  const { error, initialising, reload, refreshing } = useAdminResource(load, [when, search]);
 
   const totals = useMemo(() => {
     const list = events ?? [];
@@ -73,18 +73,14 @@ export default function AdminEventsPage() {
     }
   }
 
-  if (error) return <AdminError message={error} onRetry={reload} />;
-
   return (
     <>
+      <AdminErrorModal error={error} onRetry={reload} />
       <AdminPageHeader
         title="Events"
         blurb="The live programme with real ticket counts — sold, held by in-flight checkouts, and still on sale. Drafts are visible here only."
-        actions={
-          <button type="button" onClick={reload} className="admin-btn-ghost">
-            Refresh
-          </button>
-        }
+        onRefresh={reload}
+        refreshing={refreshing}
       />
 
       <StatGrid>

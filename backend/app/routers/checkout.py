@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session, select
 
 from app.auth import get_optional_user
@@ -10,23 +10,33 @@ from app.inventory import hold_expiry, reserve_seats
 from app.models import (
     CheckoutSessionResponse,
     Event,
+    FoodCheckoutRequest,
+    MenuItem,
     Order,
     OrderItem,
     TicketCheckoutRequest,
     TicketType,
     User,
 )
+from app.routers.menus import COLLECTION_COURSES
 from app.payments import LineItem, create_checkout_for_order
+from app.rate_limit import client_ip, enforce_rate_limit
 
 router = APIRouter(prefix="/checkout", tags=["checkout"])
 
 
+def _enforce_checkout_rate_limit(request: Request) -> None:
+    enforce_rate_limit(f"checkout-ip:{client_ip(request)}", limit=30, window_seconds=15 * 60)
+
+
 @router.post("/tickets", response_model=CheckoutSessionResponse, status_code=201)
 def checkout_tickets(
+    request: Request,
     payload: TicketCheckoutRequest,
     db: Session = Depends(get_db),
     user: User | None = Depends(get_optional_user),
 ):
+    _enforce_checkout_rate_limit(request)
     """Hold the seats, open an order, and hand back a Stripe Checkout URL.
 
     Prices come from the database, never from the request — the client only
@@ -103,5 +113,80 @@ def checkout_tickets(
                 quantity=quantity,
             )
             for ticket_type, quantity in reserved
+        ],
+    )
+
+
+@router.post("/collection", response_model=CheckoutSessionResponse, status_code=201)
+def checkout_collection(
+    request: Request,
+    payload: FoodCheckoutRequest,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_optional_user),
+):
+    _enforce_checkout_rate_limit(request)
+    """Open a collection order and hand back a Stripe Checkout URL.
+
+    Only Small Plates and Mains are eligible — prices always come from the DB.
+    """
+    merged: dict[str, int] = {}
+    for line in payload.lines:
+        merged[line.menu_item_id] = merged.get(line.menu_item_id, 0) + line.quantity
+
+    resolved: list[tuple[MenuItem, int]] = []
+    for menu_item_id, quantity in merged.items():
+        item = db.get(MenuItem, menu_item_id)
+        if item is None or not item.is_active or item.course not in COLLECTION_COURSES:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="One or more dishes are not available for collection.",
+            )
+        if item.price_pence <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="This item cannot be ordered online.",
+            )
+        resolved.append((item, quantity))
+
+    subtotal = sum(item.price_pence * quantity for item, quantity in resolved)
+
+    order = Order(
+        user_id=user.id if user else None,
+        customer_name=payload.customer_name.strip(),
+        customer_email=payload.customer_email.lower(),
+        kind="food_collection",
+        subtotal_pence=subtotal,
+        currency=settings.currency,
+        expires_at=hold_expiry(),
+    )
+    db.add(order)
+    db.flush()
+
+    pickup = payload.pickup_time.strip()
+    for item, quantity in resolved:
+        db.add(
+            OrderItem(
+                order_id=order.id,
+                menu_item_id=item.id,
+                description=f"{item.name} · collection {pickup}",
+                quantity=quantity,
+                unit_price_pence=item.price_pence,
+            )
+        )
+
+    db.commit()
+    db.refresh(order)
+
+    return create_checkout_for_order(
+        db,
+        order,
+        [
+            LineItem(
+                name=item.name,
+                description=f"Collection at {pickup}",
+                amount_pence=item.price_pence,
+                quantity=quantity,
+            )
+            for item, quantity in resolved
         ],
     )

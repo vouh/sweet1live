@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import BrandCloser, { FooterFlyover } from "@/components/BrandCloser";
@@ -12,7 +12,10 @@ import SplitReveal from "@/components/motion/SplitReveal";
 import ScrollMarquee from "@/components/motion/ScrollMarquee";
 import ConversionBand from "@/components/ConversionBand";
 import { createVenueEnquiry, type ActionState } from "@/lib/api";
+import FormSecurityFields from "@/components/FormSecurityFields";
+import { trackEvent } from "@/lib/analytics";
 import BrandTagline from "@/components/BrandTagline";
+import VenueHireRoomBooking from "@/components/VenueHireRoomBooking";
 import { IMG } from "@/lib/images";
 
 const SPACES = [
@@ -77,6 +80,10 @@ const initialState: ActionState = { success: false, message: "" };
 export default function VenueHirePage() {
   const [state, formAction, pending] = useActionState(createVenueEnquiry, initialState);
 
+  useEffect(() => {
+    if (state.success) trackEvent("venue_enquiry_submitted");
+  }, [state.success]);
+
   return (
     <>
       <Nav active="/venue-hire" />
@@ -98,15 +105,26 @@ export default function VenueHirePage() {
                 From intimate private dinners to full venue takeovers — a cinematic backdrop for
                 nights your guests never forget.
               </p>
-              <Magnetic>
-                <a
-                  href="#enquire"
-                  className="inline-flex items-center gap-2 mt-10 font-headline-md text-[17px] md:text-[20px] text-white underline underline-offset-[10px] decoration-white/45 hover:decoration-white transition-colors"
-                >
-                  Start an enquiry
-                  <span className="material-symbols-outlined text-[20px]">arrow_outward</span>
-                </a>
-              </Magnetic>
+              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-6">
+                <Magnetic>
+                  <a
+                    href="#book"
+                    className="btn-ink inline-flex items-center gap-2 font-label-caps text-label-caps px-7 py-4"
+                  >
+                    Book a room
+                    <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
+                  </a>
+                </Magnetic>
+                <Magnetic>
+                  <a
+                    href="#enquire"
+                    className="inline-flex items-center gap-2 font-headline-md text-[17px] md:text-[20px] text-white underline underline-offset-[10px] decoration-white/45 hover:decoration-white transition-colors"
+                  >
+                    Start an enquiry
+                    <span className="material-symbols-outlined text-[20px]">arrow_outward</span>
+                  </a>
+                </Magnetic>
+              </div>
             </Reveal>
           </div>
         </header>
@@ -236,6 +254,28 @@ export default function VenueHirePage() {
           </div>
         </section>
 
+        {/* Book with deposit — Stripe checkout */}
+        <section
+          id="book"
+          className="relative z-10 px-margin-mobile md:px-gutter py-section-gap-mobile md:py-section-gap-desktop bg-background"
+        >
+          <div className="max-w-5xl mx-auto">
+            <Reveal variant="up" className="mb-10 text-center md:text-left">
+              <span className="font-label-caps text-label-caps text-primary uppercase tracking-[0.25em] block mb-4">
+                Reserve your date
+              </span>
+              <h2 className="font-headline-lg text-headline-lg-mobile md:text-[40px] uppercase tracking-[0.03em] mb-4">
+                Book with deposit
+              </h2>
+              <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                Pick a room, choose your date, and pay the holding deposit online. Our events team
+                will confirm the full brief after payment.
+              </p>
+            </Reveal>
+            <VenueHireRoomBooking />
+          </div>
+        </section>
+
         {/* Floating enquiry card */}
         <section id="enquire" className="relative z-10 px-margin-mobile md:px-gutter py-16 md:py-24">
           <Reveal variant="up">
@@ -272,7 +312,8 @@ export default function VenueHirePage() {
                       <p className="font-body-md text-body-md text-on-surface-variant mb-10">
                         Share the brief — we&apos;ll curate the room, menu, and rhythm around it.
                       </p>
-                      <form action={formAction} className="flex flex-col gap-6">
+                      <form action={formAction} className="flex flex-col gap-6 relative">
+                        <FormSecurityFields />
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                           <Field
                             label="Full name"

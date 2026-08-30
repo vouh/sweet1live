@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import Nav from "@/components/Nav";
@@ -11,7 +12,9 @@ import SplitReveal from "@/components/motion/SplitReveal";
 import ConversionBand from "@/components/ConversionBand";
 import { useAuthModal } from "@/components/AuthModalProvider";
 import { createReservation, type ActionState } from "@/lib/api";
+import { trackEvent } from "@/lib/analytics";
 import BrandTagline from "@/components/BrandTagline";
+import FormSecurityFields from "@/components/FormSecurityFields";
 import { IMG } from "@/lib/images";
 
 const TIMES = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"];
@@ -30,6 +33,10 @@ export default function ReservationsPage() {
   const [state, formAction, pending] = useActionState(createReservation, initialState);
   const [time, setTime] = useState("20:00");
   const { open: openAuth } = useAuthModal();
+
+  useEffect(() => {
+    if (state.success) trackEvent("reservation_submitted");
+  }, [state.success]);
 
   return (
     <>
@@ -63,9 +70,10 @@ export default function ReservationsPage() {
                 {state.success ? (
                   <div className="text-center flex flex-col items-center gap-5 py-8">
                     <span className="material-symbols-outlined text-primary text-5xl">check_circle</span>
-                    <h2 className="font-headline-md text-headline-md">Reservation confirmed</h2>
+                    <h2 className="font-headline-md text-headline-md">Request received</h2>
                     <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
-                      We&apos;ve emailed your confirmation. We look forward to welcoming you.
+                      Your table request is with our team — we&apos;ll confirm by email shortly. For
+                      parties of six or more, our concierge may call to shape the seating.
                     </p>
                     <Magnetic>
                       <Link href="/" className="btn-ink font-label-caps text-label-caps px-7 py-4 mt-2">
@@ -74,7 +82,8 @@ export default function ReservationsPage() {
                     </Magnetic>
                   </div>
                 ) : (
-                  <form action={formAction} className="flex flex-col gap-9">
+                  <form action={formAction} className="flex flex-col gap-9 relative">
+                    <FormSecurityFields />
                     <SplitReveal
                       as="h2"
                       text="Your evening"

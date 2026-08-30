@@ -4,6 +4,7 @@ from datetime import date as date_type, datetime
 from typing import Literal
 
 from pydantic import EmailStr
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
 # Unambiguous alphabet for anything a guest may have to read aloud or type in
@@ -304,12 +305,15 @@ class Order(SQLModel, table=True):
     user_id: str | None = Field(default=None, foreign_key="users.id", index=True)
     customer_name: str
     customer_email: str = Field(index=True)
-    # tickets | room_deposit
+    # tickets | room_deposit | food_collection
     kind: str = Field(default="tickets")
     # pending | paid | cancelled | expired | refunded
     status: str = Field(default="pending", index=True)
     subtotal_pence: int = 0
     currency: str = "gbp"
+    # Original Stripe charge when it differed from `currency` (audit trail after FX normalisation).
+    charged_currency: str | None = None
+    charged_amount_pence: int | None = None
     event_id: str | None = Field(default=None, foreign_key="events.id", index=True)
     room_booking_id: str | None = Field(default=None, index=True)
     stripe_checkout_session_id: str | None = Field(default=None, index=True)
@@ -325,6 +329,7 @@ class OrderItem(SQLModel, table=True):
     id: str = Field(default_factory=_uuid, primary_key=True)
     order_id: str = Field(foreign_key="orders.id", index=True)
     ticket_type_id: str | None = Field(default=None, foreign_key="ticket_types.id")
+    menu_item_id: str | None = Field(default=None, foreign_key="menu_items.id", index=True)
     description: str
     quantity: int
     unit_price_pence: int
@@ -392,6 +397,18 @@ class TicketCheckoutRequest(SQLModel):
     customer_name: str = Field(min_length=1, max_length=200)
     customer_email: EmailStr
     lines: list[CartLine] = Field(min_length=1)
+
+
+class FoodCartLine(SQLModel):
+    menu_item_id: str
+    quantity: int = Field(ge=1, le=10)
+
+
+class FoodCheckoutRequest(SQLModel):
+    customer_name: str = Field(min_length=1, max_length=200)
+    customer_email: EmailStr
+    pickup_time: str = Field(min_length=1, max_length=20, description="Requested collection time, e.g. 19:30")
+    lines: list[FoodCartLine] = Field(min_length=1)
 
 
 class CheckoutSessionResponse(SQLModel):
@@ -465,7 +482,9 @@ class RoomBookingPublic(SQLModel):
 
 
 class MenuItemBase(SQLModel):
-    # "Small Plates", "Mains", "The Cellar" — the course the dish sits under.
+    # "Small Plates", "Mains", "The Cellar" — the category the dish sits under.
+    # Column name stays `course` (pre-dates the category-management feature);
+    # the admin UI and API responses both call it "category".
     course: str = Field(max_length=80, index=True)
     name: str = Field(min_length=1, max_length=200)
     description: str = Field(default="", max_length=600)
@@ -474,12 +493,19 @@ class MenuItemBase(SQLModel):
     price_pence: int = Field(default=0, ge=0)
     sort_order: int = 0
     is_active: bool = True
+    images: list[str] = Field(default_factory=list)
+    ingredients: str = Field(default="", max_length=1000)
+    nutrition: str = Field(default="", max_length=500)
 
 
 class MenuItem(MenuItemBase, table=True):
     __tablename__ = "menu_items"
 
     id: str = Field(default_factory=_uuid, primary_key=True)
+    # Re-declared here (rather than left on MenuItemBase) so the JSON column
+    # type only applies to the table model — Create/Update/Public stay plain
+    # Pydantic lists.
+    images: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -498,6 +524,9 @@ class MenuItemUpdate(SQLModel):
     price_pence: int | None = Field(default=None, ge=0)
     sort_order: int | None = None
     is_active: bool | None = None
+    images: list[str] | None = None
+    ingredients: str | None = Field(default=None, max_length=1000)
+    nutrition: str | None = Field(default=None, max_length=500)
 
 
 class MenuItemPublic(MenuItemBase):
@@ -505,6 +534,38 @@ class MenuItemPublic(MenuItemBase):
     currency: str
     created_at: datetime
     updated_at: datetime
+
+
+# ---------- Menu categories ----------
+# A managed list of category names, kept separate from `menu_items.course`
+# (a plain string) so renaming a category updates every dish that uses it
+# without needing a foreign key / migration for each rename.
+
+
+class MenuCategoryBase(SQLModel):
+    name: str = Field(min_length=1, max_length=80)
+    sort_order: int = 0
+
+
+class MenuCategory(MenuCategoryBase, table=True):
+    __tablename__ = "menu_categories"
+
+    id: str = Field(default_factory=_uuid, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class MenuCategoryCreate(SQLModel):
+    name: str = Field(min_length=1, max_length=80)
+
+
+class MenuCategoryUpdate(SQLModel):
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    sort_order: int | None = None
+
+
+class MenuCategoryPublic(MenuCategoryBase):
+    id: str
+    created_at: datetime
 
 
 # ---------- Stripe webhook idempotency ledger ----------
@@ -523,3 +584,196 @@ class StripeEvent(SQLModel, table=True):
     id: str = Field(primary_key=True)
     type: str
     received_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# ---------- Staff RBAC ----------
+
+
+class Permission(SQLModel, table=True):
+    __tablename__ = "permissions"
+
+    id: str = Field(primary_key=True, max_length=80)
+    category: str = Field(max_length=80)
+    label: str = Field(max_length=120)
+    sort_order: int = 0
+
+
+class Role(SQLModel, table=True):
+    __tablename__ = "roles"
+
+    id: str = Field(default_factory=_uuid, primary_key=True)
+    name: str = Field(unique=True, index=True, max_length=80)
+    is_super_admin: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class RolePermission(SQLModel, table=True):
+    __tablename__ = "role_permissions"
+
+    role_id: str = Field(foreign_key="roles.id", primary_key=True)
+    permission_id: str = Field(foreign_key="permissions.id", primary_key=True)
+
+
+class StaffMember(SQLModel, table=True):
+    __tablename__ = "staff_members"
+
+    id: str = Field(default_factory=_uuid, primary_key=True)
+    email: str = Field(unique=True, index=True, max_length=254)
+    name: str = Field(max_length=120)
+    phone: str = Field(default="", max_length=32)
+    location: str = Field(default="", max_length=120)
+    job_title: str = Field(default="", max_length=80)
+    notes: str = Field(default="", max_length=500)
+    password_hash: str
+    # invited | active | suspended
+    status: str = Field(default="active", index=True)
+    must_reset_password: bool = False
+    invited_by_id: str | None = Field(default=None, foreign_key="staff_members.id")
+    # Who granted super-admin — that account cannot demote this person.
+    promoted_by_id: str | None = Field(default=None, foreign_key="staff_members.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class StaffRoleAssignment(SQLModel, table=True):
+    __tablename__ = "staff_role_assignments"
+
+    staff_id: str = Field(foreign_key="staff_members.id", primary_key=True)
+    role_id: str = Field(foreign_key="roles.id", primary_key=True)
+
+
+class StaffInvite(SQLModel, table=True):
+    __tablename__ = "staff_invites"
+
+    id: str = Field(default_factory=_uuid, primary_key=True)
+    staff_id: str = Field(foreign_key="staff_members.id", index=True)
+    token_hash: str = Field(unique=True, index=True)
+    expires_at: datetime
+    used_at: datetime | None = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class StaffPublic(SQLModel):
+    id: str
+    email: str
+    name: str
+    phone: str
+    location: str
+    job_title: str
+    notes: str
+    status: str
+    must_reset_password: bool
+    is_super_admin: bool
+    roles: list[str]
+    permissions: list[str]
+    created_at: datetime | None = None
+
+
+class StaffAuthResponse(SQLModel):
+    access_token: str
+    staff: StaffPublic
+
+
+class StaffLogin(SQLModel):
+    email: str = Field(max_length=254)
+    password: str = Field(max_length=128)
+
+
+class StaffSetPassword(SQLModel):
+    token: str = Field(max_length=128)
+    password: str = Field(max_length=128)
+
+
+class StaffForgotPassword(SQLModel):
+    email: str = Field(max_length=254)
+
+
+class StaffForgotPasswordResponse(SQLModel):
+    message: str
+
+
+class StaffDevPrefill(SQLModel):
+    email: str
+    password: str
+
+
+# One row per "change my password while signed in" attempt. The new password
+# is hashed and stored immediately, so confirming only needs the emailed code
+# — never a second copy of the password over the wire.
+class StaffPasswordChangeCode(SQLModel, table=True):
+    __tablename__ = "staff_password_change_codes"
+
+    id: str = Field(default_factory=_uuid, primary_key=True)
+    staff_id: str = Field(foreign_key="staff_members.id", index=True)
+    code_hash: str
+    new_password_hash: str
+    expires_at: datetime
+    used_at: datetime | None = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class StaffChangePasswordRequest(SQLModel):
+    new_password: str
+
+
+class StaffChangePasswordConfirm(SQLModel):
+    code: str
+
+
+class RolePublic(SQLModel):
+    id: str
+    name: str
+    is_super_admin: bool
+    permission_ids: list[str]
+    member_emails: list[str]
+    created_at: datetime
+
+
+class RoleCreate(SQLModel):
+    name: str = Field(min_length=1, max_length=80)
+    permission_ids: list[str] = Field(default_factory=list)
+
+
+class RoleUpdate(SQLModel):
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    permission_ids: list[str] | None = None
+    member_emails: list[str] | None = None
+
+
+class StaffCreate(SQLModel):
+    name: str = Field(min_length=1, max_length=120)
+    email: EmailStr
+    temp_password: str = Field(min_length=1, max_length=128)
+    phone: str = Field(default="", max_length=32)
+    location: str = Field(default="", max_length=120)
+    job_title: str = Field(default="", max_length=80)
+    notes: str = Field(default="", max_length=500)
+    role_ids: list[str] = Field(default_factory=list)
+    grant_super_admin: bool = False
+    send_invite: bool = True
+
+
+class StaffBulkDelete(SQLModel):
+    ids: list[str] = Field(min_length=1)
+
+
+class BulkDeleteResult(SQLModel):
+    deleted: int
+
+
+class StaffUpdate(SQLModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    phone: str | None = Field(default=None, max_length=32)
+    location: str | None = Field(default=None, max_length=120)
+    job_title: str | None = Field(default=None, max_length=80)
+    notes: str | None = Field(default=None, max_length=500)
+    status: str | None = Field(default=None, max_length=20)
+    role_ids: list[str] | None = None
+    grant_super_admin: bool | None = None
+
+
+class PermissionPublic(SQLModel):
+    id: str
+    category: str
+    label: str
+    sort_order: int
+

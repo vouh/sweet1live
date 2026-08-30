@@ -57,10 +57,50 @@ public/videos/*FINAL*.mp4
 # Stripe CLI binary (run scripts/install-stripe-cli.ps1)
 tools/stripe/stripe.exe
 
-/src/generated/prisma
+# Local database files (pytest throwaway DBs only — production uses Supabase PostgreSQL)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+test_*.db
 
-# prisma
-/dev.db
-/dev.db-journal
-/prisma/dev.db
-/prisma/dev.db-journal
+# Python — bytecode, caches, venvs (created on every `python` / pytest run)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+ENV/
+env/
+.eggs/
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+*.manifest
+*.spec
+
+# local uploads / scratch (if any dev storage folder is used)
+uploads/
+backend/uploads/
+tmp/
+temp/
+
+# IDE & local AI tooling (machine-specific, never commit)
+.claude/
+.cursor/
+.idea/
+*.swp
+*.swo
+*~

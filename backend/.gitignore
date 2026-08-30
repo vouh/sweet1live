@@ -1,10 +1,24 @@
+# Python runtime artifacts — also covered by root .gitignore
 venv/
 .venv/
 __pycache__/
-*.pyc
-.env
-dev.db
-
-# test artifacts
+*.py[cod]
+*$py.class
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Local secrets
+.env
+.env.local
+
+# Throwaway test databases (pytest only — app uses Supabase PostgreSQL)
 test_*.db
+test_*.db-journal
+*.db
+*.db-journal

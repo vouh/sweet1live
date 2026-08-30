@@ -1,3 +1,5 @@
+import { readFormSecurityFields } from "@/lib/formSecurity";
+
 export type ActionState = {
   success: boolean;
   message: string;
@@ -31,7 +33,10 @@ async function postJson(path: string, body: Record<string, unknown>): Promise<Ac
   }
 
   if (response.status === 422) {
-    const data: { detail?: FastApiValidationIssue[] } = await response.json();
+    const data: { detail?: FastApiValidationIssue[] | string } = await response.json();
+    if (typeof data.detail === "string") {
+      return { success: false, message: data.detail };
+    }
     const fieldErrors: Record<string, string[]> = {};
     for (const issue of data.detail ?? []) {
       const field = issue.loc[issue.loc.length - 1];
@@ -42,6 +47,14 @@ async function postJson(path: string, body: Record<string, unknown>): Promise<Ac
     return { success: false, message: "Please fix the errors below.", fieldErrors };
   }
 
+  if (response.status === 429) {
+    const data: { detail?: string } = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      message: data.detail ?? "Too many attempts. Please wait a few minutes and try again.",
+    };
+  }
+
   return { success: false, message: "Something went wrong. Please try again." };
 }
 
@@ -50,6 +63,7 @@ export async function createReservation(
   formData: FormData
 ): Promise<ActionState> {
   return postJson("/reservations", {
+    ...readFormSecurityFields(formData),
     name: formData.get("name"),
     email: formData.get("email"),
     party_size: Number(formData.get("partySize")),
@@ -64,6 +78,7 @@ export async function createVenueEnquiry(
   formData: FormData
 ): Promise<ActionState> {
   return postJson("/venue-enquiries", {
+    ...readFormSecurityFields(formData),
     name: formData.get("name"),
     email: formData.get("email"),
     event_type: formData.get("eventType"),
@@ -78,6 +93,7 @@ export async function createContactMessage(
   formData: FormData
 ): Promise<ActionState> {
   return postJson("/contact", {
+    ...readFormSecurityFields(formData),
     name: formData.get("name"),
     email: formData.get("email"),
     subject: formData.get("subject"),

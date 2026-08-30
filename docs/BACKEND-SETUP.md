@@ -6,6 +6,102 @@ For system design and API overview, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ---
 
+## How to run this project (local)
+
+Sweet1ne is **two servers** from one repo:
+
+| What | Where | Port |
+|------|-------|------|
+| **Frontend** (Next.js) | repo root | http://localhost:3000 |
+| **Backend** (FastAPI) | `backend/` folder | http://localhost:8000 |
+
+Both read **one env file**: `.env.local` at the repo root (copy from `.env.example`).
+
+### Daily workflow — three terminals
+
+**Terminal 1 — Backend (API)**
+
+```powershell
+cd backend
+.\run.ps1
+```
+
+**Terminal 2 — Stripe webhooks** (only while testing payments)
+
+```powershell
+.\scripts\stripe-listen.ps1
+```
+
+**Terminal 3 — Frontend (website)**
+
+```powershell
+npm run dev
+```
+
+Then open:
+
+| URL | Purpose |
+|-----|---------|
+| http://localhost:3000 | Website |
+| http://localhost:3000/test-tickets | Ticket checkout test page |
+| http://localhost:8000/health | API health — `"stripe": true` if keys are set |
+| http://localhost:8000/docs | Swagger — try API endpoints in the browser |
+
+Restart the backend after changing `.env.local`.
+
+---
+
+## What is `run.ps1`?
+
+**`.ps1`** = **PowerShell script** (a small program for Windows PowerShell).
+
+`backend/run.ps1` does three things for you:
+
+1. Allows the venv activation script to run (execution policy, this session only)
+2. `cd`s into `backend/`
+3. Starts the API with `venv\Scripts\python.exe -m uvicorn app.main:app --reload`
+
+So instead of typing activate + uvicorn yourself, you run:
+
+```powershell
+cd backend
+.\run.ps1
+```
+
+The `.\` means “run this script in the current folder.”
+
+> **Not the same as Railway.** Locally we use `--reload` for auto-restart on code changes. On Railway the start command is `uvicorn app.main:app --host 0.0.0.0 --port $PORT` (no `.ps1` file — that's Linux in the cloud).
+
+---
+
+## PowerShell: one command per line (or use `;`)
+
+PowerShell does **not** chain commands with spaces like bash does with `&&`.
+
+**Wrong** (what causes the “positional parameter” error):
+
+```powershell
+cd backend venv\scripts\activate uvicorn app.main:app --reload
+```
+
+**Right** — separate lines:
+
+```powershell
+cd backend
+.\venv\Scripts\Activate.ps1
+uvicorn app.main:app --reload
+```
+
+**Right** — one line with semicolons:
+
+```powershell
+cd backend; .\venv\Scripts\Activate.ps1; uvicorn app.main:app --reload
+```
+
+On Windows the folder is **`Scripts`** (capital S), not `scripts`.
+
+---
+
 ## Prerequisites
 
 - **Python 3.11+** (`python --version`)
@@ -29,7 +125,7 @@ Both Next.js and FastAPI read this file. It has three sections:
 Minimum to start the API:
 
 ```env
-DATABASE_URL=postgresql+psycopg2://...   # or sqlite:///./dev.db for local-only
+DATABASE_URL=postgresql+psycopg2://...   # Supabase PostgreSQL (Session pooler URL)
 CORS_ORIGINS=["http://localhost:3000"]
 ```
 
@@ -46,7 +142,7 @@ From the repo root:
 ```powershell
 cd backend
 python -m venv venv
-venv\scripts\activate
+.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python -m alembic upgrade head
 python -m app.seed
@@ -68,7 +164,7 @@ cd backend
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 cd backend
-venv\scripts\activate
+.\venv\Scripts\Activate.ps1
 uvicorn app.main:app --reload
 ```
 
@@ -185,8 +281,7 @@ Complete the browser prompt.
 
 ```powershell
 cd backend
-venv\scripts\activate
-uvicorn app.main:app --reload
+.\run.ps1
 ```
 
 **Terminal 2 — Stripe listener** (keep open while testing payments)
@@ -248,7 +343,7 @@ No Stripe CLI needed in production.
 ### 2. End-to-end checkout (best test)
 
 1. Backend + `stripe listen` + frontend all running
-2. Go to **Live & Events**, pick an event, buy a ticket
+2. Open http://localhost:3000/test-tickets (or any event under **Live & Events**)
 3. On Stripe Checkout, pay with test card (test mode only):
    - **4242 4242 4242 4242**
    - Any future expiry, any CVC
@@ -274,6 +369,7 @@ This proves Stripe → your server works, but it won't match a real order in you
 
 | Problem | Fix |
 |---------|-----|
+| `Set-Location : A positional parameter cannot be found` | You chained commands with spaces — use **`;`** or separate lines (see above) |
 | `ModuleNotFoundError: app` | Run uvicorn from **`backend/`** directory |
 | Checkout returns 503 | Set `STRIPE_SECRET_KEY` in `.env.local`, restart backend |
 | Payment succeeds but order stays pending | Run `stripe listen`, set `STRIPE_WEBHOOK_SECRET`, restart backend |
@@ -287,13 +383,17 @@ This proves Stripe → your server works, but it won't match a real order in you
 ## Quick reference
 
 ```powershell
-# Backend (daily)
+# Backend (daily) — easiest
 cd backend
-venv\scripts\activate
+.\run.ps1
+
+# Backend (manual)
+cd backend
+.\venv\Scripts\Activate.ps1
 uvicorn app.main:app --reload
 
 # Stripe webhooks (while testing payments)
-stripe listen --forward-to localhost:8000/stripe/webhook
+.\scripts\stripe-listen.ps1
 
 # Frontend
 npm run dev

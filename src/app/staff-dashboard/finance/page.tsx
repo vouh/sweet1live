@@ -1,10 +1,20 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
-  AdminError,
+  AdminBulkBar,
+  AdminDetailModal,
+  AdminRowActions,
+  AdminRowCheckbox,
+  confirmDelete,
+  orderDetailFields,
+  useBulkSelect,
+} from "@/components/admin/AdminTableTools";
+import {
+  AdminErrorModal,
   AdminFilter,
   AdminLoading,
+  AdminNotice,
   AdminPageHeader,
   AdminSearch,
   AdminTable,
@@ -16,7 +26,13 @@ import {
   useAdminResource,
   useDebounced,
 } from "@/components/admin/AdminUI";
-import { adminApi, formatDateTime, formatMoney } from "@/lib/adminApi";
+import {
+  adminApi,
+  formatDateTime,
+  formatMoney,
+  type AdminOrderDetail,
+  type AdminOrderRow,
+} from "@/lib/adminApi";
 
 const WINDOWS = [
   { value: "30", label: "30 days" },
@@ -31,33 +47,111 @@ const STATUSES = [
   { value: "refunded", label: "Refunded" },
 ];
 
-const COLUMNS = ["Reference", "Customer", "Items", "Type", "Amount", "Status", "Taken"];
+const KINDS = [
+  { value: "", label: "All types" },
+  { value: "tickets", label: "Tickets" },
+  { value: "food_collection", label: "Collection" },
+  { value: "room_deposit", label: "Hire deposit" },
+];
+
+const COLUMNS = ["Reference", "Customer", "Items", "Type", "Amount", "Status", "Taken", "Actions"];
+
+function orderKindLabel(kind: string): string {
+  if (kind === "food_collection") return "collection";
+  if (kind === "room_deposit") return "deposit";
+  return kind;
+}
 
 export default function AdminFinancePage() {
   const [days, setDays] = useState("90");
   const [status, setStatus] = useState("");
+  const [kind, setKind] = useState("");
   const [query, setQuery] = useState("");
   const search = useDebounced(query);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [detail, setDetail] = useState<AdminOrderDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const load = useCallback(
-    () => adminApi.finance({ days: Number(days), status, q: search }),
-    [days, status, search]
+    () => adminApi.finance({ days: Number(days), status, kind, q: search }),
+    [days, status, kind, search]
   );
-  const { data, error, initialising, reload } = useAdminResource(load, [days, status, search]);
+  const { data, error, initialising, reload, refreshing } = useAdminResource(load, [
+    days,
+    status,
+    kind,
+    search,
+  ]);
 
-  if (error) return <AdminError message={error} onRetry={reload} />;
-  if (initialising || !data) return <AdminLoading label="Counting the takings…" />;
+  const orders = data?.orders ?? [];
+  const visibleIds = useMemo(() => orders.map((order) => order.id), [orders]);
+  const bulk = useBulkSelect(visibleIds);
+
+  async function viewOrder(order: AdminOrderRow) {
+    setDetailLoading(true);
+    setNotice(null);
+    try {
+      const full = await adminApi.getOrder(order.id);
+      setDetail(full);
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not load order details.");
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
+  async function deleteOne(order: AdminOrderRow) {
+    if (!(await confirmDelete(`order ${order.reference}`))) return;
+    setDeletingId(order.id);
+    setNotice(null);
+    try {
+      await adminApi.deleteOrder(order.id);
+      bulk.clear();
+      reload();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not delete that order.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function deleteSelected() {
+    if (bulk.count === 0) return;
+    if (!(await confirmDelete("order", bulk.count))) return;
+    setBulkBusy(true);
+    setNotice(null);
+    try {
+      await adminApi.bulkDeleteOrders(bulk.selectedIds);
+      bulk.clear();
+      reload();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not delete those orders.");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  if (initialising || !data) {
+    return (
+      <>
+        <AdminErrorModal error={error} onRetry={reload} />
+        <AdminLoading label="Counting the takings…" />
+      </>
+    );
+  }
+
+  const emptyColSpan = COLUMNS.length + 1;
 
   return (
     <>
+      <AdminErrorModal error={error} onRetry={reload} />
       <AdminPageHeader
         title="Finance"
-        blurb={`Every order the venue has taken in the last ${data.window_days} days — ticket sales and hire deposits, settled through Stripe.`}
-        actions={
-          <button type="button" onClick={reload} className="admin-btn-ghost">
-            Refresh
-          </button>
-        }
+        blurb={`Every order the venue has taken in the last ${data.window_days} days — tickets, collection, and hire deposits through Stripe.`}
+        onRefresh={reload}
+        refreshing={refreshing}
       />
 
       {!data.stripe_enabled && (
@@ -93,10 +187,10 @@ export default function AdminFinancePage() {
           value={formatMoney(data.deposits_pence, data.currency)}
         />
         <StatCard
-          icon="receipt_long"
+          icon="takeout_dining"
           tone="rose"
-          label="Average order"
-          value={formatMoney(data.average_order_pence, data.currency)}
+          label="Collection"
+          value={formatMoney(data.collection_pence, data.currency)}
         />
       </StatGrid>
 
@@ -130,15 +224,40 @@ export default function AdminFinancePage() {
         </div>
       </div>
 
+      {notice && <AdminNotice message={notice} onDismiss={() => setNotice(null)} />}
+
       <AdminToolbar>
         <AdminSearch value={query} onChange={setQuery} placeholder="Search by reference, name, or email" />
         <AdminFilter options={STATUSES} value={status} onChange={setStatus} label="Order status" />
+        <AdminFilter options={KINDS} value={kind} onChange={setKind} label="Order type" />
         <AdminFilter options={WINDOWS} value={days} onChange={setDays} label="Time window" />
       </AdminToolbar>
 
-      <AdminTable columns={COLUMNS} minWidth={1020}>
-        {data.orders.map((order) => (
+      <AdminBulkBar
+        count={bulk.count}
+        onDelete={deleteSelected}
+        onClear={bulk.clear}
+        busy={bulkBusy}
+        noun="order"
+      />
+
+      <AdminTable
+        columns={COLUMNS}
+        minWidth={1100}
+        selectable
+        allSelected={bulk.allSelected}
+        someSelected={bulk.someSelected}
+        onToggleAll={bulk.toggleAll}
+      >
+        {orders.map((order) => (
           <tr key={order.id} className="admin-table-row">
+            <td className="px-5 py-4 w-12">
+              <AdminRowCheckbox
+                checked={bulk.selected.has(order.id)}
+                onChange={() => bulk.toggle(order.id)}
+                label={`Select order ${order.reference}`}
+              />
+            </td>
             <td className="px-5 py-4 font-label-caps text-[11px] tracking-[0.12em] whitespace-nowrap">
               {order.reference}
             </td>
@@ -150,10 +269,7 @@ export default function AdminFinancePage() {
               <span className="line-clamp-2">{order.summary}</span>
             </td>
             <td className="px-5 py-4">
-              <StatusBadge
-                status={order.kind === "tickets" ? "tickets" : "deposit"}
-                tone="neutral"
-              />
+              <StatusBadge status={orderKindLabel(order.kind)} tone="neutral" />
             </td>
             <td className="px-5 py-4 font-headline-md text-[15px] whitespace-nowrap">
               {formatMoney(order.subtotal_pence, order.currency)}
@@ -164,11 +280,19 @@ export default function AdminFinancePage() {
             <td className="px-5 py-4 font-body-md text-sm text-[var(--admin-muted)] whitespace-nowrap">
               {formatDateTime(order.paid_at ?? order.created_at)}
             </td>
+            <td className="px-5 py-4">
+              <AdminRowActions
+                viewLabel={order.reference}
+                onView={() => viewOrder(order)}
+                onDelete={() => deleteOne(order)}
+                deleting={deletingId === order.id || (detailLoading && detail?.id === order.id)}
+              />
+            </td>
           </tr>
         ))}
-        {data.orders.length === 0 && (
+        {orders.length === 0 && (
           <AdminTableEmpty
-            colSpan={COLUMNS.length}
+            colSpan={emptyColSpan}
             message={
               query || status
                 ? "No orders match that filter."
@@ -177,6 +301,13 @@ export default function AdminFinancePage() {
           />
         )}
       </AdminTable>
+
+      <AdminDetailModal
+        open={detail !== null}
+        title={detail ? `Order — ${detail.reference}` : ""}
+        fields={detail ? orderDetailFields(detail) : []}
+        onClose={() => setDetail(null)}
+      />
     </>
   );
 }

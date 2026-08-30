@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback } from "react";
 import {
-  AdminError,
+  AdminErrorModal,
   AdminLoading,
   AdminPageHeader,
   StatCard,
@@ -17,32 +17,30 @@ const ACTIVITY_ICON: Record<string, string> = {
   "venue-hire": "apartment",
   enquiry: "mail",
   order: "payments",
+  collection: "takeout_dining",
 };
 
 export default function StaffDashboardPage() {
   const load = useCallback(() => adminApi.overview(), []);
-  const { data, error, initialising, reload } = useAdminResource(load, []);
+  const { data, error, initialising, reload, refreshing } = useAdminResource(load, []);
 
-  if (error) return <AdminError message={error} onRetry={reload} />;
-  if (initialising || !data) return <AdminLoading label="Reading tonight's book…" />;
+  const loadSettings = useCallback(() => adminApi.settings(), []);
+  const { data: settings } = useAdminResource(loadSettings, []);
+
+  if (initialising || !data) {
+    return (
+      <>
+        <AdminErrorModal error={error} onRetry={reload} />
+        <AdminLoading label="Reading tonight's book…" />
+      </>
+    );
+  }
 
   return (
     <>
-      <AdminPageHeader
-        title="Tonight at Sweet1ne"
-        blurb="Live numbers straight from the booking database — covers, tickets, deposits, and anything still waiting on a staff reply."
-        actions={
-          <>
-            <Link href="/staff-dashboard/reservations" className="admin-btn-ghost">
-              Reservations
-            </Link>
-            <Link href="/staff-dashboard/events" className="admin-btn-primary">
-              <span className="material-symbols-outlined text-[18px]">mic</span>
-              Events
-            </Link>
-          </>
-        }
-      />
+      <AdminErrorModal error={error} onRetry={reload} />
+
+      <AdminPageHeader title="Dashboard" onRefresh={reload} refreshing={refreshing} />
 
       <StatGrid>
         <StatCard
@@ -50,7 +48,7 @@ export default function StaffDashboardPage() {
           tone="terracotta"
           label="Covers today"
           value={data.covers_today}
-          meta={`${data.reservations_today} reservation${data.reservations_today === 1 ? "" : "s"} · ${data.reservations_pending} to confirm`}
+          meta={`${data.reservations_today} reservation${data.reservations_today === 1 ? "" : "s"} · ${data.reservations_pending} pending`}
         />
         <StatCard
           icon="confirmation_number"
@@ -123,40 +121,68 @@ export default function StaffDashboardPage() {
         </section>
 
         <section className="admin-panel p-6 md:p-7">
-          <h3 className="font-headline-md text-[20px] mb-5">Needs a person</h3>
-          <ul className="flex flex-col gap-3">
-            <QueueRow
+          <h3 className="font-headline-md text-[20px] mb-5">Action needed</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <QueueCard
               href="/staff-dashboard/reservations?status=pending"
               icon="event_seat"
-              label="Reservations to confirm"
+              label="Pending reservations"
               count={data.reservations_pending}
             />
-            <QueueRow
+            <QueueCard
               href="/staff-dashboard/venue-hire"
               icon="apartment"
               label="Hire deposits unpaid"
               count={data.bookings_pending}
             />
-            <QueueRow
+            <QueueCard
+              href="/staff-dashboard/collection"
+              icon="takeout_dining"
+              label="Collection in checkout"
+              count={data.collection_pending}
+            />
+            <QueueCard
               href="/staff-dashboard/enquiries"
               icon="mail"
               label="Enquiries in the inbox"
               count={data.open_enquiries}
             />
-            <QueueRow
+            <QueueCard
               href="/staff-dashboard/guests"
               icon="group"
               label="Guest accounts"
               count={data.guests_total}
             />
-          </ul>
+          </div>
         </section>
       </div>
+
+      {settings && settings.tables.length > 0 && (
+        <section className="admin-panel p-6 md:p-7 mt-5">
+          <h3 className="font-headline-md text-[20px] mb-4">What&apos;s in the database</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+            {settings.tables.map((table) => (
+              <div
+                key={table.table}
+                className="rounded-xl border border-[var(--admin-border)] px-4 py-3"
+              >
+                <p className="font-display-lg text-[24px] leading-none">{table.rows}</p>
+                <p className="font-label-caps text-[10px] tracking-[0.18em] uppercase text-[var(--admin-muted)] mt-2">
+                  {table.label}
+                </p>
+                <p className="text-xs text-[var(--admin-muted)] opacity-70 mt-0.5">
+                  {table.table}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }
 
-function QueueRow({
+function QueueCard({
   href,
   icon,
   label,
@@ -168,17 +194,19 @@ function QueueRow({
   count: number;
 }) {
   return (
-    <li>
-      <Link
-        href={href}
-        className="flex items-center gap-3 rounded-xl border border-[var(--admin-border)] px-4 py-3 hover:border-[var(--admin-gold)] transition-colors"
-      >
-        <span className="material-symbols-outlined text-[20px] text-[var(--admin-gold)]">
+    <Link
+      href={href}
+      className="rounded-xl border border-[var(--admin-border)] px-4 py-3 flex flex-col gap-3 hover:border-[var(--admin-gold)] transition-colors"
+    >
+      <div className="flex items-center justify-between">
+        <span className="material-symbols-outlined text-[18px] text-[var(--admin-gold)]">
           {icon}
         </span>
-        <span className="flex-1 font-body-md text-sm">{label}</span>
         <span className="font-display-lg text-[22px] leading-none">{count}</span>
-      </Link>
-    </li>
+      </div>
+      <span className="font-label-caps text-[9px] tracking-[0.16em] uppercase text-[var(--admin-muted)]">
+        {label}
+      </span>
+    </Link>
   );
 }

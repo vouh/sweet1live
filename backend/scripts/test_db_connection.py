@@ -14,9 +14,9 @@ from app.config import settings  # noqa: E402
 
 def main() -> int:
     url = settings.database_url
-    if url.startswith("sqlite"):
-        print("DATABASE_URL points at SQLite — not Supabase.")
-        return 0
+    if not url.startswith("postgresql"):
+        print("DATABASE_URL must be a PostgreSQL URL (Supabase).")
+        return 1
 
     safe = url.split("@")[-1] if "@" in url else "(hidden)"
     print(f"Testing connection to …@{safe}")

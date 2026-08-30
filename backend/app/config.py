@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Repo root `.env.local` — shared by Next.js and FastAPI
@@ -14,7 +14,8 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    database_url: str = "sqlite:///./dev.db"
+    # Supabase PostgreSQL — set DATABASE_URL in `.env.local` (no SQLite default).
+    database_url: str = ""
     cors_origins: list[str] = ["http://localhost:3000"]
 
     # Reads NEXT_PUBLIC_* from the shared file so we don't duplicate keys
@@ -39,8 +40,63 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str = ""
     public_site_url: str = "http://localhost:3000"
     currency: str = "gbp"
+    # When Stripe charges in another currency (e.g. USD), convert to `currency` on payment.
+    convert_foreign_payments: bool = True
     checkout_hold_minutes: int = 30
     staff_api_key: str = "sweet1ne-dev-staff-key-change-me"
+
+    resend_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("RESEND_API_KEY"),
+    )
+    resend_from: str = Field(
+        default="",
+        validation_alias=AliasChoices("RESEND_FROM"),
+    )
+    super_admin_email: str = Field(
+        default="",
+        validation_alias=AliasChoices("SUPER_ADMIN_EMAIL"),
+    )
+    super_admin_password: str = Field(
+        default="",
+        validation_alias=AliasChoices("SUPER_ADMIN_PASSWORD"),
+    )
+    super_admin_name: str = Field(
+        default="Super Admin",
+        validation_alias=AliasChoices("SUPER_ADMIN_NAME"),
+    )
+
+    # Optional Cloudflare Turnstile — when set, public forms must pass siteverify.
+    turnstile_secret_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("TURNSTILE_SECRET_KEY"),
+    )
+    allow_dev_login_prefill: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("ALLOW_DEV_LOGIN_PREFILL"),
+    )
+
+    @property
+    def dev_login_prefill_enabled(self) -> bool:
+        if self.allow_dev_login_prefill:
+            return True
+        site = self.public_site_url.lower()
+        return "localhost" in site or "127.0.0.1" in site
+
+    @model_validator(mode="after")
+    def _require_postgres_database(self) -> "Settings":
+        import os
+
+        url = self.database_url.strip()
+        if not url:
+            raise ValueError(
+                "DATABASE_URL is required. Add your Supabase PostgreSQL URL to .env.local."
+            )
+        if url.startswith("sqlite") and os.getenv("ALLOW_SQLITE_TESTS") != "1":
+            raise ValueError(
+                "SQLite is not used in this project. Set DATABASE_URL to Supabase PostgreSQL."
+            )
+        return self
 
     @property
     def stripe_enabled(self) -> bool:

@@ -1276,24 +1276,37 @@ html.dark .venue-room-card__body {
   align-items: center;
 }
 .admin-login__input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid rgba(212, 165, 116, 0.55);
+  border-radius: 0;
+  background: transparent;
+  padding: 0.5rem 0 0.75rem;
   color: #2c1810 !important;
   -webkit-text-fill-color: #2c1810 !important;
-  caret-color: #2c1810;
+  caret-color: #c45c3a;
   font-size: 16px !important;
+  line-height: 1.4;
   opacity: 1 !important;
+  transition: border-color 0.2s ease, border-width 0.2s ease;
+}
+.admin-login__input:focus {
+  outline: none;
+  border-bottom: 2px solid #c45c3a;
+  padding-bottom: calc(0.75rem - 1px);
 }
 .admin-login__input::placeholder {
   color: #2c1810 !important;
   -webkit-text-fill-color: #2c1810 !important;
-  opacity: 0.85;
+  opacity: 0.45;
 }
 .admin-login__input:-webkit-autofill,
 .admin-login__input:-webkit-autofill:hover,
 .admin-login__input:-webkit-autofill:focus {
   -webkit-text-fill-color: #2c1810 !important;
   color: #2c1810 !important;
-  box-shadow: 0 0 0 1000px #f8f3ed inset !important;
-  background-color: #f8f3ed !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  background-color: transparent !important;
   transition: background-color 99999s ease-in-out 0s;
 }
 @media (min-width: 768px) {
@@ -1343,14 +1356,37 @@ html.dark .venue-room-card__body {
   box-shadow: none;
   isolation: isolate;
   overflow: hidden;
+  height: 100dvh;
+}
+.admin-root,
+.admin-shell,
+.admin-main {
+  height: 100dvh;
+  max-height: 100dvh;
 }
 .admin-main {
   background: var(--admin-bg);
   color: var(--admin-ink);
-  /* Pull flush against the sidebar so the active tab has no seam */
-  margin-left: 0;
   box-shadow: none;
   border: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.admin-main__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Staff dashboard uses nested scroll panels, not page scroll. */
+html.admin-route,
+html.admin-route body {
+  overflow: hidden;
+  height: 100%;
 }
 .admin-sidebar__logo-ring {
   width: 64px;
@@ -1519,6 +1555,25 @@ html.dark .venue-room-card__body {
 .admin-icon-btn--accent:hover {
   background: color-mix(in srgb, var(--admin-accent) 12%, transparent);
 }
+.admin-icon-btn--view {
+  border-color: color-mix(in srgb, var(--admin-gold) 40%, transparent);
+  color: var(--admin-gold);
+}
+.admin-icon-btn--view:hover {
+  background: color-mix(in srgb, var(--admin-gold) 10%, transparent);
+}
+.admin-icon-btn--hide {
+  border-color: color-mix(in srgb, var(--admin-muted) 35%, transparent);
+  color: var(--admin-muted);
+}
+.admin-icon-btn--hide:hover {
+  border-color: var(--admin-border);
+  color: var(--admin-ink);
+}
+.admin-icon-btn--hide-off {
+  border-color: color-mix(in srgb, var(--admin-accent) 30%, transparent);
+  color: var(--admin-accent);
+}
 /* Armed destructive action — one more click and it's gone */
 .admin-icon-btn--armed {
   border-color: #e11d48;
@@ -1612,6 +1667,48 @@ html.dark .venue-room-card__body {
 }
 .admin-btn-ghost:hover {
   border-color: var(--admin-gold);
+}
+
+.admin-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-ink);
+  padding: 0.4rem 0.75rem;
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+.admin-refresh-btn:hover:not(:disabled) {
+  border-color: var(--admin-gold);
+}
+.admin-refresh-btn__icon {
+  font-size: 15px;
+  line-height: 1;
+}
+.admin-refresh-btn__icon--spin {
+  animation: admin-refresh-spin 0.75s linear infinite;
+}
+@keyframes admin-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-refresh-btn__icon--spin {
+    animation: none;
+  }
 }
 
 .admin-seg {

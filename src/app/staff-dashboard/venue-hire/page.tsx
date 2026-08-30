@@ -1,8 +1,17 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
-  AdminError,
+  AdminBulkBar,
+  AdminDetailModal,
+  AdminRowActions,
+  AdminRowCheckbox,
+  bookingDetailFields,
+  confirmDelete,
+  useBulkSelect,
+} from "@/components/admin/AdminTableTools";
+import {
+  AdminErrorModal,
   AdminFilter,
   AdminLoading,
   AdminNotice,
@@ -18,7 +27,13 @@ import {
   useAdminResource,
   useDebounced,
 } from "@/components/admin/AdminUI";
-import { adminApi, formatDate, formatMoney, type AdminVenueHire } from "@/lib/adminApi";
+import {
+  adminApi,
+  formatDate,
+  formatMoney,
+  type AdminBooking,
+  type AdminVenueHire,
+} from "@/lib/adminApi";
 
 const STATUSES = ["pending_payment", "confirmed", "cancelled", "expired"] as const;
 
@@ -29,15 +44,29 @@ const FILTERS = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
-const COLUMNS = ["Reference", "Client", "Room", "Date", "Window", "Party", "Deposit", "Status", "Set status"];
+const COLUMNS = [
+  "Reference",
+  "Client",
+  "Room",
+  "Date",
+  "Window",
+  "Party",
+  "Deposit",
+  "Status",
+  "Set status",
+  "Actions",
+];
 
 export default function AdminVenueHirePage() {
   const [status, setStatus] = useState("");
   const [query, setQuery] = useState("");
   const search = useDebounced(query);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [data, setData] = useState<AdminVenueHire | null>(null);
+  const [detail, setDetail] = useState<AdminBooking | null>(null);
 
   const load = useCallback(async () => {
     const result = await adminApi.venueHire({ status, q: search });
@@ -45,7 +74,11 @@ export default function AdminVenueHirePage() {
     return result;
   }, [status, search]);
 
-  const { error, initialising, reload } = useAdminResource(load, [status, search]);
+  const { error, initialising, reload, refreshing } = useAdminResource(load, [status, search]);
+
+  const bookings = data?.bookings ?? [];
+  const visibleIds = useMemo(() => bookings.map((booking) => booking.id), [bookings]);
+  const bulk = useBulkSelect(visibleIds);
 
   async function changeStatus(id: string, previous: string, next: string) {
     setBusyId(id);
@@ -78,19 +111,56 @@ export default function AdminVenueHirePage() {
     }
   }
 
-  if (error) return <AdminError message={error} onRetry={reload} />;
-  if (initialising || !data) return <AdminLoading label="Loading room hire…" />;
+  async function deleteOne(booking: AdminBooking) {
+    if (!(await confirmDelete(`booking ${booking.reference}`))) return;
+    setDeletingId(booking.id);
+    setNotice(null);
+    try {
+      await adminApi.deleteBooking(booking.id);
+      bulk.clear();
+      reload();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not delete that booking.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function deleteSelected() {
+    if (bulk.count === 0) return;
+    if (!(await confirmDelete("booking", bulk.count))) return;
+    setBulkBusy(true);
+    setNotice(null);
+    try {
+      await adminApi.bulkDeleteBookings(bulk.selectedIds);
+      bulk.clear();
+      reload();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not delete those bookings.");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  if (initialising || !data) {
+    return (
+      <>
+        <AdminErrorModal error={error} onRetry={reload} />
+        <AdminLoading label="Loading room hire…" />
+      </>
+    );
+  }
+
+  const emptyColSpan = COLUMNS.length + 1;
 
   return (
     <>
+      <AdminErrorModal error={error} onRetry={reload} />
       <AdminPageHeader
         title="Venue Hire"
         blurb="Private hire across the seven rooms — who booked what, which deposits have cleared Stripe, and what is still holding a date."
-        actions={
-          <button type="button" onClick={reload} className="admin-btn-ghost">
-            Refresh
-          </button>
-        }
+        onRefresh={reload}
+        refreshing={refreshing}
       />
 
       <StatGrid>
@@ -155,9 +225,31 @@ export default function AdminVenueHirePage() {
         <AdminFilter options={FILTERS} value={status} onChange={setStatus} label="Status filter" />
       </AdminToolbar>
 
-      <AdminTable columns={COLUMNS} minWidth={1080}>
-        {data.bookings.map((booking) => (
+      <AdminBulkBar
+        count={bulk.count}
+        onDelete={deleteSelected}
+        onClear={bulk.clear}
+        busy={bulkBusy}
+        noun="booking"
+      />
+
+      <AdminTable
+        columns={COLUMNS}
+        minWidth={1160}
+        selectable
+        allSelected={bulk.allSelected}
+        someSelected={bulk.someSelected}
+        onToggleAll={bulk.toggleAll}
+      >
+        {bookings.map((booking) => (
           <tr key={booking.id} className="admin-table-row">
+            <td className="px-5 py-4 w-12">
+              <AdminRowCheckbox
+                checked={bulk.selected.has(booking.id)}
+                onChange={() => bulk.toggle(booking.id)}
+                label={`Select booking ${booking.reference}`}
+              />
+            </td>
             <td className="px-5 py-4 font-label-caps text-[11px] tracking-[0.12em] whitespace-nowrap">
               {booking.reference}
             </td>
@@ -190,11 +282,19 @@ export default function AdminVenueHirePage() {
                 onChange={(next) => changeStatus(booking.id, booking.status, next)}
               />
             </td>
+            <td className="px-5 py-4">
+              <AdminRowActions
+                viewLabel={booking.reference}
+                onView={() => setDetail(booking)}
+                onDelete={() => deleteOne(booking)}
+                deleting={deletingId === booking.id}
+              />
+            </td>
           </tr>
         ))}
-        {data.bookings.length === 0 && (
+        {bookings.length === 0 && (
           <AdminTableEmpty
-            colSpan={COLUMNS.length}
+            colSpan={emptyColSpan}
             message={
               query || status
                 ? "No hire bookings match that filter."
@@ -203,6 +303,13 @@ export default function AdminVenueHirePage() {
           />
         )}
       </AdminTable>
+
+      <AdminDetailModal
+        open={detail !== null}
+        title={detail ? `Hire booking — ${detail.reference}` : ""}
+        fields={detail ? bookingDetailFields(detail) : []}
+        onClose={() => setDetail(null)}
+      />
     </>
   );
 }

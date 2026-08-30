@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
-  AdminError,
+  AdminErrorModal,
   AdminFilter,
   AdminLoading,
   AdminPageHeader,
@@ -34,7 +34,7 @@ export default function AdminGuestsPage() {
     () => adminApi.guests({ q: search, accounts_only: scope === "accounts" }),
     [search, scope]
   );
-  const { data, error, initialising, reload } = useAdminResource(load, [search, scope]);
+  const { data, error, initialising, reload, refreshing } = useAdminResource(load, [search, scope]);
 
   const totals = useMemo(() => {
     const list = data ?? [];
@@ -49,18 +49,14 @@ export default function AdminGuestsPage() {
     };
   }, [data]);
 
-  if (error) return <AdminError message={error} onRetry={reload} />;
-
   return (
     <>
+      <AdminErrorModal error={error} onRetry={reload} />
       <AdminPageHeader
         title="Guests"
         blurb="Everyone the venue knows, matched on email across reservations, ticket orders, and room bookings — account holders and walk-up bookers alike."
-        actions={
-          <button type="button" onClick={reload} className="admin-btn-ghost">
-            Refresh
-          </button>
-        }
+        onRefresh={reload}
+        refreshing={refreshing}
       />
 
       <StatGrid>

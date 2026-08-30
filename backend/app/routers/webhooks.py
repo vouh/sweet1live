@@ -90,7 +90,13 @@ async def stripe_webhook(
         # only fulfil once payment_status says it is actually paid.
         if obj.get("payment_status") == "paid":
             payment_intent = obj.get("payment_intent")
-            mark_order_paid(db, order, payment_intent if isinstance(payment_intent, str) else None)
+            mark_order_paid(
+                db,
+                order,
+                payment_intent if isinstance(payment_intent, str) else None,
+                stripe_currency=obj.get("currency"),
+                stripe_amount_total=obj.get("amount_total"),
+            )
         else:
             logger.info("Order %s awaiting async payment", order.reference)
 

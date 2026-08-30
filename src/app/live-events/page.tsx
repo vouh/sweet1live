@@ -14,16 +14,19 @@ import ImageHover from "@/components/motion/ImageHover";
 import DrawLine from "@/components/motion/DrawLine";
 import Magnetic from "@/components/motion/Magnetic";
 import StripPhoto from "@/components/StripPhoto";
+import {
+  formatEventDate,
+  formatEventTime,
+  formatPrice,
+  getEvents,
+  type VenueEvent,
+} from "@/lib/ticketing";
 import { GALLERY_STRIP, IMG } from "@/lib/images";
 
-const STRIP = GALLERY_STRIP;
+export const dynamic = "force-dynamic";
 
-const FEATURED = [
-  { slug: "blue-note-quintet", image: IMG.featured1, act: "Blue Note Quintet", genre: "Modal jazz · Hard bop", meta: "Fri 15 Nov · Main Room · 20:30", price: "From £25" },
-  { slug: "velvet-sessions", image: IMG.featured2, act: "Velvet Sessions", genre: "Soul · R&B", meta: "Sat 16 Nov · The Lounge · 21:00", price: "From £35" },
-  { slug: "cellar-sessions", image: IMG.featured3, act: "Cellar Sessions", genre: "Acoustic · Tasting", meta: "Fri 13 Dec · The Cellar · 21:30", price: "From £30" },
-  { slug: "last-orders-trio", image: IMG.featured4, act: "The Last Orders Trio", genre: "Standards", meta: "Fri 6 Dec · Main Room · 22:00", price: "From £25" },
-];
+const STRIP = GALLERY_STRIP;
+const FEATURED_IMAGES = [IMG.featured1, IMG.featured2, IMG.featured3, IMG.featured4];
 
 const PERFORMERS = [
   { image: IMG.performer1, name: "Marcus Adeyemi", role: "Tenor saxophone", bio: "Leads the Friday quintet — never the same solo twice." },
@@ -32,16 +35,28 @@ const PERFORMERS = [
   { image: IMG.performer4, name: "The Last Orders", role: "Trio", bio: "Standards until close — brass, brushes, and nowhere else to be." },
 ];
 
-export default function LiveEventsPage() {
+function eventMeta(event: VenueEvent): string {
+  return `${formatEventDate(event.starts_at)} · ${event.room_name} · ${formatEventTime(event.starts_at)}`;
+}
+
+function eventPrice(event: VenueEvent): string {
+  if (event.sold_out) return "Sold out";
+  if (event.from_price_pence != null) return `From ${formatPrice(event.from_price_pence, event.currency)}`;
+  return "Tickets soon";
+}
+
+export default async function LiveEventsPage() {
+  const events = await getEvents();
+  const featured = events.filter((event) => event.slug !== "ticket-demo").slice(0, 4);
+  const headline = featured[0];
+
   return (
     <>
       <Nav active="/live-events" overlay />
       <main className="flex-grow">
-        {/* Cinematic film scrub: hero → dolly → dinner resolve */}
         <CinematicScrollStage imageSrc={IMG.liveHero} />
 
         <div className="relative z-10 bg-background">
-          {/* Marquee rhythm band */}
           <Reveal variant="up">
             <div className="border-y border-outline-variant/20 py-6 overflow-hidden bg-[#f5efe8]">
               <ScrollMarquee
@@ -51,89 +66,46 @@ export default function LiveEventsPage() {
             </div>
           </Reveal>
 
-          {/* Headline act — editorial split */}
-          <section className="relative py-section-gap-mobile md:py-section-gap-desktop bg-background">
-            <DrawLine
-              className="absolute left-[12%] top-0 hidden h-full w-px text-primary/40 md:block"
-              orientation="vertical"
-            />
-            <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-              <Reveal variant="left" className="order-2 md:order-1">
-                <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest block mb-5">
-                  Fri 15 Nov · The Main Room
-                </span>
-                <SplitReveal
-                  as="h2"
-                  text="Blue Note Quintet"
-                  accentWord="Quintet"
-                  className="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase tracking-[0.03em] mb-6"
-                />
-                <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md mb-9">
-                  Modal jazz and hard bop from leading session musicians. Doors at 20:00, first set
-                  at 20:30 — intimate, precise, and gone before you want it to be.
-                </p>
-                <Magnetic>
-                  <ArrowLink href="/live-events/blue-note-quintet">Get tickets</ArrowLink>
-                </Magnetic>
-              </Reveal>
-              <Reveal variant="right" delay={120} className="order-1 md:order-2">
-                <MaskReveal>
-                  <ImageHover className="relative aspect-[4/5] md:aspect-square hairline-gold">
-                    <Parallax className="h-full w-full" speed={0.12}>
-                      <div
-                        className="h-full w-full bg-cover bg-center"
-                        style={{ backgroundImage: `url('${IMG.liveJazz}')` }}
-                      />
-                    </Parallax>
-                  </ImageHover>
-                </MaskReveal>
-              </Reveal>
-            </div>
-          </section>
+          {headline && (
+            <section className="relative py-section-gap-mobile md:py-section-gap-desktop bg-background">
+              <DrawLine
+                className="absolute left-[12%] top-0 hidden h-full w-px text-primary/40 md:block"
+                orientation="vertical"
+              />
+              <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
+                <Reveal variant="left" className="order-2 md:order-1">
+                  <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest block mb-5">
+                    {eventMeta(headline)}
+                  </span>
+                  <SplitReveal
+                    as="h2"
+                    text={headline.title}
+                    accentWord={headline.title.split(" ").slice(-1)[0] ?? headline.title}
+                    className="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase tracking-[0.03em] mb-6"
+                  />
+                  <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md mb-9">
+                    {headline.description}
+                  </p>
+                  <Magnetic>
+                    <ArrowLink href={`/live-events/${headline.slug}`}>Get tickets</ArrowLink>
+                  </Magnetic>
+                </Reveal>
+                <Reveal variant="right" delay={120} className="order-1 md:order-2">
+                  <MaskReveal>
+                    <ImageHover className="relative aspect-[4/5] md:aspect-square hairline-gold">
+                      <Parallax className="h-full w-full" speed={0.12}>
+                        <div
+                          className="h-full w-full bg-cover bg-center"
+                          style={{ backgroundImage: `url('${IMG.liveJazz}')` }}
+                        />
+                      </Parallax>
+                    </ImageHover>
+                  </MaskReveal>
+                </Reveal>
+              </div>
+            </section>
+          )}
 
-          {/* Second act — cream band */}
-          <section className="relative bg-[#f5efe8] py-section-gap-mobile md:py-section-gap-desktop">
-            <DrawLine
-              className="absolute right-[12%] top-0 hidden h-full w-px text-[#2c1810]/25 md:block"
-              orientation="vertical"
-            />
-            <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-              <Reveal variant="left">
-                <MaskReveal>
-                  <ImageHover className="relative aspect-[4/5] md:aspect-square hairline-gold">
-                    <Parallax className="h-full w-full" speed={0.12}>
-                      <div
-                        className="h-full w-full bg-cover bg-center"
-                        style={{ backgroundImage: `url('${IMG.liveBar}')` }}
-                      />
-                    </Parallax>
-                  </ImageHover>
-                </MaskReveal>
-              </Reveal>
-              <Reveal variant="right" delay={120}>
-                <span className="font-label-caps text-label-caps text-[#2c1810]/70 uppercase tracking-widest block mb-5">
-                  Sat 16 Nov · The Lounge
-                </span>
-                <SplitReveal
-                  as="h2"
-                  text="Velvet Sessions"
-                  accentWord="Sessions"
-                  className="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase tracking-[0.03em] mb-6 text-[#2c1810]"
-                />
-                <p className="font-body-lg text-body-lg text-[#2c1810]/75 max-w-md mb-9">
-                  Reimagined soul and R&amp;B at a slower tempo, played to a room lit for lingering.
-                  The perfect companion to a late dinner and a second bottle.
-                </p>
-                <Magnetic>
-                  <ArrowLink href="/reservations" className="text-[#2c1810]">
-                    Reserve under the music
-                  </ArrowLink>
-                </Magnetic>
-              </Reveal>
-            </div>
-          </section>
-
-          {/* Featured sets — arrow carousel on chocolate band */}
           <section className="bg-[#2c1810] py-section-gap-mobile md:py-section-gap-desktop overflow-x-clip">
             <Reveal variant="up">
               <ArrowCarousel
@@ -142,9 +114,9 @@ export default function LiveEventsPage() {
                 subtitle="Advance booking recommended — the room is small on purpose."
                 trackClassName="max-w-container-max mx-auto px-margin-mobile md:px-gutter"
               >
-                {FEATURED.map((item, i) => (
+                {featured.map((item, i) => (
                   <Reveal
-                    key={item.act}
+                    key={item.slug}
                     delay={i * 90}
                     variant="up"
                     className="shrink-0 w-[78vw] sm:w-[340px] md:w-[320px]"
@@ -157,25 +129,27 @@ export default function LiveEventsPage() {
                         <ImageHover className="absolute inset-0" strength={8}>
                           <div
                             className="absolute inset-0 bg-cover bg-center"
-                            style={{ backgroundImage: `url('${item.image}')` }}
+                            style={{
+                              backgroundImage: `url('${FEATURED_IMAGES[i % FEATURED_IMAGES.length]}')`,
+                            }}
                           />
                         </ImageHover>
                         <div className="absolute inset-0 bg-gradient-to-t from-[#1a100c]/80 via-transparent to-transparent" />
                         <span className="absolute bottom-4 left-4 right-4">
                           <span className="font-headline-md text-[22px] uppercase tracking-wide text-[#f5efe8] block leading-tight group-hover:text-[#d4a574] transition-colors">
-                            {item.act}
+                            {item.title}
                           </span>
                           <span className="font-label-caps text-[10px] uppercase tracking-[0.22em] text-white/65 mt-1 block">
-                            {item.genre}
+                            {item.subtitle}
                           </span>
                         </span>
                       </div>
                       <div className="flex items-center justify-between gap-3 px-5 py-4 bg-[#1a100c] border-t border-white/10">
                         <span className="font-label-caps text-[10px] uppercase tracking-[0.2em] text-white/60">
-                          {item.meta}
+                          {eventMeta(item)}
                         </span>
                         <span className="numeral font-price-display text-[17px] text-[#d4a574]">
-                          {item.price}
+                          {eventPrice(item)}
                         </span>
                       </div>
                     </Link>
@@ -185,7 +159,6 @@ export default function LiveEventsPage() {
             </Reveal>
           </section>
 
-          {/* Atmosphere strip — cream with arrows */}
           <section className="py-section-gap-mobile md:py-section-gap-desktop bg-[#f5efe8] overflow-x-clip">
             <Reveal variant="up">
               <ArrowCarousel
@@ -209,7 +182,6 @@ export default function LiveEventsPage() {
             </Reveal>
           </section>
 
-          {/* Residents carousel */}
           <section className="py-section-gap-mobile md:py-section-gap-desktop bg-background overflow-x-clip">
             <Reveal variant="up">
               <ArrowCarousel
@@ -245,7 +217,6 @@ export default function LiveEventsPage() {
             </Reveal>
           </section>
 
-          {/* Sticky parallax booking band — scrolls under footer */}
           <ConversionBand
             eyebrow="Dinner and a set"
             title="The best seats are at the table"

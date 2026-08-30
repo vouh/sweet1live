@@ -7,6 +7,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { AdminSelectHeader } from "@/components/admin/AdminTableTools";
 import { AdminApiError } from "@/lib/adminApi";
 
 // ---------------------------------------------------------------------
@@ -21,6 +22,8 @@ export type Resource<T> = {
   loading: boolean;
   /** True only on the first load — refreshes keep the current data on screen. */
   initialising: boolean;
+  /** True while re-fetching with data already on screen (e.g. after Refresh). */
+  refreshing: boolean;
   reload: () => void;
 };
 
@@ -41,10 +44,12 @@ export function useAdminResource<T>(loader: Loader<T>, deps: unknown[]): Resourc
   const key = JSON.stringify(deps);
   const [nonce, setNonce] = useState(0);
   const [state, setState] = useState<ResourceState<T>>({ key: null, data: null, error: null });
+  const [fetching, setFetching] = useState(false);
   const latest = useRef(0);
 
   useEffect(() => {
     const ticket = ++latest.current;
+    setFetching(true);
     loader()
       .then((result) => {
         if (ticket !== latest.current) return;
@@ -56,21 +61,25 @@ export function useAdminResource<T>(loader: Loader<T>, deps: unknown[]): Resourc
           err instanceof AdminApiError || err instanceof Error
             ? err.message
             : "Something went wrong.";
-        // Keep whatever is on screen; the page decides whether to show the error.
         setState((current) => ({ key, data: current.data, error: message }));
+      })
+      .finally(() => {
+        if (ticket === latest.current) setFetching(false);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, nonce]);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 
-  const settled = state.key === key;
+  const hasData = state.data !== null;
+  const settled = state.key === key && !fetching;
+
   return {
     data: state.data,
-    // An error from an earlier set of filters isn't this view's error.
-    error: settled ? state.error : null,
-    loading: !settled,
-    initialising: !settled && state.data === null,
+    error: state.key === key ? state.error : null,
+    loading: fetching || state.key !== key,
+    initialising: fetching && !hasData,
+    refreshing: fetching && hasData,
     reload,
   };
 }
@@ -93,18 +102,29 @@ export function AdminPageHeader({
   title,
   blurb,
   actions,
+  onRefresh,
+  refreshing = false,
 }: {
   title: string;
-  blurb: string;
+  blurb?: string;
   actions?: ReactNode;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }) {
+  const trailing = (onRefresh || actions) && (
+    <div className="flex flex-wrap items-center gap-3 shrink-0">
+      {onRefresh && <AdminRefreshButton onClick={onRefresh} loading={refreshing} />}
+      {actions}
+    </div>
+  );
+
   return (
-    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-7">
-      <div>
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-7">
+      <div className="min-w-0">
         <h2 className="font-headline-lg text-[28px] md:text-[36px] leading-tight">{title}</h2>
-        <p className="font-body-md text-[var(--admin-muted)] mt-2 max-w-2xl">{blurb}</p>
+        {blurb && <p className="font-body-md text-[var(--admin-muted)] mt-2 max-w-2xl">{blurb}</p>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-3">{actions}</div>}
+      {trailing}
     </div>
   );
 }
@@ -153,7 +173,7 @@ export function AdminSearch({
 }) {
   return (
     <div className="flex-1 min-w-[220px] relative">
-      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--admin-muted)] text-[20px]">
+      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--admin-muted)] text-[20px] pointer-events-none">
         search
       </span>
       <input
@@ -161,9 +181,39 @@ export function AdminSearch({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        aria-label={placeholder}
         className="admin-input"
       />
     </div>
+  );
+}
+
+export function AdminRefreshButton({
+  onClick,
+  loading = false,
+  label = "Refresh",
+}: {
+  onClick: () => void;
+  loading?: boolean;
+  label?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={loading}
+      aria-busy={loading}
+      aria-label={loading ? "Refreshing…" : label}
+      className="admin-refresh-btn shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <span
+        className={`material-symbols-outlined admin-refresh-btn__icon ${loading ? "admin-refresh-btn__icon--spin" : ""}`}
+        aria-hidden
+      >
+        refresh
+      </span>
+      <span className="admin-refresh-btn__label">{label}</span>
+    </button>
   );
 }
 
@@ -208,10 +258,18 @@ export function AdminTable({
   columns,
   minWidth = 820,
   children,
+  selectable = false,
+  allSelected = false,
+  someSelected = false,
+  onToggleAll,
 }: {
   columns: string[];
   minWidth?: number;
   children: ReactNode;
+  selectable?: boolean;
+  allSelected?: boolean;
+  someSelected?: boolean;
+  onToggleAll?: () => void;
 }) {
   return (
     <div className="admin-panel overflow-hidden">
@@ -219,6 +277,15 @@ export function AdminTable({
         <table className="w-full text-left" style={{ minWidth }}>
           <thead>
             <tr className="admin-table-head">
+              {selectable && (
+                <th className="px-5 py-4 w-12">
+                  <AdminSelectHeader
+                    checked={allSelected}
+                    indeterminate={someSelected && !allSelected}
+                    onChange={() => onToggleAll?.()}
+                  />
+                </th>
+              )}
               {columns.map((column) => (
                 <th
                   key={column}
@@ -312,23 +379,123 @@ export function AdminLoading({ label = "Loading…" }: { label?: string }) {
   );
 }
 
-export function AdminError({ message, onRetry }: { message: string; onRetry: () => void }) {
+/** True/false, kept live via the browser's online/offline events. */
+function useOnlineStatus(): boolean {
+  const [online, setOnline] = useState(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine
+  );
+  useEffect(() => {
+    const goOnline = () => setOnline(true);
+    const goOffline = () => setOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
+  return online;
+}
+
+/** Best-guess next step, based on the browser's connectivity and the error text. */
+function errorSuggestion(message: string, online: boolean): string {
+  if (!online) {
+    return "You appear to be offline. Check your connection, then retry.";
+  }
+  const text = message.toLowerCase();
+  if (
+    text.includes("fetch") ||
+    text.includes("network") ||
+    text.includes("connect") ||
+    text.includes("timeout")
+  ) {
+    return "The server didn't respond. If you're running locally, check the backend is up with npm run backend, then retry.";
+  }
+  if (text.includes("401") || text.includes("unauthorized") || text.includes("session")) {
+    return "Your session may have expired. Try signing in again.";
+  }
+  if (text.includes("500") || text.includes("database")) {
+    return "The database might be unreachable right now. Wait a moment and retry — tell someone if it keeps happening.";
+  }
+  return "This might be a one-off. Try again, or refresh the page if it keeps happening.";
+}
+
+/**
+ * Blocking dialog for a failed data load. Sits on top of whatever the page
+ * already has on screen (stale data, an empty table shell, a loading card)
+ * instead of replacing it, so a background refresh failure doesn't wipe out
+ * data the guest can still see.
+ */
+export function AdminErrorModal({
+  error,
+  onRetry,
+}: {
+  error: string | null;
+  onRetry: () => void;
+}) {
+  const online = useOnlineStatus();
+  const [dismissed, setDismissed] = useState<string | null>(null);
+
+  // Once an error clears, forget it was dismissed — so if the same message
+  // comes back later it isn't silently swallowed. Adjusting state during
+  // render (rather than in an effect) avoids an extra render pass.
+  const [prevError, setPrevError] = useState(error);
+  if (prevError !== error) {
+    setPrevError(error);
+    if (error === null && dismissed !== null) setDismissed(null);
+  }
+
+  if (!error || dismissed === error) return null;
+
+  function retry() {
+    setDismissed(null);
+    onRetry();
+  }
+
   return (
-    <div className="admin-panel p-8 md:p-10 max-w-2xl">
-      <div className="flex items-start gap-4">
-        <span className="material-symbols-outlined text-[28px] text-[var(--admin-accent)]">
-          error
-        </span>
-        <div>
-          <h3 className="font-headline-md text-[20px]">Couldn&apos;t load this page</h3>
-          <p className="font-body-md text-[var(--admin-muted)] mt-2">{message}</p>
-          <p className="font-body-md text-sm text-[var(--admin-muted)] mt-2">
-            The dashboard reads live data from the API. If you&apos;re running locally, check the
-            backend is up with <code>npm run backend</code>.
-          </p>
-          <button type="button" onClick={onRetry} className="admin-btn-ghost mt-6">
-            Try again
-          </button>
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#1a100c]/60"
+      onClick={() => setDismissed(error)}
+    >
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="admin-error-modal-title"
+        className="admin-panel max-w-md w-full p-7"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start gap-4">
+          <span className="material-symbols-outlined text-[28px] text-[var(--admin-accent)]">
+            {online ? "error" : "wifi_off"}
+          </span>
+          <div className="min-w-0 flex-1">
+            <h3 id="admin-error-modal-title" className="font-headline-md text-[20px]">
+              Couldn&apos;t load this page
+            </h3>
+            <p className="font-body-md text-[var(--admin-muted)] mt-2">{error}</p>
+            <p className="font-body-md text-sm text-[var(--admin-muted)] mt-2">
+              {errorSuggestion(error, online)}
+            </p>
+            <div className="flex flex-wrap items-center gap-3 mt-6">
+              <button type="button" onClick={retry} className="admin-btn-primary">
+                Try again
+              </button>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="admin-btn-ghost"
+              >
+                Refresh page
+              </button>
+              <button
+                type="button"
+                onClick={() => setDismissed(error)}
+                className="font-label-caps text-[10px] tracking-[0.2em] uppercase text-[var(--admin-muted)] ml-auto"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
