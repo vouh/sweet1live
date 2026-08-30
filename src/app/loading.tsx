@@ -1,9 +1,5 @@
-import LuxuryLoader from "@/components/LuxuryLoader";
+import DelayedPublicLoader from "@/components/DelayedPublicLoader";
 
 export default function Loading() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <LuxuryLoader variant="panel" label="One moment" />
-    </div>
-  );
+  return <DelayedPublicLoader />;
 }

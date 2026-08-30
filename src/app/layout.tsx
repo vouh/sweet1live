@@ -8,7 +8,6 @@ import AuthModal from "@/components/AuthModal";
 import SmoothScroll from "@/components/motion/SmoothScroll";
 import ScrollProgress from "@/components/motion/ScrollProgress";
 import Analytics from "@/components/Analytics";
-import SitePreloader from "@/components/SitePreloader";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { resolveTheme, THEME_STORAGE_KEY } from "@/lib/theme";
 import "./globals.css";
@@ -63,7 +62,6 @@ export default async function RootLayout({
         />
       </head>
       <body className="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col overflow-x-clip selection:bg-primary-container selection:text-on-primary-container">
-        <SitePreloader />
         <Analytics />
         <ThemeProvider initialTheme={theme}>
           <AuthProvider>

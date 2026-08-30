@@ -20,6 +20,7 @@ from app.auth import require_staff_access
 from app.config import settings
 from app.database import get_db
 from app.fulfilment import mark_order_cancelled, serialize_booking
+from app.rbac import staff_has_permission
 from app.storage import upload_menu_image
 from app.models import (
     ContactMessage,
@@ -39,6 +40,7 @@ from app.models import (
     Room,
     RoomBooking,
     RoomBookingPublic,
+    StaffMember,
     Ticket,
     TicketType,
     User,
@@ -1058,14 +1060,18 @@ class AdminFinance(SQLModel):
     orders: list[AdminOrderRow]
 
 
-@router.get("/finance", response_model=AdminFinance, dependencies=[require_permission("finance.view")])
+@router.get("/finance", response_model=AdminFinance)
 def finance(
     db: Session = Depends(get_db),
+    staff: StaffMember | None = Depends(require_staff_access),
     days: int = Query(default=90, ge=1, le=730),
     status_filter: str | None = Query(default=None, alias="status"),
     kind: str | None = None,
     q: str | None = None,
 ):
+    required_permission = "collection.view" if kind == "food_collection" else "finance.view"
+    if staff is not None and not staff_has_permission(db, staff, required_permission):
+        raise HTTPException(status_code=403, detail=f"Permission denied: {required_permission}")
     since = datetime.utcnow() - timedelta(days=days)
     window = db.exec(
         select(Order).where(Order.created_at >= since).order_by(Order.created_at.desc())
@@ -1141,7 +1147,7 @@ def collection_orders(
     q: str | None = None,
 ):
     """Collection-only reporting for roles that must not see all finance data."""
-    return finance(db=db, days=days, status_filter=status_filter, kind="food_collection", q=q)
+    return finance(db=db, staff=None, days=days, status_filter=status_filter, kind="food_collection", q=q)
 
 
 class AdminOrderLine(SQLModel):
@@ -1155,11 +1161,18 @@ class AdminOrderDetail(AdminOrderRow):
     ticket_codes: list[str]
 
 
-@router.get("/orders/{order_id}", response_model=AdminOrderDetail, dependencies=[require_permission("finance.view")])
-def get_order_detail(order_id: str, db: Session = Depends(get_db)):
+@router.get("/orders/{order_id}", response_model=AdminOrderDetail)
+def get_order_detail(
+    order_id: str,
+    db: Session = Depends(get_db),
+    staff: StaffMember | None = Depends(require_staff_access),
+):
     order = db.get(Order, order_id)
     if order is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+    required_permission = "collection.view" if order.kind == "food_collection" else "finance.view"
+    if staff is not None and not staff_has_permission(db, staff, required_permission):
+        raise HTTPException(status_code=403, detail=f"Permission denied: {required_permission}")
 
     items = db.exec(select(OrderItem).where(OrderItem.order_id == order.id)).all()
     tickets = db.exec(select(Ticket).where(Ticket.order_id == order.id)).all()
@@ -1197,7 +1210,7 @@ def get_collection_order_detail(order_id: str, db: Session = Depends(get_db)):
     order = db.get(Order, order_id)
     if order is None or order.kind != "food_collection":
         raise HTTPException(status_code=404, detail="Collection order not found")
-    return get_order_detail(order_id, db)
+    return get_order_detail(order_id, db, None)
 
 
 @router.delete("/collection-orders/{order_id}", status_code=204, dependencies=[require_permission("collection.delete")])
@@ -1222,22 +1235,35 @@ def bulk_delete_collection_orders(payload: BulkDeleteRequest, db: Session = Depe
     return BulkDeleteResult(deleted=deleted)
 
 
-@router.delete("/orders/{order_id}", status_code=204, dependencies=[require_permission("finance.delete")])
-def delete_order(order_id: str, db: Session = Depends(get_db)):
+@router.delete("/orders/{order_id}", status_code=204)
+def delete_order(
+    order_id: str,
+    db: Session = Depends(get_db),
+    staff: StaffMember | None = Depends(require_staff_access),
+):
     order = db.get(Order, order_id)
     if order is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+    required_permission = "collection.delete" if order.kind == "food_collection" else "finance.delete"
+    if staff is not None and not staff_has_permission(db, staff, required_permission):
+        raise HTTPException(status_code=403, detail=f"Permission denied: {required_permission}")
     _delete_order(db, order)
     db.commit()
 
 
-@router.post("/orders/bulk-delete", response_model=BulkDeleteResult, dependencies=[require_permission("finance.delete")])
-def bulk_delete_orders(payload: BulkDeleteRequest, db: Session = Depends(get_db)):
+@router.post("/orders/bulk-delete", response_model=BulkDeleteResult)
+def bulk_delete_orders(
+    payload: BulkDeleteRequest,
+    db: Session = Depends(get_db),
+    staff: StaffMember | None = Depends(require_staff_access),
+):
+    existing = [order for order_id in payload.ids if (order := db.get(Order, order_id)) is not None]
+    collection_only = bool(existing) and all(order.kind == "food_collection" for order in existing)
+    required_permission = "collection.delete" if collection_only else "finance.delete"
+    if staff is not None and not staff_has_permission(db, staff, required_permission):
+        raise HTTPException(status_code=403, detail=f"Permission denied: {required_permission}")
     deleted = 0
-    for order_id in payload.ids:
-        order = db.get(Order, order_id)
-        if order is None:
-            continue
+    for order in existing:
         _delete_order(db, order)
         deleted += 1
     db.commit()

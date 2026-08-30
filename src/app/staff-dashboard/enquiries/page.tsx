@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   AdminBulkBar,
@@ -37,9 +37,16 @@ function enquiryKey(item: AdminEnquiry) {
   return `${item.kind}-${item.id}`;
 }
 
-export default function AdminEnquiriesPage() {
+function parseKind(value: string | null) {
+  if (value === "venue" || value === "contact" || value === "all") return value;
+  return "all";
+}
+
+function AdminEnquiriesInbox() {
   const searchParams = useSearchParams();
-  const [kind, setKind] = useState("all");
+  const urlKind = parseKind(searchParams.get("kind"));
+  const [pickedKind, setPickedKind] = useState<string | null>(null);
+  const kind = pickedKind ?? urlKind;
   const [query, setQuery] = useState("");
   const search = useDebounced(query);
   const [open, setOpen] = useState<string | null>(null);
@@ -47,13 +54,6 @@ export default function AdminEnquiriesPage() {
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [detail, setDetail] = useState<AdminEnquiry | null>(null);
-
-  useEffect(() => {
-    const fromUrl = searchParams.get("kind");
-    if (fromUrl === "venue" || fromUrl === "contact" || fromUrl === "all") {
-      setKind(fromUrl);
-    }
-  }, [searchParams]);
 
   const load = useCallback(() => adminApi.enquiries({ kind, q: search }), [kind, search]);
   const { data, error, initialising, reload, refreshing } = useAdminResource(load, [kind, search]);
@@ -139,7 +139,7 @@ export default function AdminEnquiriesPage() {
 
       <AdminToolbar>
         <AdminSearch value={query} onChange={setQuery} placeholder="Search by name, email, or subject" />
-        <AdminFilter options={KINDS} value={kind} onChange={setKind} label="Enquiry type" />
+        <AdminFilter options={KINDS} value={kind} onChange={setPickedKind} label="Enquiry type" />
       </AdminToolbar>
 
       {items.length > 0 && (
@@ -200,6 +200,14 @@ export default function AdminEnquiriesPage() {
         onClose={() => setDetail(null)}
       />
     </>
+  );
+}
+
+export default function AdminEnquiriesPage() {
+  return (
+    <Suspense fallback={<AdminLoading label="Opening the inbox…" />}>
+      <AdminEnquiriesInbox />
+    </Suspense>
   );
 }
 

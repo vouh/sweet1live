@@ -2,6 +2,9 @@
   "name": "sweet1live",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "backend": "node scripts/run-backend.js",
@@ -33,6 +36,7 @@
     "typescript": "^5"
   },
   "allowScripts": {
-    "unrs-resolver@1.12.2": true
+    "unrs-resolver@1.12.2": true,
+    "sharp@0.34.5": true
   }
 }
