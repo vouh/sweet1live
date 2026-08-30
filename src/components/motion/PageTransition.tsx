@@ -1,25 +1,29 @@
 "use client";
 
-import { motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
+function isAdminPath(pathname: string | null) {
+  return Boolean(
+    pathname?.startsWith("/staff-dashboard") ||
+      pathname?.startsWith("/admin") ||
+      pathname?.startsWith("/portal")
+  );
+}
+
 /**
- * Side-enter page transition — new route slides in from the left.
- * Mounted via app/template.tsx so it remounts on each navigation.
+ * Soft cross-fade between public routes — CSS-only to avoid motion/Turbopack issues.
  */
 export default function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
+  if (isAdminPath(pathname)) {
+    return <div className="min-h-screen flex flex-col flex-grow">{children}</div>;
+  }
+
   return (
-    <motion.div
-      key={pathname}
-      initial={{ x: "-12%", opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-      className="min-h-screen flex flex-col flex-grow"
-    >
+    <div key={pathname} className="page-transition min-h-screen flex flex-col flex-grow">
       {children}
-    </motion.div>
+    </div>
   );
 }

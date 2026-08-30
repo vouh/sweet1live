@@ -8,14 +8,18 @@ export const NAV_PERMISSION: Record<string, string> = {
   "/staff-dashboard/events": "events.view",
   "/staff-dashboard/menus": "menus.view",
   "/staff-dashboard/collection": "collection.view",
-  "/staff-dashboard/venue-hire": "venue_hire.view",
   "/staff-dashboard/enquiries": "enquiries.view",
   "/staff-dashboard/guests": "guests.view",
   "/staff-dashboard/finance": "finance.view",
   "/staff-dashboard/notifications": "notifications.view",
 };
 
-export type NavItem = (typeof ADMIN_NAV)[number] & { href: string };
+export type NavItem = {
+  href: string;
+  label: string;
+  icon: string;
+  exact?: boolean;
+};
 
 export function navForStaff(
   permissions: string[],
@@ -23,7 +27,7 @@ export function navForStaff(
   isSuperAdmin: boolean
 ): NavItem[] {
   const allowed = new Set(permissions);
-  const items = ADMIN_NAV.filter((item) => {
+  const items: NavItem[] = ADMIN_NAV.filter((item) => {
     const perm = NAV_PERMISSION[item.href];
     if (!perm) return true;
     return isSuperAdmin || allowed.has(perm);
@@ -37,7 +41,7 @@ export function navForStaff(
       href: "/staff-dashboard/settings",
       label: "Settings",
       icon: "settings",
-    } as NavItem);
+    });
   }
 
   return items;
@@ -81,6 +85,6 @@ export function canAccessPath(
     pathname === href.replace("/staff-dashboard", "/portal") ||
     pathname.startsWith(href.replace("/staff-dashboard", "/portal") + "/")
   );
-  if (!match) return pathname.startsWith("/portal") || pathname.startsWith("/staff-dashboard");
+  if (!match) return false;
   return permissions.includes(match[1]);
 }

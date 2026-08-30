@@ -282,6 +282,7 @@ class EventPublic(SQLModel):
     subtitle: str
     description: str
     image_url: str
+    images: list[str] = []
     room_name: str
     room_slug: str
     doors_at: datetime | None
@@ -624,7 +625,13 @@ class StaffMember(SQLModel, table=True):
     location: str = Field(default="", max_length=120)
     job_title: str = Field(default="", max_length=80)
     notes: str = Field(default="", max_length=500)
+    # Legacy local bcrypt hash — no longer used to authenticate (Supabase Auth
+    # owns credentials now), kept only so existing rows don't need a backfill.
     password_hash: str
+    # The account id this staff member maps to with the external auth
+    # provider. Null until they complete an invite/reset — that's when the
+    # provider-side account is created.
+    identity_id: str | None = Field(default=None, index=True)
     # invited | active | suspended
     status: str = Field(default="active", index=True)
     must_reset_password: bool = False
@@ -650,6 +657,29 @@ class StaffInvite(SQLModel, table=True):
     expires_at: datetime
     used_at: datetime | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class AuditLog(SQLModel, table=True):
+    __tablename__ = "audit_logs"
+
+    id: str = Field(default_factory=_uuid, primary_key=True)
+    actor_id: str | None = Field(default=None, index=True)
+    actor_email: str = Field(default="", max_length=254, index=True)
+    action: str = Field(max_length=80, index=True)
+    target: str = Field(default="", max_length=300)
+    detail: str = Field(default="", max_length=500)
+    ip_address: str = Field(default="", max_length=64)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class AuditLogPublic(SQLModel):
+    id: str
+    actor_email: str
+    action: str
+    target: str
+    detail: str
+    ip_address: str
+    created_at: datetime
 
 
 class StaffPublic(SQLModel):
@@ -705,7 +735,10 @@ class StaffPasswordChangeCode(SQLModel, table=True):
     id: str = Field(default_factory=_uuid, primary_key=True)
     staff_id: str = Field(foreign_key="staff_members.id", index=True)
     code_hash: str
-    new_password_hash: str
+    # No longer written — Supabase's admin API needs the plaintext password at
+    # apply time, so it's supplied again on confirm instead of stored here.
+    # Column kept (rather than migrated away) since it's unused, not harmful.
+    new_password_hash: str = ""
     expires_at: datetime
     used_at: datetime | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -717,6 +750,7 @@ class StaffChangePasswordRequest(SQLModel):
 
 class StaffChangePasswordConfirm(SQLModel):
     code: str
+    new_password: str
 
 
 class RolePublic(SQLModel):
@@ -776,4 +810,3 @@ class PermissionPublic(SQLModel):
     category: str
     label: str
     sort_order: int
-

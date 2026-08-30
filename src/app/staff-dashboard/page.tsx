@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import {
   AdminErrorModal,
   AdminLoading,
@@ -11,6 +12,8 @@ import {
   useAdminResource,
 } from "@/components/admin/AdminUI";
 import { adminApi, formatMoney, formatRelative } from "@/lib/adminApi";
+import { getStaffSession } from "@/lib/staffAuth";
+import { canAccessPath } from "@/lib/staffPermissions";
 
 const ACTIVITY_ICON: Record<string, string> = {
   reservation: "event_seat",
@@ -21,10 +24,15 @@ const ACTIVITY_ICON: Record<string, string> = {
 };
 
 export default function StaffDashboardPage() {
+  const pathname = usePathname();
+  const portal = pathname.startsWith("/portal");
+  const session = useMemo(() => getStaffSession(), []);
+  const route = useCallback((path: string) => portal ? path.replace("/staff-dashboard", "/portal") : path, [portal]);
+  const allowed = useCallback((path: string) => !portal || Boolean(session && canAccessPath(route(path), session.permissions, session.is_super_admin)), [portal, route, session]);
   const load = useCallback(() => adminApi.overview(), []);
   const { data, error, initialising, reload, refreshing } = useAdminResource(load, []);
 
-  const loadSettings = useCallback(() => adminApi.settings(), []);
+  const loadSettings = useCallback(() => session?.is_super_admin ? adminApi.settings() : Promise.resolve(null), [session]);
   const { data: settings } = useAdminResource(loadSettings, []);
 
   if (initialising || !data) {
@@ -58,11 +66,11 @@ export default function StaffDashboardPage() {
           meta={`${data.upcoming_events} upcoming · ${data.events_sold_out} sold out`}
         />
         <StatCard
-          icon="apartment"
+          icon="mail"
           tone="chocolate"
-          label="Hire bookings"
-          value={data.bookings_confirmed}
-          meta={`${data.bookings_pending} awaiting deposit`}
+          label="Hire enquiries"
+          value={data.open_enquiries}
+          meta="Reply in Enquiries"
         />
         <StatCard
           icon="payments"
@@ -77,12 +85,12 @@ export default function StaffDashboardPage() {
         <section className="admin-panel lg:col-span-2 p-6 md:p-7">
           <div className="flex items-center justify-between gap-4 mb-5">
             <h3 className="font-headline-md text-[20px]">Latest activity</h3>
-            <Link
-              href="/staff-dashboard/notifications"
+            {allowed("/staff-dashboard/notifications") && <Link
+              href={route("/staff-dashboard/notifications")}
               className="font-label-caps text-[10px] tracking-[0.2em] uppercase text-[var(--admin-accent)]"
             >
               All alerts
-            </Link>
+            </Link>}
           </div>
 
           {data.activity.length === 0 ? (
@@ -91,10 +99,10 @@ export default function StaffDashboardPage() {
             </p>
           ) : (
             <ul className="flex flex-col">
-              {data.activity.map((item) => (
+              {data.activity.filter((item) => allowed(item.href)).map((item) => (
                 <li key={item.id}>
                   <Link
-                    href={item.href}
+                    href={route(item.href)}
                     className="flex items-start gap-4 py-3.5 border-b border-[var(--admin-border)] last:border-0 group"
                   >
                     <span className="admin-icon-btn shrink-0">
@@ -123,36 +131,36 @@ export default function StaffDashboardPage() {
         <section className="admin-panel p-6 md:p-7">
           <h3 className="font-headline-md text-[20px] mb-5">Action needed</h3>
           <div className="grid grid-cols-2 gap-3">
-            <QueueCard
-              href="/staff-dashboard/reservations?status=pending"
+            {allowed("/staff-dashboard/reservations") && <QueueCard
+              href={route("/staff-dashboard/reservations?status=pending")}
               icon="event_seat"
               label="Pending reservations"
               count={data.reservations_pending}
-            />
-            <QueueCard
-              href="/staff-dashboard/venue-hire"
-              icon="apartment"
-              label="Hire deposits unpaid"
-              count={data.bookings_pending}
-            />
-            <QueueCard
-              href="/staff-dashboard/collection"
+            />}
+            {allowed("/staff-dashboard/enquiries") && <QueueCard
+              href={route("/staff-dashboard/enquiries")}
+              icon="mail"
+              label="Hire enquiries"
+              count={data.open_enquiries}
+            />}
+            {allowed("/staff-dashboard/collection") && <QueueCard
+              href={route("/staff-dashboard/collection")}
               icon="takeout_dining"
               label="Collection in checkout"
               count={data.collection_pending}
-            />
-            <QueueCard
-              href="/staff-dashboard/enquiries"
+            />}
+            {allowed("/staff-dashboard/enquiries") && <QueueCard
+              href={route("/staff-dashboard/enquiries")}
               icon="mail"
               label="Enquiries in the inbox"
               count={data.open_enquiries}
-            />
-            <QueueCard
-              href="/staff-dashboard/guests"
+            />}
+            {allowed("/staff-dashboard/guests") && <QueueCard
+              href={route("/staff-dashboard/guests")}
               icon="group"
               label="Guest accounts"
               count={data.guests_total}
-            />
+            />}
           </div>
         </section>
       </div>

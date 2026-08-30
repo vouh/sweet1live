@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT))
 
 TEST_DB = ROOT / "test_ticketing.db"
 os.environ["ALLOW_SQLITE_TESTS"] = "1"
+os.environ["ROOM_ONLINE_BOOKING_ENABLED"] = "1"
 os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DB.as_posix()}"
 os.environ["STRIPE_SECRET_KEY"] = "sk_test_dummy"
 os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_dummy"
@@ -29,10 +30,21 @@ from app import payments  # noqa: E402
 from app.database import engine  # noqa: E402
 from app.fulfilment import mark_order_cancelled, mark_order_paid  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import Order, Ticket, TicketType  # noqa: E402
+from app.models import Order, Room, Ticket, TicketType  # noqa: E402
 from app.seed import seed  # noqa: E402
 
 STAFF = {"X-Staff-Key": "test-staff-key"}
+
+# Legacy online booking tests still exercise Stripe deposits against seeded rooms.
+TEST_ROOM_DEPOSITS = {
+    "main-room": 50000,
+    "the-lounge": 25000,
+    "the-cellar": 20000,
+    "the-alcove": 15000,
+    "the-snug": 5000,
+    "the-gallery": 20000,
+    "private-dining": 25000,
+}
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -41,6 +53,9 @@ def database():
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
         seed(session)
+        for room in session.exec(select(Room)).all():
+            room.deposit_pence = TEST_ROOM_DEPOSITS[room.slug]
+        session.commit()
     yield
     engine.dispose()
     TEST_DB.unlink(missing_ok=True)
@@ -79,6 +94,25 @@ def _session():
 # ---------------------------------------------------------------------
 # Catalogue
 # ---------------------------------------------------------------------
+
+
+def test_online_room_booking_is_disabled_by_default(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "room_online_booking_enabled", False)
+    response = client.post(
+        "/rooms/bookings",
+        json={
+            "room_slug": "the-snug",
+            "name": "Enquiry Guest",
+            "email": "enquiry@example.com",
+            "party_size": 6,
+            "date": _future_date(50),
+            "start_time": "17:00",
+        },
+    )
+    assert response.status_code == 403
+    assert "enquiry" in response.json()["detail"].lower()
 
 
 def test_seven_rooms_are_published(client):

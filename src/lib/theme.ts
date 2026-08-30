@@ -1,4 +1,11 @@
 export const THEME_STORAGE_KEY = "sweet1ne-theme";
 
-/** Inline before paint to avoid a flash of the wrong theme. */
-export const themeInitScript = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');var theme=t==='light'?'light':'dark';var r=document.documentElement;r.classList.remove('dark','light');r.classList.add(theme);r.style.colorScheme=theme;}catch(e){}})();`;
+export type Theme = "dark" | "light";
+
+export function resolveTheme(stored: string | undefined | null): Theme {
+  return stored === "light" ? "light" : "dark";
+}
+
+export function themeCookieValue(theme: Theme): string {
+  return `${THEME_STORAGE_KEY}=${theme};path=/;max-age=31536000;SameSite=Lax`;
+}

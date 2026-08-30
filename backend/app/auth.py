@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 from app.config import settings
 from app.database import get_db
 from app.models import StaffMember, User
+from app.staff_identity import verify_access_token
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -25,12 +26,6 @@ def verify_password(password: str, password_hash: str) -> bool:
 def create_access_token(user_id: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expire_hours)
     payload = {"sub": user_id, "exp": expire, "typ": "user"}
-    return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
-
-
-def create_staff_token(staff_id: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expire_hours)
-    payload = {"sub": staff_id, "exp": expire, "typ": "staff"}
     return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
 
 
@@ -107,18 +102,16 @@ def require_staff(x_staff_key: str | None = Header(default=None, alias="X-Staff-
 
 
 def get_staff_from_token(token: str, db: Session) -> StaffMember | None:
-    try:
-        payload = _decode_token(token)
-    except jwt.PyJWTError:
+    """Verifies an access token from the auth provider and resolves it to our
+    own StaffMember row (identity lives with the provider; roles/permissions
+    stay in our own tables, looked up per-request rather than baked into the
+    token — so a status change or role edit takes effect immediately)."""
+    identity_id = verify_access_token(token)
+    if not identity_id:
         return None
-    if payload.get("typ") != "staff":
-        return None
-    staff_id = payload.get("sub")
-    if not staff_id:
-        return None
-    staff = db.get(StaffMember, staff_id)
+    staff = db.exec(select(StaffMember).where(StaffMember.identity_id == identity_id)).first()
     # Allow-list "active" rather than deny-list a specific bad status: a
-    # suspended (or invited-but-not-yet-activated) account's existing JWT
+    # suspended (or invited-but-not-yet-activated) account's existing token
     # must stop working the moment their status changes, not just be blocked
     # from issuing a *new* token at login.
     if staff is None or staff.status != "active":

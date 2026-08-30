@@ -113,12 +113,12 @@ export function AdminRowActions({
 }: {
   viewLabel: string;
   onView: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   deleting?: boolean;
 }) {
   return (
     <div className="flex items-center gap-1.5">
-      <button
+      {onDelete && <button
         type="button"
         onClick={onView}
         aria-label={`View ${viewLabel}`}
@@ -126,7 +126,7 @@ export function AdminRowActions({
         className="admin-icon-btn admin-icon-btn--view !w-9 !h-9"
       >
         <span className="material-symbols-outlined text-[18px]">visibility</span>
-      </button>
+      </button>}
       <button
         type="button"
         onClick={onDelete}

@@ -4,7 +4,6 @@ export const ADMIN_NAV = [
   { href: "/staff-dashboard/events", label: "Events", icon: "mic" },
   { href: "/staff-dashboard/menus", label: "Menus", icon: "restaurant_menu" },
   { href: "/staff-dashboard/collection", label: "Collection", icon: "takeout_dining" },
-  { href: "/staff-dashboard/venue-hire", label: "Venue Hire", icon: "apartment" },
   { href: "/staff-dashboard/enquiries", label: "Enquiries", icon: "mail" },
   { href: "/staff-dashboard/guests", label: "Guests", icon: "group" },
   { href: "/staff-dashboard/finance", label: "Finance", icon: "payments" },

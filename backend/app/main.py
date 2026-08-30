@@ -3,10 +3,11 @@ import contextlib
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-from app.security_middleware import SecurityMiddleware
+from app.security_middleware import security_middleware
 from sqlmodel import Session, SQLModel
 
 from app.config import settings
@@ -55,6 +56,9 @@ async def _sweep_expired_holds() -> None:
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    from app.rate_limit import clear_rate_limits
+
+    clear_rate_limits()
     # Ensures new tables exist even before migrations run.
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
@@ -71,7 +75,38 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="Sweet1neLIVE API", lifespan=lifespan)
 
-app.add_middleware(SecurityMiddleware)
+
+def _cors_headers(request: Request) -> dict[str, str]:
+    origin = request.headers.get("origin")
+    if origin and origin in settings.cors_origins:
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+        }
+    return {}
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": detail},
+        headers=_cors_headers(request),
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.exception("Unhandled API error on %s", request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error."},
+        headers=_cors_headers(request),
+    )
+
+
+app.middleware("http")(security_middleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,

@@ -1309,6 +1309,31 @@ html.dark .venue-room-card__body {
   background-color: transparent !important;
   transition: background-color 99999s ease-in-out 0s;
 }
+.admin-login__password-wrap {
+  position: relative;
+  margin-top: 0.5rem;
+}
+.admin-login__password-wrap .admin-login__input {
+  padding-right: 3.5rem;
+}
+.admin-login__toggle {
+  position: absolute;
+  right: 0;
+  bottom: 0.85rem;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(44, 24, 16, 0.4);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.admin-login__toggle:hover {
+  color: #2c1810;
+}
 @media (min-width: 768px) {
   .admin-login__brand {
     clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 50%, calc(100% - 28px) 100%, 0 100%);
@@ -1908,3 +1933,121 @@ html.light .logo-neon-dark {
   filter: none;
   mix-blend-mode: screen;
 }
+
+/* Luxury loader — wavy gold dots, no spinners */
+.luxury-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.luxury-loader--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0e0e0e;
+}
+.luxury-loader--panel {
+  width: 100%;
+  padding: 3rem 1.5rem;
+  background: color-mix(in srgb, var(--admin-surface, #201f1f) 92%, transparent);
+}
+.luxury-loader--minimal {
+  padding: 2rem 1rem;
+}
+.luxury-loader__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: min(100%, 280px);
+}
+.luxury-loader__dots {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.55rem;
+  height: 1.25rem;
+}
+.luxury-loader__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d8b632;
+  box-shadow: 0 0 10px rgba(216, 182, 50, 0.35);
+  animation: luxury-loader-wave 1.15s ease-in-out infinite;
+}
+.luxury-loader__dot:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.luxury-loader__dot:nth-child(3) {
+  animation-delay: 0.32s;
+}
+.luxury-loader__label {
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(245, 239, 232, 0.55);
+}
+.luxury-preloader-exit {
+  animation: luxury-preloader-out 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+.admin-shell .luxury-loader__label {
+  color: var(--admin-muted);
+}
+.admin-shell .luxury-loader__dot {
+  background: var(--admin-gold, #d8b632);
+}
+@keyframes luxury-loader-wave {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-9px);
+    opacity: 1;
+  }
+}
+@keyframes luxury-preloader-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes page-transition-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.page-transition {
+  animation: page-transition-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition {
+    animation: none;
+  }
+
+  .luxury-loader__dot,
+  .luxury-preloader-exit {
+    animation: none;
+  }
+  .luxury-loader__dot {
+    opacity: 0.7;
+  }
+  .luxury-preloader-exit {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+

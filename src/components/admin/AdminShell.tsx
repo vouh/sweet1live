@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AdminConfirmHost } from "@/components/admin/AdminTableTools";
+import LuxuryLoader from "@/components/LuxuryLoader";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 import {
@@ -151,7 +152,11 @@ export default function AdminShell({
   // enquiry. "Seen" ids persist in localStorage so a refresh doesn't re-toast
   // things already surfaced.
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !staff) return;
+    if (!staff.is_super_admin && !staff.permissions.includes("notifications.view")) {
+      setNotifications([]);
+      return;
+    }
     let cancelled = false;
     let firstRun = true;
     const seen = loadSeenIds();
@@ -193,7 +198,7 @@ export default function AdminShell({
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [ready]);
+  }, [ready, staff]);
 
   useEffect(() => {
     if (!toast) return;
@@ -290,7 +295,7 @@ export default function AdminShell({
   if (!ready || !staff) {
     return (
       <div className="admin-shell min-h-screen flex items-center justify-center">
-        Loading staff dashboard…
+        <LuxuryLoader variant="minimal" label="Opening staff portal" />
       </div>
     );
   }

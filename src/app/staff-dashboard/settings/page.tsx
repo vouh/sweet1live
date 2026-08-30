@@ -21,6 +21,7 @@ import {
 } from "@/components/admin/AdminTableTools";
 import {
   adminApi,
+  type AdminAuditLog,
   type AdminPermission,
   type AdminRole,
   type AdminStaffMember,
@@ -35,7 +36,7 @@ import {
 } from "@/lib/inputValidation";
 import { isStrongPassword, passwordIssues } from "@/lib/passwordPolicy";
 
-type Tab = "staff" | "roles";
+type Tab = "staff" | "roles" | "audit";
 
 export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>("staff");
@@ -61,6 +62,14 @@ export default function SettingsPage() {
     refreshing: refreshingStaff,
   } = useAdminResource(loadStaff, []);
 
+  const loadAudit = useCallback(() => adminApi.rbacAuditLogs(), []);
+  const {
+    data: auditLogs,
+    reload: reloadAudit,
+    initialising: loadingAudit,
+    refreshing: refreshingAudit,
+  } = useAdminResource(loadAudit, []);
+
   const permsByCategory = useMemo(() => {
     const map = new Map<string, AdminPermission[]>();
     for (const perm of permissions ?? []) {
@@ -71,11 +80,11 @@ export default function SettingsPage() {
     return [...map.entries()];
   }, [permissions]);
 
-  if (loadingPerms || loadingRoles || loadingStaff) return <AdminLoading label="Loading settings…" />;
+  if (loadingPerms || loadingRoles || loadingStaff || loadingAudit) return <AdminLoading label="Loading settings…" />;
 
   return (
     <>
-      <AdminPageHeader title="Settings" subtitle="Roles, permissions, and staff accounts" />
+      <AdminPageHeader title="Settings" blurb="Roles, permissions, staff accounts, and security history." />
 
       <AdminToolbar>
         <div className="flex gap-2">
@@ -93,11 +102,18 @@ export default function SettingsPage() {
           >
             Roles & permissions
           </button>
+          <button
+            type="button"
+            onClick={() => setTab("audit")}
+            className={tab === "audit" ? "admin-btn-primary text-sm" : "admin-btn-ghost text-sm"}
+          >
+            Audit trail
+          </button>
         </div>
       </AdminToolbar>
 
       {notice && <AdminNotice message={notice} onDismiss={() => setNotice(null)} />}
-      <AdminErrorModal open={Boolean(error)} message={error ?? ""} onClose={() => setError(null)} />
+      <AdminErrorModal error={error} onRetry={() => setError(null)} />
 
       {tab === "staff" ? (
         <StaffPanel
@@ -108,7 +124,7 @@ export default function SettingsPage() {
           onError={setError}
           onNotice={setNotice}
         />
-      ) : (
+      ) : tab === "roles" ? (
         <RolesPanel
           roles={roles ?? []}
           permsByCategory={permsByCategory}
@@ -118,8 +134,53 @@ export default function SettingsPage() {
           onError={setError}
           onNotice={setNotice}
         />
+      ) : (
+        <AuditPanel logs={auditLogs ?? []} refreshing={refreshingAudit} onRefresh={reloadAudit} />
       )}
     </>
+  );
+}
+
+function AuditPanel({
+  logs,
+  refreshing,
+  onRefresh,
+}: {
+  logs: AdminAuditLog[];
+  refreshing: boolean;
+  onRefresh: () => void;
+}) {
+  return (
+    <section className="admin-panel overflow-hidden">
+      <div className="px-5 py-4 flex items-center justify-between border-b border-[var(--admin-border)]">
+        <div>
+          <h2 className="font-headline-md text-[20px]">Major activity</h2>
+          <p className="text-sm text-[var(--admin-muted)] mt-1">Logins, reset links, password updates, and deletions.</p>
+        </div>
+        <button type="button" onClick={onRefresh} disabled={refreshing} className="admin-btn-ghost text-sm">
+          {refreshing ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[850px] text-left">
+          <thead className="font-label-caps text-[10px] tracking-[0.15em] uppercase text-[var(--admin-muted)]">
+            <tr><th className="px-5 py-3">Time</th><th className="px-5 py-3">Action</th><th className="px-5 py-3">Account</th><th className="px-5 py-3">Target</th><th className="px-5 py-3">IP address</th></tr>
+          </thead>
+          <tbody>
+            {logs.map((log) => (
+              <tr key={log.id} className="admin-table-row">
+                <td className="px-5 py-4 text-sm whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</td>
+                <td className="px-5 py-4"><StatusBadge status={log.action.replaceAll(".", " ")} /></td>
+                <td className="px-5 py-4 text-sm">{log.actor_email || "System"}</td>
+                <td className="px-5 py-4 text-sm"><p>{log.target || "—"}</p>{log.detail && <p className="text-xs text-[var(--admin-muted)] mt-1">{log.detail}</p>}</td>
+                <td className="px-5 py-4 text-sm numeral">{log.ip_address || "—"}</td>
+              </tr>
+            ))}
+            {logs.length === 0 && <tr><td colSpan={5} className="px-5 py-10 text-center text-[var(--admin-muted)]">No audit activity recorded yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 

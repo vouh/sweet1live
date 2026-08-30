@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import logging
 
+from fastapi import HTTPException
 from sqlmodel import Session, select
 
 from app.auth import hash_password
 from app.config import settings
 from app.models import Permission, Role, RolePermission, StaffMember, StaffRoleAssignment
 from app.permissions_catalog import PERMISSIONS, SUPER_ADMIN_ROLE_NAME
+from app.staff_identity import create_user, set_password
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +82,21 @@ def bootstrap_super_admin(db: Session) -> StaffMember | None:
         db.add(staff)
         db.commit()
         db.refresh(staff)
+
+    # Staff sign-in now goes through the external auth provider — make sure
+    # this account actually exists there too. Non-fatal if it isn't
+    # configured yet (e.g. a fresh local checkout): the account just can't
+    # log in until it is.
+    try:
+        if staff.identity_id is None:
+            password = settings.super_admin_password or "ChangeMeNow!1"
+            staff.identity_id = create_user(staff.email, password)
+            db.add(staff)
+            db.commit()
+        elif settings.super_admin_password:
+            set_password(staff.identity_id, settings.super_admin_password)
+    except HTTPException as exc:
+        logger.warning("Could not sync bootstrap super admin with the auth provider: %s", exc.detail)
 
     has_role = db.exec(
         select(StaffRoleAssignment).where(

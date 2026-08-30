@@ -19,6 +19,7 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [pending, setPending] = useState(false);
@@ -102,7 +103,7 @@ export default function AdminLoginPage() {
           </h2>
           {view === "forgot" ? (
             <p className="mb-8 text-sm text-[#2c1810]/55 leading-relaxed">
-              Enter the email on your staff account. We&apos;ll verify it exists before sending a reset link.
+              Enter your staff email. You&apos;ll receive an email with a reset link.
             </p>
           ) : (
             <div className="mb-8" />
@@ -124,15 +125,25 @@ export default function AdminLoginPage() {
               </label>
               <label className="block">
                 <span className="font-label-caps text-[11px] tracking-[0.22em] uppercase text-[#c45c3a]">Password</span>
-                <input
-                  type="password"
-                  required
-                  maxLength={INPUT_LIMITS.password}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value.slice(0, INPUT_LIMITS.password))}
-                  className="admin-login__input mt-2"
-                />
+                <div className="admin-login__password-wrap">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    maxLength={INPUT_LIMITS.password}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value.slice(0, INPUT_LIMITS.password))}
+                    className="admin-login__input"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="admin-login__toggle font-label-caps"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
               </label>
               {error && <p className="text-sm text-[#c45c3a]">{error}</p>}
               <button

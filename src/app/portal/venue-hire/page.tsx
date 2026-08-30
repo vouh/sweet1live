@@ -1,1 +1,5 @@
-export { default } from "@/app/staff-dashboard/venue-hire/page";
+import { redirect } from "next/navigation";
+
+export default function PortalVenueHirePage() {
+  redirect("/portal/enquiries?kind=venue");
+}

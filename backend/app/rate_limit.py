@@ -14,7 +14,14 @@ from collections import defaultdict
 
 from fastapi import HTTPException, Request, status
 
+from app.config import settings
+
 _hits: dict[str, list[float]] = defaultdict(list)
+
+
+def clear_rate_limits() -> None:
+    """Dev helper — call on API startup so a restart clears lockouts."""
+    _hits.clear()
 
 
 def client_ip(request: Request) -> str:
@@ -26,6 +33,12 @@ def client_ip(request: Request) -> str:
 
 def enforce_rate_limit(key: str, *, limit: int, window_seconds: int) -> None:
     """Raises 429 if `key` has been hit `limit` or more times in the trailing window."""
+    # Local dev: don't lock yourself out while testing login / reset flows.
+    if settings.dev_login_prefill_enabled and (
+        key.startswith("login-") or key.startswith("forgot-") or key.startswith("set-password-")
+    ):
+        return
+
     now = time.monotonic()
     bucket = _hits[key]
     cutoff = now - window_seconds

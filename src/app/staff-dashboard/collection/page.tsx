@@ -33,6 +33,7 @@ import {
   type AdminOrderDetail,
   type AdminOrderRow,
 } from "@/lib/adminApi";
+import { getStaffSession } from "@/lib/staffAuth";
 
 const WINDOWS = [
   { value: "7", label: "7 days" },
@@ -50,6 +51,10 @@ const STATUSES = [
 const COLUMNS = ["Reference", "Customer", "Dishes", "Amount", "Status", "Time", "Actions"];
 
 export default function AdminCollectionPage() {
+  const canDelete = useMemo(() => {
+    const session = getStaffSession();
+    return Boolean(session?.is_super_admin || session?.permissions.includes("collection.delete"));
+  }, []);
   const [days, setDays] = useState("7");
   const [status, setStatus] = useState("paid");
   const [query, setQuery] = useState("");
@@ -62,10 +67,9 @@ export default function AdminCollectionPage() {
 
   const load = useCallback(
     () =>
-      adminApi.finance({
+      adminApi.collectionOrders({
         days: Number(days),
         status,
-        kind: "food_collection",
         q: search,
       }),
     [days, status, search]
@@ -84,7 +88,7 @@ export default function AdminCollectionPage() {
     setDetailLoading(true);
     setNotice(null);
     try {
-      const full = await adminApi.getOrder(order.id);
+      const full = await adminApi.getCollectionOrder(order.id);
       setDetail(full);
     } catch (err) {
       setNotice(err instanceof Error ? err.message : "Could not load order details.");
@@ -98,7 +102,7 @@ export default function AdminCollectionPage() {
     setDeletingId(order.id);
     setNotice(null);
     try {
-      await adminApi.deleteOrder(order.id);
+      await adminApi.deleteCollectionOrder(order.id);
       bulk.clear();
       reload();
     } catch (err) {
@@ -114,7 +118,7 @@ export default function AdminCollectionPage() {
     setBulkBusy(true);
     setNotice(null);
     try {
-      await adminApi.bulkDeleteOrders(bulk.selectedIds);
+      await adminApi.bulkDeleteCollectionOrders(bulk.selectedIds);
       bulk.clear();
       reload();
     } catch (err) {
@@ -134,7 +138,7 @@ export default function AdminCollectionPage() {
   }
 
   const paidCollection = orders.filter((o) => o.status === "paid");
-  const emptyColSpan = COLUMNS.length + 1;
+  const emptyColSpan = COLUMNS.length + (canDelete ? 1 : 0);
 
   return (
     <>
@@ -171,31 +175,31 @@ export default function AdminCollectionPage() {
         <AdminFilter options={WINDOWS} value={days} onChange={setDays} label="Time window" />
       </AdminToolbar>
 
-      <AdminBulkBar
+      {canDelete && <AdminBulkBar
         count={bulk.count}
         onDelete={deleteSelected}
         onClear={bulk.clear}
         busy={bulkBusy}
         noun="order"
-      />
+      />}
 
       <AdminTable
         columns={COLUMNS}
         minWidth={1040}
-        selectable
+        selectable={canDelete}
         allSelected={bulk.allSelected}
         someSelected={bulk.someSelected}
         onToggleAll={bulk.toggleAll}
       >
         {orders.map((order) => (
           <tr key={order.id} className="admin-table-row">
-            <td className="px-5 py-4 w-12">
+            {canDelete && <td className="px-5 py-4 w-12">
               <AdminRowCheckbox
                 checked={bulk.selected.has(order.id)}
                 onChange={() => bulk.toggle(order.id)}
                 label={`Select order ${order.reference}`}
               />
-            </td>
+            </td>}
             <td className="px-5 py-4 font-label-caps text-[11px] tracking-[0.12em] whitespace-nowrap">
               {order.reference}
             </td>
@@ -219,7 +223,7 @@ export default function AdminCollectionPage() {
               <AdminRowActions
                 viewLabel={order.reference}
                 onView={() => viewOrder(order)}
-                onDelete={() => deleteOne(order)}
+                onDelete={canDelete ? () => deleteOne(order) : undefined}
                 deleting={deletingId === order.id || (detailLoading && detail?.id === order.id)}
               />
             </td>

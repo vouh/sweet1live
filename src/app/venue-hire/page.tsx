@@ -15,7 +15,6 @@ import { createVenueEnquiry, type ActionState } from "@/lib/api";
 import FormSecurityFields from "@/components/FormSecurityFields";
 import { trackEvent } from "@/lib/analytics";
 import BrandTagline from "@/components/BrandTagline";
-import VenueHireRoomBooking from "@/components/VenueHireRoomBooking";
 import { IMG } from "@/lib/images";
 
 const SPACES = [
@@ -108,21 +107,21 @@ export default function VenueHirePage() {
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-6">
                 <Magnetic>
                   <a
-                    href="#book"
+                    href="#enquire"
                     className="btn-ink inline-flex items-center gap-2 font-label-caps text-label-caps px-7 py-4"
                   >
-                    Book a room
+                    Start an enquiry
                     <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
                   </a>
                 </Magnetic>
                 <Magnetic>
-                  <a
-                    href="#enquire"
+                  <Link
+                    href="/contact"
                     className="inline-flex items-center gap-2 font-headline-md text-[17px] md:text-[20px] text-white underline underline-offset-[10px] decoration-white/45 hover:decoration-white transition-colors"
                   >
-                    Start an enquiry
+                    Speak to concierge
                     <span className="material-symbols-outlined text-[20px]">arrow_outward</span>
-                  </a>
+                  </Link>
                 </Magnetic>
               </div>
             </Reveal>
@@ -159,8 +158,8 @@ export default function VenueHirePage() {
         <section className="relative z-10 bg-[#f5efe8] py-section-gap-mobile md:py-section-gap-desktop overflow-x-clip">
           <ArrowCarousel
             variant="chocolate"
-            title="Choose your room"
-            subtitle="Three distinct spaces — from full takeover to an intimate alcove for twenty-four."
+            title="Our spaces"
+            subtitle="Three distinct settings — tell us the brief and we will shape the room, menu, and rhythm around it."
             trackClassName="max-w-container-max mx-auto px-margin-mobile md:px-gutter"
           >
             {SPACES.map((space, i) => (
@@ -254,29 +253,7 @@ export default function VenueHirePage() {
           </div>
         </section>
 
-        {/* Book with deposit — Stripe checkout */}
-        <section
-          id="book"
-          className="relative z-10 px-margin-mobile md:px-gutter py-section-gap-mobile md:py-section-gap-desktop bg-background"
-        >
-          <div className="max-w-5xl mx-auto">
-            <Reveal variant="up" className="mb-10 text-center md:text-left">
-              <span className="font-label-caps text-label-caps text-primary uppercase tracking-[0.25em] block mb-4">
-                Reserve your date
-              </span>
-              <h2 className="font-headline-lg text-headline-lg-mobile md:text-[40px] uppercase tracking-[0.03em] mb-4">
-                Book with deposit
-              </h2>
-              <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
-                Pick a room, choose your date, and pay the holding deposit online. Our events team
-                will confirm the full brief after payment.
-              </p>
-            </Reveal>
-            <VenueHireRoomBooking />
-          </div>
-        </section>
-
-        {/* Floating enquiry card */}
+        {/* Enquiry form — private hire is concierge-led, not self-serve checkout */}
         <section id="enquire" className="relative z-10 px-margin-mobile md:px-gutter py-16 md:py-24">
           <Reveal variant="up">
             <div className="contact-float-card max-w-5xl mx-auto hairline-gold !mt-0">
@@ -310,7 +287,8 @@ export default function VenueHirePage() {
                         className="font-headline-lg text-[26px] md:text-[34px] uppercase tracking-[0.04em] mb-2"
                       />
                       <p className="font-body-md text-body-md text-on-surface-variant mb-10">
-                        Share the brief — we&apos;ll curate the room, menu, and rhythm around it.
+                        Share the brief — our Events Concierge will follow up with availability, menu
+                        options, and a tailored quote. No online deposit required.
                       </p>
                       <form action={formAction} className="flex flex-col gap-6 relative">
                         <FormSecurityFields />

@@ -63,10 +63,12 @@ export type AdminEvent = {
   slug: string;
   title: string;
   subtitle: string;
+  description: string;
   status: string;
   room_name: string;
   room_slug: string;
   image_url: string;
+  images: string[];
   doors_at: string | null;
   starts_at: string;
   ends_at: string | null;
@@ -252,6 +254,16 @@ export type AdminPermission = {
   sort_order: number;
 };
 
+export type AdminAuditLog = {
+  id: string;
+  actor_email: string;
+  action: string;
+  target: string;
+  detail: string;
+  ip_address: string;
+  created_at: string;
+};
+
 export type AdminRole = {
   id: string;
   name: string;
@@ -360,6 +372,8 @@ export const adminApi = {
     request<AdminEvent[]>("events", { query }),
   setEventStatus: (id: string, status: string) =>
     request<AdminEvent>(`events/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  updateEvent: (id: string, body: Partial<Pick<AdminEvent, "title" | "subtitle" | "description" | "images" | "status">>) =>
+    request<AdminEvent>(`events/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
 
   menus: (query?: { course?: string; q?: string }) =>
     request<AdminMenuItem[]>("menus", { query }),
@@ -418,6 +432,13 @@ export const adminApi = {
   finance: (query?: { days?: number; status?: string; kind?: string; q?: string }) =>
     request<AdminFinance>("finance", { query }),
 
+  collectionOrders: (query?: { days?: number; status?: string; q?: string }) =>
+    request<AdminFinance>("collection-orders", { query }),
+  getCollectionOrder: (id: string) => request<AdminOrderDetail>(`collection-orders/${id}`),
+  deleteCollectionOrder: (id: string) => request<void>(`collection-orders/${id}`, { method: "DELETE" }),
+  bulkDeleteCollectionOrders: (ids: string[]) =>
+    request<BulkDeleteResult>("collection-orders/bulk-delete", { method: "POST", body: JSON.stringify({ ids }) }),
+
   getOrder: (id: string) => request<AdminOrderDetail>(`orders/${id}`),
   deleteOrder: (id: string) => request<void>(`orders/${id}`, { method: "DELETE" }),
   bulkDeleteOrders: (ids: string[]) =>
@@ -431,6 +452,7 @@ export const adminApi = {
   notifications: () => request<AdminNotification[]>("notifications"),
 
   rbacPermissions: () => request<AdminPermission[]>("rbac/permissions"),
+  rbacAuditLogs: () => request<AdminAuditLog[]>("rbac/audit-logs"),
   rbacRoles: () => request<AdminRole[]>("rbac/roles"),
   createRole: (body: { name: string; permission_ids: string[] }) =>
     request<AdminRole>("rbac/roles", { method: "POST", body: JSON.stringify(body) }),

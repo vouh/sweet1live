@@ -9,19 +9,16 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session, select
 
-from app.auth import (
-    create_staff_token,
-    get_current_staff,
-    hash_password,
-    verify_password,
-)
+from app.auth import get_current_staff
 from app.config import settings
+from app.audit import record_audit
 from app.database import get_db
 from app.email import (
     send_staff_invite_email,
     send_staff_password_change_code_email,
     send_staff_reset_email,
 )
+from app.staff_identity import create_user, set_password, sign_in_with_password
 from app.models import (
     StaffAuthResponse,
     StaffChangePasswordConfirm,
@@ -57,6 +54,15 @@ router = APIRouter(prefix="/auth/staff", tags=["staff-auth"])
 INVITE_DAYS = 7
 RESET_MINUTES = 5
 CHANGE_CODE_MINUTES = 5
+
+
+def _require_email_sent(sent: bool, *, context: str) -> None:
+    if sent:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail=f"Could not send {context}. Email is not configured correctly — contact your administrator.",
+    )
 
 
 def _strong_password(password: str) -> None:
@@ -122,8 +128,9 @@ def staff_login(payload: StaffLogin, request: Request, db: Session = Depends(get
 
     enforce_rate_limit(f"login-ip:{client_ip(request)}", limit=20, window_seconds=15 * 60)
     enforce_rate_limit(f"login-email:{email}", limit=6, window_seconds=15 * 60)
+
     staff = db.exec(select(StaffMember).where(StaffMember.email == email)).first()
-    if staff is None or not verify_password(password, staff.password_hash):
+    if staff is None or staff.identity_id is None:
         auth_failure(ip=client_ip(request), endpoint="/auth/staff/login", reason="invalid_credentials")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
     if staff.status in ("disabled", "suspended"):
@@ -133,8 +140,17 @@ def staff_login(payload: StaffLogin, request: Request, db: Session = Depends(get
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You must set a new password using your invite link before signing in.",
         )
+
+    # Credential check itself happens with the auth provider — it raises 401
+    # on a bad password without telling us anything more specific than that.
+    try:
+        access_token, _identity_id = sign_in_with_password(email, password)
+    except HTTPException:
+        auth_failure(ip=client_ip(request), endpoint="/auth/staff/login", reason="invalid_credentials")
+        raise
+    record_audit(db, action="staff.login", actor=staff, target="Staff portal", ip_address=client_ip(request))
     return StaffAuthResponse(
-        access_token=create_staff_token(staff.id),
+        access_token=access_token,
         staff=_serialize_staff(db, staff),
     )
 
@@ -152,10 +168,10 @@ def staff_change_password_request(
 ):
     """Starts a password change for the signed-in staff member.
 
-    The new password is validated and hashed immediately, but only takes
-    effect once the emailed code is confirmed — so a hijacked/left-open
-    session can't silently change credentials without the real owner seeing
-    it land in their inbox.
+    Only validates the new password and emails a code here — nothing is
+    stored or applied until that code is confirmed (with the password
+    supplied again), so a hijacked/left-open session can't silently change
+    credentials without the real owner seeing it land in their inbox.
     """
     enforce_rate_limit(f"change-pw-request:{staff.id}", limit=3, window_seconds=60 * 60)
     _strong_password(payload.new_password)
@@ -176,12 +192,12 @@ def staff_change_password_request(
         StaffPasswordChangeCode(
             staff_id=staff.id,
             code_hash=_token_hash(code),
-            new_password_hash=hash_password(payload.new_password),
             expires_at=datetime.utcnow() + timedelta(minutes=CHANGE_CODE_MINUTES),
         )
     )
     db.commit()
-    send_staff_password_change_code_email(to=staff.email, code=code)
+    sent = send_staff_password_change_code_email(to=staff.email, code=code)
+    _require_email_sent(sent, context="confirmation code")
     return {"message": "A confirmation code has been sent to your email."}
 
 
@@ -194,6 +210,7 @@ def staff_change_password_confirm(
     # A 6-digit code is only ~1M possibilities — this cap is what actually
     # makes it safe to guess against, not the code's length alone.
     enforce_rate_limit(f"change-pw-confirm:{staff.id}", limit=5, window_seconds=15 * 60)
+    _strong_password(payload.new_password)
 
     code_hash = _token_hash(payload.code.strip())
     pending = db.exec(
@@ -205,10 +222,11 @@ def staff_change_password_confirm(
 
     if pending is None or pending.code_hash != code_hash or pending.expires_at < datetime.utcnow():
         raise HTTPException(status_code=400, detail="Invalid or expired code.")
+    if staff.identity_id is None:
+        raise HTTPException(status_code=400, detail="This account has no password set yet.")
 
-    staff.password_hash = pending.new_password_hash
+    set_password(staff.identity_id, payload.new_password)
     pending.used_at = datetime.utcnow()
-    db.add(staff)
     db.add(pending)
     db.commit()
     return {"message": "Password updated."}
@@ -229,13 +247,21 @@ def staff_set_password(payload: StaffSetPassword, request: Request, db: Session 
     if staff is None:
         raise HTTPException(status_code=400, detail="Invalid or expired link.")
 
-    staff.password_hash = hash_password(payload.password)
+    # First time this account sets a password (a brand-new invite, or an
+    # existing account migrated from local auth) → create it with the auth
+    # provider now. Otherwise this is a reset — just rotate the password there.
+    if staff.identity_id is None:
+        staff.identity_id = create_user(staff.email, payload.password)
+    else:
+        set_password(staff.identity_id, payload.password)
+
     staff.must_reset_password = False
     staff.status = "active"
     invite.used_at = datetime.utcnow()
     db.add(staff)
     db.add(invite)
     db.commit()
+    record_audit(db, action="password.updated", actor=staff, target=staff.email, ip_address=client_ip(request))
     return {"message": "Password updated. You can sign in now."}
 
 
@@ -277,8 +303,16 @@ def staff_forgot_password(
     db.add(invite)
     db.commit()
 
-    reset_url = f"{settings.public_site_url}/admin/set-password?token={token}"
-    send_staff_reset_email(to=staff.email, reset_url=reset_url)
+    reset_url = f"{settings.public_site_url.rstrip('/')}/admin/access/{token}"
+    sent = send_staff_reset_email(to=staff.email, reset_url=reset_url)
+    _require_email_sent(sent, context="reset link")
+    record_audit(
+        db,
+        action="password.reset_link_sent",
+        actor_email=staff.email,
+        target=staff.email,
+        ip_address=client_ip(request),
+    )
     return StaffForgotPasswordResponse(message="Reset link sent. Check your inbox.")
 
 
@@ -297,11 +331,12 @@ def create_staff_invite(
         )
     )
     db.commit()
-    invite_url = f"{settings.public_site_url}/admin/set-password?token={token}"
-    send_staff_invite_email(
+    invite_url = f"{settings.public_site_url.rstrip('/')}/admin/access/{token}"
+    sent = send_staff_invite_email(
         to=staff.email,
         name=staff.name,
         invite_url=invite_url,
         temp_password=temp_password,
     )
+    _require_email_sent(sent, context="invite email")
     return token, invite_url

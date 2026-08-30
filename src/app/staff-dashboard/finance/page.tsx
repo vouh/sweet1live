@@ -33,6 +33,7 @@ import {
   type AdminOrderDetail,
   type AdminOrderRow,
 } from "@/lib/adminApi";
+import FinanceCharts from "@/components/admin/FinanceCharts";
 
 const WINDOWS = [
   { value: "30", label: "30 days" },
@@ -149,7 +150,6 @@ export default function AdminFinancePage() {
       <AdminErrorModal error={error} onRetry={reload} />
       <AdminPageHeader
         title="Finance"
-        blurb={`Every order the venue has taken in the last ${data.window_days} days — tickets, collection, and hire deposits through Stripe.`}
         onRefresh={reload}
         refreshing={refreshing}
       />
@@ -232,6 +232,8 @@ export default function AdminFinancePage() {
         <AdminFilter options={KINDS} value={kind} onChange={setKind} label="Order type" />
         <AdminFilter options={WINDOWS} value={days} onChange={setDays} label="Time window" />
       </AdminToolbar>
+
+      <FinanceCharts orders={orders} currency={data.currency} />
 
       <AdminBulkBar
         count={bulk.count}

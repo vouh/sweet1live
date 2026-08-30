@@ -9,6 +9,8 @@ from app.auth import hash_password, require_super_admin
 from app.database import get_db
 from app.models import (
     BulkDeleteResult,
+    AuditLog,
+    AuditLogPublic,
     Permission,
     PermissionPublic,
     Role,
@@ -39,6 +41,14 @@ from app.rbac import get_super_admin_role, staff_is_super_admin, staff_roles
 from app.routers.staff_auth import _serialize_staff, create_staff_invite
 
 router = APIRouter(prefix="/admin/rbac", tags=["admin-rbac"])
+
+
+@router.get("/audit-logs", response_model=list[AuditLogPublic])
+def list_audit_logs(
+    db: Session = Depends(get_db),
+    _: StaffMember = Depends(require_super_admin),
+):
+    return db.exec(select(AuditLog).order_by(AuditLog.created_at.desc()).limit(250)).all()
 
 
 def _validation_error(exc: ValueError) -> HTTPException:

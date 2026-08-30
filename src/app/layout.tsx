@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Bodoni_Moda, Hanken_Grotesk } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -7,9 +8,9 @@ import AuthModal from "@/components/AuthModal";
 import SmoothScroll from "@/components/motion/SmoothScroll";
 import ScrollProgress from "@/components/motion/ScrollProgress";
 import Analytics from "@/components/Analytics";
-import { themeInitScript } from "@/lib/theme";
+import SitePreloader from "@/components/SitePreloader";
 import { BRAND_TAGLINE } from "@/lib/brand";
-import { PRELOAD_HERO } from "@/lib/images";
+import { resolveTheme, THEME_STORAGE_KEY } from "@/lib/theme";
 import "./globals.css";
 
 const bodoniModa = Bodoni_Moda({
@@ -39,20 +40,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const theme = resolveTheme(cookieStore.get(THEME_STORAGE_KEY)?.value);
+
   return (
     <html
       lang="en"
-      className={`dark ${bodoniModa.variable} ${hankenGrotesk.variable}`}
+      className={`${theme} ${bodoniModa.variable} ${hankenGrotesk.variable}`}
       suppressHydrationWarning
     >
       <head>
-        <link rel="preload" as="image" href={PRELOAD_HERO} fetchPriority="high" />
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {/* Material Symbols is an icon font with no next/font support; loaded globally here. */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
@@ -61,8 +63,9 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col overflow-x-clip selection:bg-primary-container selection:text-on-primary-container">
+        <SitePreloader />
         <Analytics />
-        <ThemeProvider>
+        <ThemeProvider initialTheme={theme}>
           <AuthProvider>
             <AuthModalProvider>
               <SmoothScroll>

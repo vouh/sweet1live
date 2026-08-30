@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
@@ -9,6 +10,19 @@ from app.inventory import on_sale
 from app.models import Event, EventPublic, Room, TicketType, TicketTypePublic
 
 router = APIRouter(prefix="/events", tags=["events"])
+
+
+def _event_images(event: Event) -> list[str]:
+    if not event.image_url:
+        return []
+    if event.image_url.startswith("["):
+        try:
+            values = json.loads(event.image_url)
+            if isinstance(values, list):
+                return [str(value) for value in values if value][:4]
+        except (TypeError, ValueError):
+            pass
+    return [event.image_url]
 
 
 def serialize_event(db: Session, event: Event) -> EventPublic:
@@ -40,7 +54,8 @@ def serialize_event(db: Session, event: Event) -> EventPublic:
         title=event.title,
         subtitle=event.subtitle,
         description=event.description,
-        image_url=event.image_url,
+        image_url=_event_images(event)[0] if _event_images(event) else "",
+        images=_event_images(event),
         room_name=room.name if room else "",
         room_slug=room.slug if room else "",
         doors_at=event.doors_at,

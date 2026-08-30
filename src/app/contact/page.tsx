@@ -13,16 +13,10 @@ import { createContactMessage, type ActionState } from "@/lib/api";
 import BrandTagline from "@/components/BrandTagline";
 import FormSecurityFields from "@/components/FormSecurityFields";
 import { IMG } from "@/lib/images";
+import { SITE_CONTACT_DETAILS } from "@/lib/brand";
 
 const HERO = IMG.contact;
 const LIFESTYLE = IMG.guests;
-
-const DETAILS = [
-  { icon: "call", label: "Telephone", value: "+44 20 0000 0000" },
-  { icon: "mail", label: "Email", value: "hello@sweet1nelive.com" },
-  { icon: "location_on", label: "Visit", value: "Late Night Lounge · London" },
-  { icon: "schedule", label: "Concierge", value: "Tue – Sun, from 4pm" },
-];
 
 const initialState: ActionState = { success: false, message: "" };
 
@@ -147,7 +141,7 @@ export default function ContactPage() {
                       Get in touch
                     </h3>
                     <ul className="space-y-6">
-                      {DETAILS.map((d) => (
+                      {SITE_CONTACT_DETAILS.map((d) => (
                         <li key={d.icon} className="contact-detail-row">
                           <span className="contact-detail-row__icon">
                             <span className="material-symbols-outlined text-[20px]">{d.icon}</span>
@@ -156,7 +150,13 @@ export default function ContactPage() {
                             <span className="font-label-caps text-[10px] tracking-[0.28em] uppercase opacity-70 block mb-1">
                               {d.label}
                             </span>
-                            <span className="font-body-md text-body-md">{d.value}</span>
+                            {"href" in d && d.href ? (
+                              <a href={d.href} className="font-body-md text-body-md hover:text-[#f5efe8] transition-colors">
+                                {d.value}
+                              </a>
+                            ) : (
+                              <span className="font-body-md text-body-md">{d.value}</span>
+                            )}
                           </div>
                         </li>
                       ))}

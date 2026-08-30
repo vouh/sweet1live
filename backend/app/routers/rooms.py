@@ -86,10 +86,16 @@ def create_booking(
 ):
     """Hold a room, then take the deposit through Stripe.
 
-    Rooms with `deposit_pence == 0` are confirmed on the spot; the rest stay in
-    `pending_payment` until the webhook lands, and the slot is released if the
-    customer never completes checkout.
+    Disabled in production — private hire is enquiry-only on the public site.
     """
+    if not settings.room_online_booking_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Online room booking is not available. "
+                "Submit a venue hire enquiry and our events team will follow up."
+            ),
+        )
     room = _get_room_or_404(db, payload.room_slug)
 
     if payload.date < datetime.utcnow().date():

@@ -7,6 +7,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import LuxuryLoader from "@/components/LuxuryLoader";
 import { AdminSelectHeader } from "@/components/admin/AdminTableTools";
 import { AdminApiError } from "@/lib/adminApi";
 
@@ -372,9 +373,8 @@ export function StatusBadge({ status, tone }: { status: string; tone?: BadgeTone
 
 export function AdminLoading({ label = "Loading…" }: { label?: string }) {
   return (
-    <div className="admin-panel p-12 flex flex-col items-center justify-center text-[var(--admin-muted)]">
-      <span className="material-symbols-outlined text-[28px] animate-spin mb-3">progress_activity</span>
-      <p className="font-body-md">{label}</p>
+    <div className="admin-panel overflow-hidden">
+      <LuxuryLoader variant="panel" label={label} />
     </div>
   );
 }

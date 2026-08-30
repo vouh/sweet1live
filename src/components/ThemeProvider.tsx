@@ -8,9 +8,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { THEME_STORAGE_KEY } from "@/lib/theme";
+import { THEME_STORAGE_KEY, themeCookieValue, type Theme } from "@/lib/theme";
 
-export type Theme = "dark" | "light";
+export type { Theme };
 
 type ThemeContextValue = {
   theme: Theme;
@@ -22,25 +22,37 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
-  root.classList.toggle("dark", theme === "dark");
-  root.classList.toggle("light", theme === "light");
+  root.classList.remove("dark", "light");
+  root.classList.add(theme);
   root.style.colorScheme = theme;
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+function persistTheme(theme: Theme) {
+  window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  document.cookie = themeCookieValue(theme);
+}
+
+export function ThemeProvider({
+  children,
+  initialTheme = "dark",
+}: {
+  children: ReactNode;
+  initialTheme?: Theme;
+}) {
+  const [theme, setThemeState] = useState<Theme>(initialTheme);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    const next: Theme = stored === "light" ? "light" : "dark";
+    const next: Theme = stored === "light" ? "light" : stored === "dark" ? "dark" : initialTheme;
     setThemeState(next);
     applyTheme(next);
-  }, []);
+    persistTheme(next);
+  }, [initialTheme]);
 
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);
     applyTheme(next);
-    window.localStorage.setItem(THEME_STORAGE_KEY, next);
+    persistTheme(next);
   }, []);
 
   const toggleTheme = useCallback(() => {

@@ -15,8 +15,8 @@ from app.models import Event, MenuItem, Room, TicketType
 
 # Venue photos live in public/images/ and are mapped on the frontend — not in the DB.
 
-# The seven bookable spaces. hire_fee_pence is the "from" figure on the card;
-# deposit_pence is what Stripe actually charges to hold the date.
+# The seven private hire spaces. hire_fee_pence is the "from" figure on the card.
+# deposit_pence stays 0 — spaces are enquiry-only; our team quotes and confirms offline.
 ROOMS: list[dict] = [
     {
         "slug": "main-room",
@@ -30,7 +30,7 @@ ROOMS: list[dict] = [
         "capacity_standing": 250,
         "min_party": 40,
         "hire_fee_pence": 250000,
-        "deposit_pence": 50000,
+        "deposit_pence": 0,
         "features": "Full stage,House PA & lighting,Green room,Private bar,Step-free access",
         "sort_order": 1,
     },
@@ -46,7 +46,7 @@ ROOMS: list[dict] = [
         "capacity_standing": 80,
         "min_party": 20,
         "hire_fee_pence": 120000,
-        "deposit_pence": 25000,
+        "deposit_pence": 0,
         "features": "Corner stage,Booth seating,Dedicated host,Cocktail menu,Late licence",
         "sort_order": 2,
     },
@@ -62,7 +62,7 @@ ROOMS: list[dict] = [
         "capacity_standing": 60,
         "min_party": 12,
         "hire_fee_pence": 90000,
-        "deposit_pence": 20000,
+        "deposit_pence": 0,
         "features": "Acoustic room,Tasting table,Sommelier service,Candlelit,Private entrance",
         "sort_order": 3,
     },
@@ -78,7 +78,7 @@ ROOMS: list[dict] = [
         "capacity_standing": 30,
         "min_party": 8,
         "hire_fee_pence": 60000,
-        "deposit_pence": 15000,
+        "deposit_pence": 0,
         "features": "Private dining,Tasting menu,Curtained entry,Dedicated server",
         "sort_order": 4,
     },
@@ -94,7 +94,7 @@ ROOMS: list[dict] = [
         "capacity_standing": 12,
         "min_party": 2,
         "hire_fee_pence": 20000,
-        "deposit_pence": 5000,
+        "deposit_pence": 0,
         "features": "Fireplace,Bar hatch,Armchair seating,Board-friendly",
         "sort_order": 5,
     },
@@ -110,7 +110,7 @@ ROOMS: list[dict] = [
         "capacity_standing": 70,
         "min_party": 15,
         "hire_fee_pence": 80000,
-        "deposit_pence": 20000,
+        "deposit_pence": 0,
         "features": "Stage view,Service bar,Semi-private,Reserved entry",
         "sort_order": 6,
     },
@@ -126,7 +126,7 @@ ROOMS: list[dict] = [
         "capacity_standing": 45,
         "min_party": 10,
         "hire_fee_pence": 110000,
-        "deposit_pence": 25000,
+        "deposit_pence": 0,
         "features": "Chef's table,Bespoke menu,AV for speeches,Private cloakroom,Step-free access",
         "sort_order": 7,
     },

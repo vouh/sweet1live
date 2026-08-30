@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     convert_foreign_payments: bool = True
     checkout_hold_minutes: int = 30
     staff_api_key: str = "sweet1ne-dev-staff-key-change-me"
+    # Private hire is enquiry-only in production. Set to true only for legacy/tests.
+    room_online_booking_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("ROOM_ONLINE_BOOKING_ENABLED"),
+    )
 
     resend_api_key: str = Field(
         default="",
@@ -86,6 +91,9 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _require_postgres_database(self) -> "Settings":
         import os
+
+        if not self.jwt_secret.strip():
+            self.jwt_secret = "sweet1ne-dev-secret-change-me"
 
         url = self.database_url.strip()
         if not url:

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   AdminBulkBar,
   AdminDetailModal,
@@ -37,6 +38,7 @@ function enquiryKey(item: AdminEnquiry) {
 }
 
 export default function AdminEnquiriesPage() {
+  const searchParams = useSearchParams();
   const [kind, setKind] = useState("all");
   const [query, setQuery] = useState("");
   const search = useDebounced(query);
@@ -45,6 +47,13 @@ export default function AdminEnquiriesPage() {
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [detail, setDetail] = useState<AdminEnquiry | null>(null);
+
+  useEffect(() => {
+    const fromUrl = searchParams.get("kind");
+    if (fromUrl === "venue" || fromUrl === "contact" || fromUrl === "all") {
+      setKind(fromUrl);
+    }
+  }, [searchParams]);
 
   const load = useCallback(() => adminApi.enquiries({ kind, q: search }), [kind, search]);
   const { data, error, initialising, reload, refreshing } = useAdminResource(load, [kind, search]);
@@ -109,7 +118,6 @@ export default function AdminEnquiriesPage() {
       <AdminErrorModal error={error} onRetry={reload} />
       <AdminPageHeader
         title="Enquiries"
-        blurb="One inbox for the contact form and the venue-hire enquiry form. Open a message to read it in full and reply by email."
         onRefresh={reload}
         refreshing={refreshing}
       />

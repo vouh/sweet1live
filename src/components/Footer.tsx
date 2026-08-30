@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import BrandTagline from "@/components/BrandTagline";
 import { useAuthModal } from "@/components/AuthModalProvider";
+import { SITE_ADDRESS_LINES, SITE_CONTACT, SITE_MAPS_URL } from "@/lib/brand";
 
 export default function Footer() {
   const { open } = useAuthModal();
@@ -84,15 +85,27 @@ export default function Footer() {
             <p className="font-label-caps text-[11px] tracking-[0.4em] uppercase text-[#d4a574] -mt-1 mb-3">
               Live
             </p>
-            <p className="font-body-md text-body-md text-white/70 mb-1">+44 20 0000 0000</p>
-            <p className="font-body-md text-body-md text-white/70 mb-6">
-              Late Night Lounge
-              <br />
-              London, United Kingdom
+            <p className="font-body-md text-body-md text-white/70 mb-1">{SITE_CONTACT.phone}</p>
+            <p className="font-body-md text-body-md text-white/70 mb-1">
+              <a href={`mailto:${SITE_CONTACT.email}`} className="hover:text-[#d4a574] transition-colors">
+                {SITE_CONTACT.email}
+              </a>
             </p>
-            <Link href="/contact" className="font-label-caps text-label-caps tracking-widest uppercase text-[#d4a574] hover:text-[#f5efe8]">
+            <p className="font-body-md text-body-md text-white/70 mb-6">
+              {SITE_ADDRESS_LINES.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))}
+            </p>
+            <a
+              href={SITE_MAPS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-label-caps text-label-caps tracking-widest uppercase text-[#d4a574] hover:text-[#f5efe8]"
+            >
               Get directions →
-            </Link>
+            </a>
           </div>
         </div>
 

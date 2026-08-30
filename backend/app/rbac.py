@@ -34,7 +34,16 @@ def staff_permissions(db: Session, staff_id: str) -> set[str]:
     perm_rows = db.exec(
         select(RolePermission.permission_id).where(RolePermission.role_id.in_(role_ids))  # type: ignore[attr-defined]
     ).all()
-    return set(perm_rows)
+    permissions = set(perm_rows)
+    # An edit/delete grant is unusable without the matching page. Treat those
+    # grants as also allowing view so older roles cannot land in a broken shell.
+    for permission_id in tuple(permissions):
+        category, _, action = permission_id.partition(".")
+        if action and action != "view":
+            implied = f"{category}.view"
+            if db.get(Permission, implied):
+                permissions.add(implied)
+    return permissions
 
 
 def staff_has_permission(db: Session, staff: StaffMember, permission_id: str) -> bool:

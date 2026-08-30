@@ -12,3 +12,4 @@ PyJWT>=2.9
 stripe>=11.1
 httpx>=0.28
 python-multipart>=0.0.9
+cryptography>=42.0

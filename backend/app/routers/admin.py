@@ -8,6 +8,7 @@ Money is integer pence throughout, matching the rest of the codebase.
 """
 
 from datetime import date as date_type, datetime, timedelta
+import json
 from typing import Literal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
@@ -133,7 +134,7 @@ def _recent_activity(db: Session, limit: int) -> list[ActivityItem]:
                 title=f"{room.name if room else 'Room'} hire — {row.name}",
                 detail=f"{row.date:%a %d %b} {row.start_time} · {row.status.replace('_', ' ')}",
                 at=row.created_at,
-                href="/staff-dashboard/venue-hire",
+                href="/staff-dashboard/enquiries?kind=venue",
             )
         )
 
@@ -361,10 +362,12 @@ class AdminEvent(SQLModel):
     slug: str
     title: str
     subtitle: str
+    description: str
     status: str
     room_name: str
     room_slug: str
     image_url: str
+    images: list[str]
     doors_at: datetime | None
     starts_at: datetime
     ends_at: datetime | None
@@ -376,6 +379,19 @@ class AdminEvent(SQLModel):
     gross_pence: int
     checked_in: int
     ticket_types: list[AdminTicketType]
+
+
+def _event_images(event: Event) -> list[str]:
+    if not event.image_url:
+        return []
+    if event.image_url.startswith("["):
+        try:
+            values = json.loads(event.image_url)
+            if isinstance(values, list):
+                return [str(value) for value in values if value][:4]
+        except (TypeError, ValueError):
+            pass
+    return [event.image_url]
 
 
 def _admin_event(db: Session, event: Event, rooms: dict[str, Room]) -> AdminEvent:
@@ -393,10 +409,12 @@ def _admin_event(db: Session, event: Event, rooms: dict[str, Room]) -> AdminEven
         slug=event.slug,
         title=event.title,
         subtitle=event.subtitle,
+        description=event.description,
         status=event.status,
         room_name=room.name if room else "",
         room_slug=room.slug if room else "",
-        image_url=event.image_url,
+        image_url=_event_images(event)[0] if _event_images(event) else "",
+        images=_event_images(event),
         doors_at=event.doors_at,
         starts_at=event.starts_at,
         ends_at=event.ends_at,
@@ -449,9 +467,21 @@ def list_events(
     ]
 
 
+class EventAdminUpdate(SQLModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    subtitle: str | None = Field(default=None, max_length=240)
+    description: str | None = Field(default=None, max_length=3000)
+    images: list[str] | None = None
+    status: str | None = None
+
+
+class EventImageUploadResult(SQLModel):
+    url: str
+
+
 @router.patch("/events/{event_id}", response_model=AdminEvent, dependencies=[require_permission("events.edit")])
-def update_event(event_id: str, payload: StatusUpdate, db: Session = Depends(get_db)):
-    if payload.status not in EVENT_STATUSES:
+def update_event(event_id: str, payload: EventAdminUpdate, db: Session = Depends(get_db)):
+    if payload.status is not None and payload.status not in EVENT_STATUSES:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Status must be one of {', '.join(EVENT_STATUSES)}",
@@ -460,12 +490,29 @@ def update_event(event_id: str, payload: StatusUpdate, db: Session = Depends(get
     if event is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
 
-    event.status = payload.status
+    changes = payload.model_dump(exclude_unset=True)
+    if "images" in changes and len(changes["images"]) > 4:
+        raise HTTPException(status_code=422, detail="An event can have up to 4 images.")
+    images = changes.pop("images", None)
+    for key, value in changes.items():
+        setattr(event, key, value.strip() if isinstance(value, str) else value)
+    if images is not None:
+        event.image_url = json.dumps(images, separators=(",", ":")) if len(images) > 1 else (images[0] if images else "")
     db.add(event)
     db.commit()
     db.refresh(event)
     rooms = {room.id: room for room in db.exec(select(Room)).all()}
     return _admin_event(db, event, rooms)
+
+
+@router.post("/events/upload", response_model=EventImageUploadResult, status_code=201, dependencies=[require_permission("events.edit")])
+async def upload_event_photo(file: UploadFile = File(...)):
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail="Upload a JPEG, PNG, or WebP image.")
+    content = await file.read()
+    if len(content) > MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=400, detail="Images must be under 8MB.")
+    return EventImageUploadResult(url=upload_menu_image(file.filename or "event.webp", content, file.content_type))
 
 
 # =====================================================================
@@ -1086,6 +1133,17 @@ def finance(
     )
 
 
+@router.get("/collection-orders", response_model=AdminFinance, dependencies=[require_permission("collection.view")])
+def collection_orders(
+    db: Session = Depends(get_db),
+    days: int = Query(default=30, ge=1, le=730),
+    status_filter: str | None = Query(default=None, alias="status"),
+    q: str | None = None,
+):
+    """Collection-only reporting for roles that must not see all finance data."""
+    return finance(db=db, days=days, status_filter=status_filter, kind="food_collection", q=q)
+
+
 class AdminOrderLine(SQLModel):
     description: str
     quantity: int
@@ -1132,6 +1190,36 @@ def get_order_detail(order_id: str, db: Session = Depends(get_db)):
         ],
         ticket_codes=[ticket.code for ticket in tickets],
     )
+
+
+@router.get("/collection-orders/{order_id}", response_model=AdminOrderDetail, dependencies=[require_permission("collection.view")])
+def get_collection_order_detail(order_id: str, db: Session = Depends(get_db)):
+    order = db.get(Order, order_id)
+    if order is None or order.kind != "food_collection":
+        raise HTTPException(status_code=404, detail="Collection order not found")
+    return get_order_detail(order_id, db)
+
+
+@router.delete("/collection-orders/{order_id}", status_code=204, dependencies=[require_permission("collection.delete")])
+def delete_collection_order(order_id: str, db: Session = Depends(get_db)):
+    order = db.get(Order, order_id)
+    if order is None or order.kind != "food_collection":
+        raise HTTPException(status_code=404, detail="Collection order not found")
+    _delete_order(db, order)
+    db.commit()
+
+
+@router.post("/collection-orders/bulk-delete", response_model=BulkDeleteResult, dependencies=[require_permission("collection.delete")])
+def bulk_delete_collection_orders(payload: BulkDeleteRequest, db: Session = Depends(get_db)):
+    deleted = 0
+    for order_id in payload.ids:
+        order = db.get(Order, order_id)
+        if order is None or order.kind != "food_collection":
+            continue
+        _delete_order(db, order)
+        deleted += 1
+    db.commit()
+    return BulkDeleteResult(deleted=deleted)
 
 
 @router.delete("/orders/{order_id}", status_code=204, dependencies=[require_permission("finance.delete")])
@@ -1280,7 +1368,7 @@ def notifications(db: Session = Depends(get_db), limit: int = Query(default=40, 
                     else f"{row.date:%a %d %b} {row.start_time} · deposit {row.deposit_pence / 100:.2f}"
                 ),
                 at=row.created_at,
-                href="/staff-dashboard/venue-hire",
+                href="/staff-dashboard/enquiries?kind=venue",
             )
         )
 

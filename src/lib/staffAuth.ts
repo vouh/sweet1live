@@ -83,6 +83,13 @@ export async function staffLogin(email: string, password: string): Promise<Staff
   };
 
   if (!response.ok) {
+    if (response.status === 429) {
+      throw new Error(
+        typeof data.detail === "string"
+          ? data.detail
+          : "Too many attempts. Please wait a few minutes and try again."
+      );
+    }
     throw new Error(typeof data.detail === "string" ? data.detail : "Sign in failed.");
   }
 
@@ -183,12 +190,16 @@ export async function staffRequestPasswordChange(newPassword: string): Promise<v
   }
 }
 
-/** Confirms the emailed code and applies the password chosen in staffRequestPasswordChange. */
-export async function staffConfirmPasswordChange(code: string): Promise<void> {
+/**
+ * Confirms the emailed code and applies the new password. The password isn't
+ * stored anywhere between staffRequestPasswordChange and this call — it's
+ * only ever held in memory on this page — so it's supplied again here.
+ */
+export async function staffConfirmPasswordChange(code: string, newPassword: string): Promise<void> {
   const response = await fetch(`${API_URL}/auth/staff/change-password/confirm`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...staffAuthHeaders() },
-    body: JSON.stringify({ code: code.trim() }),
+    body: JSON.stringify({ code: code.trim(), new_password: newPassword }),
   });
   const data = (await response.json()) as { detail?: string };
   if (!response.ok) {

@@ -65,7 +65,7 @@ export default function AdminProfilePage() {
     setError("");
     setPending(true);
     try {
-      await staffConfirmPasswordChange(code);
+      await staffConfirmPasswordChange(code, newPassword);
       setInfo("Password updated. Use it next time you sign in.");
       setStep("form");
       setNewPassword("");
