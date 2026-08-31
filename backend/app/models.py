@@ -152,6 +152,22 @@ class ContactMessagePublic(ContactMessageBase):
     created_at: datetime
 
 
+class MailingListSubscriber(SQLModel, table=True):
+    __tablename__ = "mailing_list_subscribers"
+
+    id: str = Field(default_factory=_uuid, primary_key=True)
+    email: str = Field(index=True, unique=True, max_length=254)
+    name: str = Field(default="Guest", max_length=200)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class MailingListSubscriberPublic(SQLModel):
+    id: str
+    email: str
+    name: str
+    created_at: datetime
+
+
 # =====================================================================
 # Ticketing & room booking
 #
@@ -238,6 +254,7 @@ class Event(SQLModel, table=True):
     ends_at: datetime | None = None
     # draft | published | cancelled
     status: str = Field(default="published", index=True)
+    is_top_event: bool = Field(default=False, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -289,6 +306,7 @@ class EventPublic(SQLModel):
     starts_at: datetime
     ends_at: datetime | None
     status: str
+    is_top_event: bool = False
     currency: str
     from_price_pence: int | None
     sold_out: bool

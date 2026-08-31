@@ -1,5 +1,5 @@
-import LuxuryLoader from "@/components/LuxuryLoader";
+import AdminRouteLoading from "@/components/admin/AdminRouteLoading";
 
 export default function StaffPortalLoading() {
-  return <LuxuryLoader variant="panel" label="Preparing your workspace" />;
+  return <AdminRouteLoading label="Preparing your workspace" />;
 }

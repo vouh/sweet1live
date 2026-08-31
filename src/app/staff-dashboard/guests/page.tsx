@@ -43,6 +43,7 @@ export default function AdminGuestsPage() {
     return {
       people: list.length,
       accounts: list.filter((guest) => guest.has_account).length,
+      mailingList: list.filter((guest) => guest.mailing_list).length,
       spend,
       average: spenders.length ? Math.round(spend / spenders.length) : 0,
       currency: list[0]?.currency ?? "gbp",
@@ -54,7 +55,7 @@ export default function AdminGuestsPage() {
       <AdminErrorModal error={error} onRetry={reload} />
       <AdminPageHeader
         title="Guests"
-        blurb="Everyone the venue knows, matched on email across reservations, ticket orders, and room bookings — account holders and walk-up bookers alike."
+        blurb="Everyone the venue knows, matched on email — reservations, ticket orders, room bookings, and footer mailing-list signups."
         onRefresh={reload}
         refreshing={refreshing}
       />
@@ -62,6 +63,7 @@ export default function AdminGuestsPage() {
       <StatGrid>
         <StatCard icon="group" tone="terracotta" label="Known guests" value={totals.people} />
         <StatCard icon="badge" tone="gold" label="With accounts" value={totals.accounts} />
+        <StatCard icon="mail" tone="rose" label="Mailing list" value={totals.mailingList} />
         <StatCard
           icon="payments"
           tone="chocolate"
@@ -92,10 +94,15 @@ export default function AdminGuestsPage() {
                 <p className="text-sm text-[var(--admin-muted)] mt-0.5">{guest.email}</p>
               </td>
               <td className="px-5 py-4">
-                <StatusBadge
-                  status={guest.has_account ? "registered" : "guest"}
-                  tone={guest.has_account ? "positive" : "neutral"}
-                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge
+                    status={guest.has_account ? "registered" : "guest"}
+                    tone={guest.has_account ? "positive" : "neutral"}
+                  />
+                  {guest.mailing_list && (
+                    <StatusBadge status="mailing list" tone="accent" />
+                  )}
+                </div>
               </td>
               <td className="px-5 py-4 font-body-md text-sm">
                 <span title="Reservations">{guest.reservations_count}</span>

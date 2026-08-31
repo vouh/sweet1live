@@ -23,40 +23,13 @@ if (-not (Test-Path $EnvLocal)) {
     exit 1
 }
 
-if (-not (Test-Path $VenvPython)) {
-    Write-Host "Creating Python virtualenv..."
-    Push-Location $Backend
-    python -m venv venv
-    Pop-Location
-}
-
-$needsPip = -not (Test-Path $DepsStamp)
-if (-not $needsPip -and (Test-Path $Requirements)) {
-    $needsPip = (Get-Item $Requirements).LastWriteTimeUtc -gt (Get-Item $DepsStamp).LastWriteTimeUtc
-}
-
-if ($needsPip) {
-    Write-Host "Installing Python dependencies..."
-    & $VenvPip install -q -r $Requirements
-    New-Item -ItemType File -Path $DepsStamp -Force | Out-Null
-}
-
-Push-Location $Backend
-
-Write-Host "Applying database migrations..."
-& $VenvPython -m alembic upgrade head
-
-if (-not (Test-Path $SeedStamp) -or $env:BACKEND_SEED -eq "1") {
-    Write-Host "Seeding rooms and events (first run)..."
-    & $VenvPython -m app.seed
-    New-Item -ItemType File -Path $SeedStamp -Force | Out-Null
-}
+& (Join-Path $PSScriptRoot "backend-setup.ps1")
 
 Write-Host ""
 Write-Host "API:  http://localhost:8000" -ForegroundColor Green
 Write-Host "Docs: http://localhost:8000/docs" -ForegroundColor Green
 Write-Host ""
 
+Push-Location $Backend
 & $VenvPython -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
 Pop-Location

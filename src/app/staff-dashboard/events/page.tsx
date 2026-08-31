@@ -82,9 +82,32 @@ export default function AdminEventsPage() {
 
   async function saveEvent(id: string, changes: Partial<AdminEvent>) {
     const updated = await adminApi.updateEvent(id, changes);
-    setEvents((current) => (current ?? []).map((event) => event.id === id ? updated : event));
+    setEvents((current) =>
+      (current ?? []).map((event) => {
+        if (event.id === id) return updated;
+        if (changes.is_top_event) return { ...event, is_top_event: false };
+        return event;
+      })
+    );
     setEditing(null);
     setNotice("Event details saved.");
+  }
+
+  async function setTopEvent(event: AdminEvent) {
+    if (event.is_top_event) return;
+    setBusyId(event.id);
+    try {
+      const updated = await adminApi.updateEvent(event.id, { is_top_event: true });
+      setEvents((current) =>
+        (current ?? []).map((row) => ({
+          ...row,
+          is_top_event: row.id === updated.id,
+        }))
+      );
+      setNotice(`${updated.title} is now the top event on the site.`);
+    } finally {
+      setBusyId(null);
+    }
   }
 
   return (
@@ -131,6 +154,7 @@ export default function AdminEventsPage() {
               busy={busyId === event.id}
               onStatus={canEdit ? (next) => changeStatus(event, next) : undefined}
               onEdit={canEdit ? () => setEditing(event) : undefined}
+              onSetTop={canEdit ? () => setTopEvent(event) : undefined}
             />
           ))}
         </div>
@@ -145,11 +169,13 @@ function EventCard({
   busy,
   onStatus,
   onEdit,
+  onSetTop,
 }: {
   event: AdminEvent;
   busy: boolean;
   onStatus?: (next: string) => void;
   onEdit?: () => void;
+  onSetTop?: () => void;
 }) {
   const soldPct = event.capacity > 0 ? Math.round((event.sold / event.capacity) * 100) : 0;
 
@@ -160,6 +186,7 @@ function EventCard({
           <div className="flex flex-wrap items-center gap-3">
             <h3 className="font-headline-md text-[20px]">{event.title}</h3>
             <StatusBadge status={event.status} />
+            {event.is_top_event && <StatusBadge status="top event" tone="accent" />}
             {event.available === 0 && event.capacity > 0 && (
               <StatusBadge status="sold out" tone="accent" />
             )}
@@ -246,6 +273,12 @@ function EventCard({
             <span className="material-symbols-outlined text-[16px] align-[-3px] mr-1">edit</span>
             Edit details
           </button>}
+          {onSetTop && !event.is_top_event && (
+            <button type="button" onClick={onSetTop} disabled={busy} className="admin-btn-ghost text-sm w-full">
+              <span className="material-symbols-outlined text-[16px] align-[-3px] mr-1">star</span>
+              Set as top event
+            </button>
+          )}
         </div>
       </div>
     </article>

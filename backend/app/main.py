@@ -19,6 +19,7 @@ from app.routers import (
     checkout,
     contact,
     events,
+    mailing_list,
     menus,
     orders,
     reservations,
@@ -121,6 +122,7 @@ app.include_router(auth.router)
 app.include_router(staff_auth.router)
 app.include_router(staff_rbac.router)
 app.include_router(contact.router)
+app.include_router(mailing_list.router)
 app.include_router(rooms.router)
 app.include_router(events.router)
 app.include_router(menus.router)

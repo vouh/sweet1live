@@ -111,6 +111,7 @@ const EVENT_SLUG_TO_PHOTO: Record<string, string> = {
   "velvet-sessions": EVENT_PHOTOS.velvet,
   "cellar-sessions": EVENT_PHOTOS.cellar,
   "last-orders-trio": EVENT_PHOTOS.lastOrders,
+  "midnight-brass": IMG.bandA,
 };
 
 export function roomPhoto(slug: string): string {

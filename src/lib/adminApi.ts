@@ -65,6 +65,7 @@ export type AdminEvent = {
   subtitle: string;
   description: string;
   status: string;
+  is_top_event: boolean;
   room_name: string;
   room_slug: string;
   image_url: string;
@@ -166,6 +167,7 @@ export type AdminGuest = {
   name: string;
   email: string;
   has_account: boolean;
+  mailing_list: boolean;
   created_at: string | null;
   orders_count: number;
   tickets_count: number;
@@ -372,7 +374,7 @@ export const adminApi = {
     request<AdminEvent[]>("events", { query }),
   setEventStatus: (id: string, status: string) =>
     request<AdminEvent>(`events/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
-  updateEvent: (id: string, body: Partial<Pick<AdminEvent, "title" | "subtitle" | "description" | "images" | "status">>) =>
+  updateEvent: (id: string, body: Partial<Pick<AdminEvent, "title" | "subtitle" | "description" | "images" | "status" | "is_top_event">>) =>
     request<AdminEvent>(`events/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
 
   menus: (query?: { course?: string; q?: string }) =>

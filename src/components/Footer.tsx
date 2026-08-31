@@ -5,15 +5,28 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import BrandTagline from "@/components/BrandTagline";
 import { useAuthModal } from "@/components/AuthModalProvider";
+import { subscribeMailingList } from "@/lib/api";
 import { SITE_ADDRESS_LINES, SITE_CONTACT, SITE_MAPS_URL } from "@/lib/brand";
+import { FORM_SECURITY_FIELD, formSecurityTimestamp } from "@/lib/formSecurity";
 
 export default function Footer() {
   const { open } = useAuthModal();
   const [joined, setJoined] = useState(false);
+  const [formTs] = useState(() => formSecurityTimestamp());
 
-  function onNewsletter(e: FormEvent<HTMLFormElement>) {
+  async function onNewsletter(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setJoined(true);
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    const email = String(data.get("email") ?? "");
+    const hp = String(data.get(FORM_SECURITY_FIELD.honeypot) ?? "").trim();
+    const result = await subscribeMailingList(email, {
+      [FORM_SECURITY_FIELD.honeypot]: hp,
+      [FORM_SECURITY_FIELD.timestamp]: formTs,
+    });
+    if (result.success) {
+      setJoined(true);
+    }
   }
 
   return (
@@ -23,7 +36,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 pb-14 border-b border-white/15">
           <div>
             <h3 className="font-headline-md text-[26px] md:text-[30px] leading-snug mb-4 text-[#f5efe8]">
-              Join our foodie community and get updates on new dishes.
+              Join our community and get updates on live nights and what&apos;s next.
             </h3>
             <p className="font-body-md text-body-md text-white/65 mb-4 max-w-sm">
               Late-night hospitality, live rhythm, and seasonal tasting notes — delivered with care.
@@ -37,9 +50,18 @@ export default function Footer() {
               <form onSubmit={onNewsletter} className="flex items-center border-b border-white/35 pb-2 gap-3">
                 <input
                   type="email"
+                  name="email"
                   required
                   placeholder="Email Address"
                   className="flex-1 bg-transparent border-0 text-[#f5efe8] placeholder:text-white/45 py-2 focus:ring-0"
+                />
+                <input
+                  type="text"
+                  name={FORM_SECURITY_FIELD.honeypot}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden
+                  className="absolute opacity-0 pointer-events-none h-0 w-0"
                 />
                 <button type="submit" aria-label="Subscribe" className="text-[#f5efe8] hover:text-[#d4a574]">
                   <span className="material-symbols-outlined">arrow_forward</span>

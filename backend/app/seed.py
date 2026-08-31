@@ -289,6 +289,7 @@ def seed(session: Session) -> None:
                 "at 20:30 — intimate, precise, and gone before you want it to be."
             ),
             "room": "main-room",
+            "is_top_event": True,
             "doors_at": _at(friday, 20, 0),
             "starts_at": _at(friday, 20, 30),
             "ends_at": _at(friday, 23, 0),
@@ -347,6 +348,25 @@ def seed(session: Session) -> None:
             "tickets": [
                 {"name": "Late set", "price_pence": 2500, "quantity_total": 200, "sort_order": 1,
                  "description": "Standing, late licence."},
+            ],
+        },
+        {
+            "slug": "midnight-brass",
+            "title": "Midnight Brass",
+            "subtitle": "New Orleans jazz · Brass band",
+            "description": (
+                "A wall of horns and a rhythm section that won't quit — parade energy in a candlelit room. "
+                "Two sets, no seats left empty for long."
+            ),
+            "room": "the-gallery",
+            "doors_at": _at(saturday + timedelta(weeks=3), 19, 0),
+            "starts_at": _at(saturday + timedelta(weeks=3), 19, 30),
+            "ends_at": _at(saturday + timedelta(weeks=3), 23, 0),
+            "tickets": [
+                {"name": "Gallery standing", "price_pence": 2800, "quantity_total": 70, "sort_order": 1,
+                 "description": "Standing room with a clear sightline to the stage."},
+                {"name": "Reserved balcony", "price_pence": 4200, "quantity_total": 24, "max_per_order": 4,
+                 "sort_order": 2, "description": "Elevated seating for four — best acoustics in the house."},
             ],
         },
     ]

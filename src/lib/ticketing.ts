@@ -30,6 +30,7 @@ export type VenueEvent = {
   starts_at: string;
   ends_at: string | null;
   status: string;
+  is_top_event?: boolean;
   currency: string;
   from_price_pence: number | null;
   sold_out: boolean;

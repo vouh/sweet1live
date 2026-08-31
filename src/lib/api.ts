@@ -101,6 +101,16 @@ export async function createContactMessage(
   });
 }
 
+export async function subscribeMailingList(
+  email: string,
+  security: Record<string, string | number> = {}
+): Promise<ActionState> {
+  return postJson("/mailing-list", {
+    ...security,
+    email,
+  });
+}
+
 export type AuthUserPayload = {
   id: string;
   name: string;

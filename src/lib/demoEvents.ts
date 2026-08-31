@@ -1,0 +1,117 @@
+import { IMG } from "./images";
+import type { VenueEvent } from "./ticketing";
+
+/** Showcase season when the API is offline — slugs match backend seed data. */
+export const DEMO_EVENTS: VenueEvent[] = [
+  {
+    id: "demo-blue-note",
+    slug: "blue-note-quintet",
+    title: "Blue Note Quintet",
+    subtitle: "Modal jazz · Hard bop",
+    description:
+      "Modal jazz and hard bop from leading session musicians. Doors at 20:00, first set at 20:30 — intimate, precise, and gone before you want it to be.",
+    image_url: "",
+    room_name: "The Main Room",
+    room_slug: "main-room",
+    doors_at: "2026-09-04T19:00:00",
+    starts_at: "2026-09-04T19:30:00",
+    ends_at: "2026-09-04T22:00:00",
+    status: "published",
+    is_top_event: true,
+    currency: "gbp",
+    from_price_pence: 2500,
+    sold_out: false,
+    ticket_types: [],
+  },
+  {
+    id: "demo-velvet",
+    slug: "velvet-sessions",
+    title: "Velvet Sessions",
+    subtitle: "Soul · R&B",
+    description:
+      "Reimagined soul and R&B at a slower tempo, played to a room lit for lingering. The perfect companion to a late dinner and a second bottle.",
+    image_url: "",
+    room_name: "The Lounge",
+    room_slug: "the-lounge",
+    doors_at: "2026-09-05T19:30:00",
+    starts_at: "2026-09-05T20:00:00",
+    ends_at: "2026-09-05T22:30:00",
+    status: "published",
+    currency: "gbp",
+    from_price_pence: 3500,
+    sold_out: false,
+    ticket_types: [],
+  },
+  {
+    id: "demo-cellar",
+    slug: "cellar-sessions",
+    title: "Cellar Sessions",
+    subtitle: "Acoustic · Tasting",
+    description:
+      "Unamplified acoustic sets in the brick cellar, paired with a four-glass flight chosen by our sommelier. Forty-five seats, no phones.",
+    image_url: "",
+    room_name: "The Cellar",
+    room_slug: "the-cellar",
+    doors_at: "2026-09-11T20:00:00",
+    starts_at: "2026-09-11T20:30:00",
+    ends_at: "2026-09-11T22:30:00",
+    status: "published",
+    currency: "gbp",
+    from_price_pence: 3000,
+    sold_out: false,
+    ticket_types: [],
+  },
+  {
+    id: "demo-last-orders",
+    slug: "last-orders-trio",
+    title: "The Last Orders Trio",
+    subtitle: "Standards · Late set",
+    description:
+      "Standards until close — brass, brushes, and nowhere else to be. The room stays open for one more round.",
+    image_url: "",
+    room_name: "The Main Room",
+    room_slug: "main-room",
+    doors_at: "2026-09-18T20:30:00",
+    starts_at: "2026-09-18T21:00:00",
+    ends_at: "2026-09-19T00:30:00",
+    status: "published",
+    currency: "gbp",
+    from_price_pence: 2500,
+    sold_out: false,
+    ticket_types: [],
+  },
+  {
+    id: "demo-midnight",
+    slug: "midnight-brass",
+    title: "Midnight Brass",
+    subtitle: "New Orleans jazz · Brass band",
+    description:
+      "A wall of horns and a rhythm section that won't quit — parade energy in a candlelit room. Two sets, no seats left empty for long.",
+    image_url: "",
+    room_name: "The Gallery",
+    room_slug: "the-gallery",
+    doors_at: "2026-09-25T19:00:00",
+    starts_at: "2026-09-25T19:30:00",
+    ends_at: "2026-09-25T23:00:00",
+    status: "published",
+    currency: "gbp",
+    from_price_pence: 2800,
+    sold_out: false,
+    ticket_types: [],
+  },
+];
+
+export const DEMO_EVENT_PHOTOS: Record<string, string> = {
+  "blue-note-quintet": IMG.featured1,
+  "velvet-sessions": IMG.featured2,
+  "cellar-sessions": IMG.cellar,
+  "last-orders-trio": IMG.liveBar,
+  "midnight-brass": IMG.bandA,
+};
+
+export const DEMO_EVENT_ACCENTS = [
+  "event-split__panel--chocolate",
+  "event-split__panel--chocolate-warm",
+  "event-split__panel--chocolate-deep",
+  "event-split__panel--chocolate-gold",
+] as const;

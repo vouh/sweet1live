@@ -25,6 +25,7 @@ from app.storage import upload_menu_image
 from app.models import (
     ContactMessage,
     Event,
+    MailingListSubscriber,
     MenuCategory,
     MenuCategoryCreate,
     MenuCategoryPublic,
@@ -366,6 +367,7 @@ class AdminEvent(SQLModel):
     subtitle: str
     description: str
     status: str
+    is_top_event: bool
     room_name: str
     room_slug: str
     image_url: str
@@ -413,6 +415,7 @@ def _admin_event(db: Session, event: Event, rooms: dict[str, Room]) -> AdminEven
         subtitle=event.subtitle,
         description=event.description,
         status=event.status,
+        is_top_event=event.is_top_event,
         room_name=room.name if room else "",
         room_slug=room.slug if room else "",
         image_url=_event_images(event)[0] if _event_images(event) else "",
@@ -475,6 +478,7 @@ class EventAdminUpdate(SQLModel):
     description: str | None = Field(default=None, max_length=3000)
     images: list[str] | None = None
     status: str | None = None
+    is_top_event: bool | None = None
 
 
 class EventImageUploadResult(SQLModel):
@@ -496,6 +500,10 @@ def update_event(event_id: str, payload: EventAdminUpdate, db: Session = Depends
     if "images" in changes and len(changes["images"]) > 4:
         raise HTTPException(status_code=422, detail="An event can have up to 4 images.")
     images = changes.pop("images", None)
+    if changes.get("is_top_event") is True:
+        for other in db.exec(select(Event).where(Event.id != event_id, Event.is_top_event == True)).all():  # noqa: E712
+            other.is_top_event = False
+            db.add(other)
     for key, value in changes.items():
         setattr(event, key, value.strip() if isinstance(value, str) else value)
     if images is not None:
@@ -930,6 +938,7 @@ class AdminGuest(SQLModel):
     name: str
     email: str
     has_account: bool
+    mailing_list: bool
     created_at: datetime | None
     orders_count: int
     tickets_count: int
@@ -964,6 +973,7 @@ def list_guests(
                 name=name or key,
                 email=key,
                 has_account=False,
+                mailing_list=False,
                 created_at=None,
                 orders_count=0,
                 tickets_count=0,
@@ -1011,6 +1021,15 @@ def list_guests(
         person.tickets_count += ticket_counts.get(order.id, 0)
         if order.status == "paid":
             person.spend_pence += order.subtotal_pence
+
+    for subscriber in db.exec(select(MailingListSubscriber)).all():
+        person = touch(subscriber.email, subscriber.name, at=subscriber.created_at)
+        if person:
+            person.mailing_list = True
+            if person.created_at is None or (
+                subscriber.created_at and subscriber.created_at < person.created_at
+            ):
+                person.created_at = subscriber.created_at
 
     rows = [
         person
@@ -1330,6 +1349,7 @@ def admin_settings(db: Session = Depends(get_db)):
             TableCount(table="contact_messages", label="Messages", rows=_count(db, ContactMessage)),
             TableCount(table="venue_enquiries", label="Venue enquiries", rows=_count(db, VenueEnquiry)),
             TableCount(table="users", label="Guest accounts", rows=_count(db, User)),
+            TableCount(table="mailing_list_subscribers", label="Mailing list", rows=_count(db, MailingListSubscriber)),
         ],
     )
 

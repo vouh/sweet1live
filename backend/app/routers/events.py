@@ -62,6 +62,7 @@ def serialize_event(db: Session, event: Event) -> EventPublic:
         starts_at=event.starts_at,
         ends_at=event.ends_at,
         status=event.status,
+        is_top_event=event.is_top_event,
         currency=settings.currency,
         from_price_pence=min((t.price_pence for t in buyable), default=None),
         sold_out=bool(public_types) and not buyable,
