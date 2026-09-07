@@ -1,20 +1,27 @@
+import HomeLiveNights from "@/components/HomeLiveNights";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import Magnetic from "@/components/motion/Magnetic";
 import ImageHover from "@/components/motion/ImageHover";
-import DrawLine from "@/components/motion/DrawLine";
 import HorizontalScroll from "@/components/motion/HorizontalScroll";
 import SplitReveal from "@/components/motion/SplitReveal";
 import MaskReveal from "@/components/motion/MaskReveal";
 import ScrollMarquee from "@/components/motion/ScrollMarquee";
 import BrandCloser, { FooterFlyover } from "@/components/BrandCloser";
-import StickyMediaBg, { StickyImageColumn } from "@/components/StickyMediaBg";
+import StickyMediaBg from "@/components/StickyMediaBg";
 import StripPhoto from "@/components/StripPhoto";
 import HeroVideo from "@/components/HeroVideo";
+import HomeEventsSwap from "@/components/HomeEventsSwap";
+import MustardCtaBand from "@/components/MustardCtaBand";
 import { HeroBookPanel } from "@/components/BrandTagline";
+import { DEMO_EVENTS } from "@/lib/demoEvents";
+import { pickTopEvent, lineupWithoutTop } from "@/lib/eventLineup";
 import { GALLERY_STRIP, HERO_VIDEO, IMG } from "@/lib/images";
+import { getEvents } from "@/lib/ticketing";
+
+export const dynamic = "force-dynamic";
 
 const BEST_SELLERS = [
   { image: IMG.cellar, name: "Château Margaux", meta: "2015 · Bordeaux", price: "£240" },
@@ -25,16 +32,22 @@ const BEST_SELLERS = [
 const STRIP = GALLERY_STRIP;
 
 const EXPERIENCES = [
-  { image: IMG.jazz, label: "Live Lounge Experience", href: "/live-events", caption: "below" as const, tilt: "left" as const, level: "low" as const },
-  { image: IMG.wagyu, label: "Fine Dining Cuisine", href: "/menus", caption: "above" as const, tilt: "none" as const, level: "high" as const },
-  { image: IMG.bar, label: "Signature Cocktails", href: "/menus", caption: "below" as const, tilt: "none" as const, level: "low" as const },
+  { image: IMG.jazz, label: "Live Lounge Sets", href: "/live-events", caption: "below" as const, tilt: "left" as const, level: "low" as const },
+  { image: IMG.liveJazz, label: "Ticketed Jazz Nights", href: "/live-events", caption: "above" as const, tilt: "none" as const, level: "high" as const },
+  { image: IMG.bar, label: "Late Night Atmosphere", href: "/live-events", caption: "below" as const, tilt: "none" as const, level: "low" as const },
   { image: IMG.alcove, label: "Private Dining Rooms", href: "/venue-hire", caption: "above" as const, tilt: "none" as const, level: "high" as const },
-  { image: IMG.cellar, label: "Wine & Spirits Selection", href: "/venue-hire", caption: "below" as const, tilt: "right" as const, level: "low" as const },
-  { image: IMG.experience5, label: "Late Night Atmosphere", href: "/live-events", caption: "above" as const, tilt: "none" as const, level: "high" as const },
+  { image: IMG.bandA, label: "Brass & Soul Lineups", href: "/live-events", caption: "below" as const, tilt: "right" as const, level: "low" as const },
+  { image: IMG.experience5, label: "After-Dark Energy", href: "/live-events", caption: "above" as const, tilt: "none" as const, level: "high" as const },
   { image: IMG.experience6, label: "Celebrations & Toasts", href: "/reservations", caption: "below" as const, tilt: "left" as const, level: "low" as const },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const fromApi = (await getEvents()).filter((event) => event.slug !== "ticket-demo");
+  const pool = fromApi.length > 0 ? fromApi.slice(0, 6) : DEMO_EVENTS;
+  const top = pickTopEvent(pool);
+  const rest = lineupWithoutTop(pool, top);
+  const homeEvents = top ? [top, ...rest] : rest;
+
   return (
     <>
       <Nav active="/" overlay />
@@ -53,95 +66,31 @@ export default function HomePage() {
 
         {/* Content stack — scrolls over sticky hero */}
         <div className="relative z-10 bg-background">
-        {/* ---------- Signature dish — sticky photo, copy scrolls past ---------- */}
-        <section className="relative z-10 py-section-gap-mobile md:py-section-gap-desktop bg-background">
-          <DrawLine
-            className="absolute left-[12%] top-0 hidden h-full w-px text-primary/40 md:block"
-            orientation="vertical"
-          />
-          <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 md:items-start">
-            <Reveal variant="left" className="order-2 md:order-1 md:pt-8 md:pb-[28vh]">
-              <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest block mb-5">
-                Signature Dish
-              </span>
-              <SplitReveal
-                as="h3"
-                text="Wagyu Tataki"
-                accentWord="Tataki"
-                className="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase tracking-[0.03em] mb-6"
-              />
-              <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md mb-9">
-                Lightly seared A5 Wagyu, sliced thin over truffle ponzu with crispy garlic and
-                micro-shiso. Each bite is built to deliver depth, comfort, and pure elegance — a
-                perfect opening act for the evening.
-              </p>
-              <Magnetic>
-                <ArrowLink href="/menus">Taste the Signature</ArrowLink>
-              </Magnetic>
-            </Reveal>
-
-            <div className="order-1 md:order-2">
-              <MaskReveal>
-                <StickyImageColumn image={IMG.stickyA} side="right" />
-              </MaskReveal>
-            </div>
-          </div>
-        </section>
+        {/* ---------- Upcoming events — wipe carousel (replaces signature dish) ---------- */}
+        {homeEvents.length > 0 && <HomeEventsSwap events={homeEvents} />}
 
         <div className="relative z-10 border-y border-outline-variant/20 py-5 overflow-hidden bg-surface-container-lowest">
           <ScrollMarquee
-            text="FINE DINING · LIVE MUSIC · LATE NIGHT · SIGNATURE POUR ·"
+            text="LIVE JAZZ · LATE SETS · BRASS · SOUL · TICKETS · THE ROOM FILLS FAST ·"
             className="font-headline-lg text-[20px] md:text-[34px] uppercase tracking-[0.12em] text-on-surface-variant/20 whitespace-nowrap"
           />
         </div>
 
-        {/* ---------- Signature cocktail — sticky photo, copy scrolls past ---------- */}
-        <section className="relative z-10 bg-surface-container-lowest py-section-gap-mobile md:py-section-gap-desktop">
-          <DrawLine
-            className="absolute right-[12%] top-0 hidden h-full w-px text-primary/35 md:block"
-            orientation="vertical"
-          />
-          <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 md:items-start">
-            <div>
-              <MaskReveal>
-                <StickyImageColumn image={IMG.stickyB} side="left" />
-              </MaskReveal>
-            </div>
-
-            <Reveal variant="right" className="md:pt-8 md:pb-[28vh]">
-              <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest block mb-5">
-                Signature Cocktail
-              </span>
-              <SplitReveal
-                as="h3"
-                text="Midnight Velvet"
-                accentWord="Velvet"
-                className="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase tracking-[0.03em] mb-6"
-              />
-              <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md mb-9">
-                Crafted for those who enjoy bold yet smooth flavours. Premium vodka blended with
-                fresh espresso and a touch of dark chocolate, finished with a silky foam top — the
-                perfect companion for an evening of luxury.
-              </p>
-              <Magnetic>
-                <ArrowLink href="/menus">Sip the Elegance</ArrowLink>
-              </Magnetic>
-            </Reveal>
-          </div>
-        </section>
+        <HomeLiveNights />
 
         {/* ---------- Best sellers ---------- */}
         <section className="relative z-10 py-section-gap-mobile md:py-section-gap-desktop bg-background">
           <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-gutter items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-gutter items-stretch">
               <Reveal variant="up" className="flex flex-col justify-center">
                 <h2 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase tracking-[0.04em] leading-tight mb-5">
-                  Best
+                  Before
                   <br />
-                  Sellers
+                  the set
                 </h2>
                 <p className="font-body-md text-body-md text-on-surface-variant mb-8">
-                  Our most loved dishes and drinks, crafted for every luxurious moment.
+                  Dishes and pours guests order while the room warms up — then the lights drop and
+                  the night begins.
                 </p>
                 <ArrowLink href="/menus">View Full Menu</ArrowLink>
               </Reveal>
@@ -188,23 +137,23 @@ export default function HomePage() {
           <Reveal variant="blur">
             <div className="max-w-xl bg-background p-8 md:p-12 hairline-gold">
               <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest block mb-4">
-                The room, the rhythm, the toast
+                The stage, the set, the night
               </span>
               <h2 className="font-headline-lg text-[28px] md:text-[44px] leading-tight uppercase tracking-[0.03em] mb-5">
-                Nights worth raising a glass to
+                Nights worth dressing up for
               </h2>
               <p className="font-body-lg text-body-lg text-on-surface-variant mb-8">
-                Bring your people. We&apos;ll set the stage — live music, handcrafted pours, and a
-                table that makes ordinary evenings feel cinematic.
+                Live acts, candlelit tables, and a room that knows how to hold a crowd. Come for the
+                music — stay because the evening still has somewhere to go.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Magnetic>
-                  <Link href="/reservations" className="btn-ink font-label-caps text-label-caps px-7 py-4 inline-block text-center">
-                    Reserve your evening
+                  <Link href="/live-events" className="btn-ink font-label-caps text-label-caps px-7 py-4 inline-block text-center">
+                    See what&apos;s on
                   </Link>
                 </Magnetic>
-                <Link href="/contact" className="btn-primary font-label-caps text-label-caps px-7 py-4 inline-block text-center">
-                  Plan a private toast
+                <Link href="/reservations" className="btn-primary font-label-caps text-label-caps px-7 py-4 inline-block text-center">
+                  Reserve a table
                 </Link>
               </div>
             </div>
@@ -223,8 +172,8 @@ export default function HomePage() {
                     A night in frames
                   </h2>
                   <p className="font-body-md text-body-md text-on-surface-variant mt-3">
-                    Keep scrolling — the night drifts past: cocktails, jazz, candlelight, and the
-                    table waiting for you.
+                    Keep scrolling — the band, the booths, the hush before the first note, and the
+                    glow after the last.
                   </p>
                 </div>
               </div>
@@ -237,8 +186,8 @@ export default function HomePage() {
                 >
                   See what&apos;s on
                 </Link>
-                <Link href="/menus" className="btn-primary font-label-caps text-label-caps px-6 py-3">
-                  Explore the menu
+                <Link href="/reservations" className="btn-primary font-label-caps text-label-caps px-6 py-3">
+                  Book a table
                 </Link>
               </div>
             }
@@ -262,8 +211,8 @@ export default function HomePage() {
             <Reveal className="text-center mb-12 md:mb-16">
               <SplitReveal
                 as="h2"
-                text="Where every flavour elevated by elegance"
-                accentWord="elegance"
+                text="Where the night turns live"
+                accentWord="live"
                 className="font-headline-lg text-[28px] leading-[1.15] sm:text-[40px] md:text-[52px] md:leading-[1.12] uppercase tracking-[0.04em] max-w-4xl mx-auto text-on-background"
               />
             </Reveal>
@@ -289,7 +238,7 @@ export default function HomePage() {
                     key={item.label}
                     delay={i * 100}
                     variant="up"
-                    className="w-full sm:w-[calc(50%-12px)] md:w-[18.5%] md:shrink-0"
+                    className="w-full sm:w-[calc(50%-12px)] md:w-[calc((100%-6*1rem)/7)] lg:w-[calc((100%-6*1.25rem)/7)] md:shrink-0"
                   >
                     {/* Inner wrapper holds tilt/stagger so Reveal's transform doesn't wipe them */}
                     <div className={motion}>
@@ -337,37 +286,16 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ---------- Booking banner — sticky photo only; copy scrolls over then off ---------- */}
-        <StickyMediaBg image={IMG.bandB} align="center">
-          <Reveal
-            variant="blur"
-            className="on-media max-w-3xl mx-auto text-center drop-shadow-[0_2px_24px_rgba(0,0,0,0.85)]"
-          >
-            <h2 className="font-headline-lg text-[26px] leading-snug md:text-[46px] md:leading-[1.2] uppercase tracking-[0.04em] mb-8 text-white">
-              Book your table for a memorable
-              <br className="hidden md:block" /> night of fine dining
-            </h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Magnetic>
-                <Link
-                  href="/reservations"
-                  className="btn-ink font-label-caps text-label-caps px-8 py-4 !bg-[#f5efe8] !text-[#3a1f22]"
-                >
-                  Book your experience
-                </Link>
-              </Magnetic>
-              <Link
-                href="/contact"
-                className="link-underline group inline-flex items-center gap-2 font-label-caps text-label-caps uppercase tracking-widest text-white"
-              >
-                Or start a conversation
-                <span className="material-symbols-outlined text-[18px] transition-transform duration-400 group-hover:translate-x-1 group-hover:-translate-y-1">
-                  arrow_outward
-                </span>
-              </Link>
-            </div>
-          </Reveal>
-        </StickyMediaBg>
+        <MustardCtaBand
+          eyebrow="Book the night"
+          title="Table, tickets, or both"
+          accentWord="tickets"
+          body="Lock in your evening — dining, live sets, or a celebration built around the room."
+          primaryHref="/reservations"
+          primaryLabel="Book your experience"
+          secondaryHref="/contact"
+          secondaryLabel="Start a conversation"
+        />
         </div>
 
         <BrandCloser />

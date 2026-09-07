@@ -5,7 +5,7 @@
  * Types mirror `backend/app/routers/admin.py`.
  */
 
-import { staffAuthHeaders } from "@/lib/staffAuth";
+import { invalidateStaffSession, staffAuthHeaders } from "@/lib/staffAuth";
 
 export type ActivityItem = {
   id: string;
@@ -159,6 +159,13 @@ export type AdminEnquiry = {
   event_type: string | null;
   guests: number | null;
   date: string | null;
+  created_at: string;
+};
+
+export type AdminMailingListSubscriber = {
+  id: string;
+  email: string;
+  name: string;
   created_at: string;
 };
 
@@ -336,6 +343,14 @@ async function request<T>(path: string, init?: RequestInit & { query?: Query }):
   }
 
   if (!response.ok) {
+    // A 401 means the staff session is absent, expired, or no longer valid.
+    // Do not leave the user inside an authenticated-looking shell with a
+    // retry modal: clear the stale identity and let AdminShell return them to
+    // sign-in. A 403 is deliberately left alone because it represents a
+    // valid account without permission for one particular action.
+    if (response.status === 401) {
+      invalidateStaffSession();
+    }
     const detail =
       (data as { error?: string; detail?: string | { msg?: string }[] } | null) ?? null;
     let message = `Request failed (${response.status}).`;
@@ -431,6 +446,9 @@ export const adminApi = {
   guests: (query?: { q?: string; accounts_only?: boolean }) =>
     request<AdminGuest[]>("guests", { query }),
 
+  mailingList: (query?: { q?: string }) =>
+    request<AdminMailingListSubscriber[]>("mailing-list", { query }),
+
   finance: (query?: { days?: number; status?: string; kind?: string; q?: string }) =>
     request<AdminFinance>("finance", { query }),
 
@@ -518,16 +536,24 @@ export function formatMoney(pence: number, currency = "gbp"): string {
   }).format(pence / 100);
 }
 
+/**
+ * API datetimes are naive UTC (no offset). Append Z so the browser does not
+ * treat them as local wall time — which skews "X ago" by your timezone offset.
+ */
+function parseApiDate(value: string): Date {
+  return new Date(/[Z+]|-\d{2}:\d{2}$/.test(value) ? value : `${value}Z`);
+}
+
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
-  const date = new Date(value);
+  const date = parseApiDate(value);
   if (Number.isNaN(date.getTime())) return "—";
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return "—";
-  const date = new Date(value);
+  const date = parseApiDate(value);
   if (Number.isNaN(date.getTime())) return "—";
   return date.toLocaleString("en-GB", {
     day: "numeric",
@@ -539,7 +565,7 @@ export function formatDateTime(value: string | null | undefined): string {
 
 export function formatRelative(value: string | null | undefined): string {
   if (!value) return "—";
-  const date = new Date(value);
+  const date = parseApiDate(value);
   if (Number.isNaN(date.getTime())) return "—";
   const seconds = Math.round((Date.now() - date.getTime()) / 1000);
   const future = seconds < 0;

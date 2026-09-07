@@ -242,7 +242,7 @@ export default function AdminReservationsPage() {
               message={
                 query || status
                   ? "No reservations match that filter."
-                  : "No reservations yet. Bookings taken on the site land here."
+                  : "No in-app requests yet. Live table bookings go through SevenRooms."
               }
             />
           )}

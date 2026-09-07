@@ -245,7 +245,7 @@ function EventCard({
           )}
         </div>
 
-        <div className="lg:w-52 shrink-0 flex flex-row lg:flex-col gap-3 lg:border-l lg:border-[var(--admin-border)] lg:pl-5">
+        <div className="lg:w-52 shrink-0 flex flex-col gap-3 lg:border-l lg:border-[var(--admin-border)] lg:pl-5">
           <div className="flex-1">
             <p className="font-label-caps text-[10px] tracking-[0.2em] uppercase text-[var(--admin-muted)]">
               Face value

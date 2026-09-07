@@ -4,10 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import BrandTagline from "@/components/BrandTagline";
+import { PUBLIC_ACCOUNTS_ENABLED } from "@/lib/features";
 import { useAuthModal } from "@/components/AuthModalProvider";
 import { subscribeMailingList } from "@/lib/api";
-import { SITE_ADDRESS_LINES, SITE_CONTACT, SITE_MAPS_URL } from "@/lib/brand";
+import { SITE_ADDRESS_LINES, SITE_CONTACT, SITE_SOCIAL } from "@/lib/brand";
 import { FORM_SECURITY_FIELD, formSecurityTimestamp } from "@/lib/formSecurity";
+import { openCookieSettings } from "@/components/Analytics";
 
 export default function Footer() {
   const { open } = useAuthModal();
@@ -33,8 +35,8 @@ export default function Footer() {
     <footer className="site-footer mt-0">
       <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter pt-16 md:pt-24 pb-0">
         {/* Top tier */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 pb-14 border-b border-white/15">
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16 pb-14 border-b border-white/15">
+          <div id="event-updates" className="scroll-mt-28">
             <h3 className="font-headline-md text-[26px] md:text-[30px] leading-snug mb-4 text-[#f5efe8]">
               Join our community and get updates on live nights and what&apos;s next.
             </h3>
@@ -97,37 +99,26 @@ export default function Footer() {
               Visit us
             </h3>
             <Image
-              src="/images/logo.png"
-              alt="Sweet1ne"
-              width={1536}
-              height={1024}
+              src="/images/sweet1nelive_logo-transparent.png"
+              alt="Sweet1ne Live"
+              width={1774}
+              height={887}
               sizes="180px"
-              className="logo-neon logo-neon-dark h-12 w-auto object-contain -ml-1"
+              className="h-12 w-auto object-contain -ml-1 mb-3"
             />
-            <p className="font-label-caps text-[11px] tracking-[0.4em] uppercase text-[#d4a574] -mt-1 mb-3">
-              Live
-            </p>
             <p className="font-body-md text-body-md text-white/70 mb-1">{SITE_CONTACT.phone}</p>
             <p className="font-body-md text-body-md text-white/70 mb-1">
               <a href={`mailto:${SITE_CONTACT.email}`} className="hover:text-[#d4a574] transition-colors">
                 {SITE_CONTACT.email}
               </a>
             </p>
-            <p className="font-body-md text-body-md text-white/70 mb-6">
+            <p className="font-body-md text-body-md text-white/70">
               {SITE_ADDRESS_LINES.map((line) => (
                 <span key={line} className="block">
                   {line}
                 </span>
               ))}
             </p>
-            <a
-              href={SITE_MAPS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-label-caps text-label-caps tracking-widest uppercase text-[#d4a574] hover:text-[#f5efe8]"
-            >
-              Get directions →
-            </a>
           </div>
         </div>
 
@@ -153,9 +144,10 @@ export default function Footer() {
           />
           <div>
             <h4 className="font-label-caps text-label-caps tracking-[0.18em] uppercase text-white/45 mb-5">
-              Account
+              {PUBLIC_ACCOUNTS_ENABLED ? "Account" : "Help"}
             </h4>
             <ul className="space-y-3">
+              {PUBLIC_ACCOUNTS_ENABLED && (<>
               <li>
                 <button type="button" onClick={() => open("signin")} className="font-body-md text-body-md text-left">
                   Sign in
@@ -166,9 +158,10 @@ export default function Footer() {
                   Create account
                 </button>
               </li>
+              </>)}
               <li>
                 <Link href="/contact" className="font-body-md text-body-md">
-                  Concierge
+                  Talk to us
                 </Link>
               </li>
             </ul>
@@ -178,10 +171,15 @@ export default function Footer() {
               Social
             </h4>
             <ul className="space-y-3">
-              {["Instagram", "TikTok", "YouTube", "X"].map((s) => (
-                <li key={s}>
-                  <a href="#" className="font-body-md text-body-md">
-                    {s}
+              {SITE_SOCIAL.map((s) => (
+                <li key={s.label}>
+                  <a
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-body-md text-body-md"
+                  >
+                    {s.label}
                   </a>
                 </li>
               ))}
@@ -196,22 +194,12 @@ export default function Footer() {
             <span>Sweet1ne Live © {new Date().getFullYear()}</span>
           </div>
           <div className="flex flex-wrap gap-5">
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
-            <a href="#">Alcohol policy</a>
-            <Link href="/admin">Staff</Link>
+            <Link href="/cookie-policy">Cookie policy</Link>
+            <button type="button" onClick={openCookieSettings}>Cookie settings</button>
+            <Link href="/terms">Terms</Link>
+            <Link href="/privacy-policy">Privacy policy</Link>
           </div>
         </div>
-      </div>
-
-      {/* Full-bleed floor wordmark — pairs with Sweet1ne above → Sweet1ne Live */}
-      <div className="footer-live-mark" aria-hidden="true">
-        <p className="footer-live-mark__text">
-          <span>L</span>
-          <span>I</span>
-          <span>V</span>
-          <span>E</span>
-        </p>
       </div>
     </footer>
   );

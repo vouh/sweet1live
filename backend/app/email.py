@@ -13,7 +13,7 @@ from app.config import settings
 from app.email_templates import EMAIL_LOGO_CONTENT_ID, branded_email, code_block
 
 logger = logging.getLogger(__name__)
-_LOGO_PATH = Path(__file__).resolve().parents[2] / "public" / "images" / "logo.png"
+_LOGO_PATH = Path(__file__).resolve().parents[2] / "public" / "images" / "sweet1nelive_logo.png"
 
 
 def send_staff_invite_email(*, to: str, name: str, invite_url: str, temp_password: str) -> bool:

@@ -1,5 +1,58 @@
 @import "tailwindcss";
 
+/* After-dark editorial: solid colour, oversized type, real venue photography. */
+.night-poster {
+  --color-primary: #f6d24c;
+  --color-on-primary: #231b00;
+  --color-primary-container: #d8b632;
+  --color-on-primary-container: #231b00;
+  --color-outline-variant: rgba(212, 165, 116, 0.3);
+  position: relative;
+  background: #2c1810;
+  color: #f7f3ea;
+  padding: clamp(24px, 5vw, 80px);
+  overflow: hidden;
+}
+.night-poster__top { display: flex; justify-content: space-between; gap: 20px; padding-bottom: 24px; border-bottom: 1px solid var(--color-outline-variant); font-size: 10px; font-weight: 700; letter-spacing: .17em; text-transform: uppercase; }
+.night-poster__grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 5%; align-items: center; padding: 48px 0; }
+.night-poster__label { font-size: 10px; text-transform: uppercase; letter-spacing: .15em; margin-bottom: 24px; }
+.night-poster h2 { font-family: var(--font-hanken-grotesk), sans-serif; font-weight: 900; font-size: clamp(48px, 6.4vw, 112px); line-height: .91; letter-spacing: -.065em; margin: 0; }
+.night-poster h2 span { color: var(--color-primary); }
+.night-poster__intro { font-size: 16px; line-height: 1.65; max-width: 340px; margin: 28px 0; }
+.night-poster__cta { display: inline-flex; align-items: center; justify-content: space-between; gap: 28px; padding: 18px 22px; background: var(--color-primary-container); color: var(--color-on-primary-container); font-size: 12px; font-weight: 700; transition: background .25s, transform .25s; }
+.night-poster__cta span { font-size: 25px; line-height: 1; }
+.night-poster__cta:hover { background: var(--color-primary); color: var(--color-on-primary); transform: translateY(-3px); }
+.night-poster__updates { display: block; width: fit-content; font-size: 12px; margin-top: 20px; text-decoration: underline; text-underline-offset: 5px; }
+.night-poster__visual { position: relative; min-height: 480px; aspect-ratio: 1 / 1.08; overflow: hidden; border-radius: 2px 80px 2px 2px; }
+.night-poster__photo { object-fit: cover; transition: transform 1s cubic-bezier(.2,.7,.2,1); }
+.night-poster__visual:hover .night-poster__photo { transform: scale(1.045); }
+.night-poster__stamp { position: absolute; top: 28px; left: 24px; width: 122px; height: 122px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff8e9; color: #211811; font-size: 12px; font-weight: 800; text-align: center; line-height: 1.15; transform: rotate(-12deg); }
+.night-poster__stamp span { font-size: 35px; margin-top: 7px; }
+.night-poster__caption { position: absolute; bottom: 20px; left: 20px; right: 20px; width: fit-content; background: #211811; color: #fff8e9; padding: 12px 15px; font-size: 9px; letter-spacing: .13em; }
+.night-poster__bottom { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--color-outline-variant); }
+.night-poster__bottom > :first-child { border-right: 1px solid var(--color-outline-variant); }
+.night-poster__route { display: flex; gap: 20px; align-items: flex-start; padding: 30px 20px 0 0; }
+.night-poster__bottom > :last-child .night-poster__route { padding-left: 30px; }
+.night-poster__number { font-size: 12px; opacity: .6; }
+.night-poster__route small { display: block; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 9px; }
+.night-poster__route h3 { font-size: clamp(20px, 2vw, 30px); font-weight: 700; line-height: 1.15; letter-spacing: -.035em; }
+.night-poster__route p { font-size: 12px; margin-top: 9px; line-height: 1.5; }
+.night-poster__route-arrow { margin-left: auto; font-size: 28px; transition: transform .25s; }
+.night-poster__route:hover .night-poster__route-arrow { transform: translate(4px,-4px); }
+.night-poster a:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 5px; }
+@media (max-width: 800px) {
+  .night-poster__grid { grid-template-columns: 1fr; gap: 32px; padding: 32px 0; }
+  .night-poster h2 { font-size: clamp(55px, 12vw, 90px); }
+  .night-poster__top { font-size: 8px; letter-spacing: .1em; }
+  .night-poster__visual { min-height: 320px; max-height: 480px; aspect-ratio: 1.15; border-top-right-radius: 60px; }
+  .night-poster__bottom { grid-template-columns: 1fr; }
+  .night-poster__bottom > :first-child { border-right: 0; border-bottom: 1px solid var(--color-outline-variant); }
+  .night-poster__route, .night-poster__bottom > :last-child .night-poster__route { padding: 24px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .night-poster *, .night-poster *::before { transition: none !important; animation: none !important; }
+}
+
 @theme {
   /* Default = dark "Nocturne & Gold" (docs/DESIGN.md).
      Light scheme overrides live on html.light below. */
@@ -139,6 +192,58 @@ html.light {
   --color-on-error-container: #410002;
 }
 
+/* Mustard gold section band — selective mid-page accent field.
+   Keep cream (#f5efe8) and chocolate (#2c1810) as the page chrome;
+   use .band-mustard for at most one feature band per route. */
+:root {
+  --band-mustard: #c4a12e;
+  --band-mustard-deep: #a88620;
+  --band-mustard-ink: #1a100c;
+  --band-mustard-soft: #f5efe8;
+  --band-mustard-muted: rgba(245, 239, 232, 0.72);
+  --band-mustard-accent: #2c1810;
+}
+.band-mustard {
+  background:
+    radial-gradient(ellipse 90% 70% at 12% 18%, rgba(245, 239, 232, 0.14), transparent 55%),
+    radial-gradient(ellipse 70% 55% at 88% 82%, rgba(26, 16, 12, 0.12), transparent 50%),
+    var(--band-mustard);
+  color: var(--band-mustard-soft);
+}
+.band-mustard .band-mustard__muted {
+  color: var(--band-mustard-muted);
+}
+.band-mustard .band-mustard__accent,
+.band-mustard .band-mustard__icon {
+  color: var(--band-mustard-accent);
+}
+.band-mustard .band-mustard__title {
+  color: var(--band-mustard-soft);
+}
+.band-mustard .band-mustard__title .text-primary {
+  color: var(--band-mustard-accent);
+}
+.band-mustard .btn-ink {
+  background: var(--band-mustard-ink);
+  color: var(--band-mustard-soft);
+}
+.band-mustard .btn-primary {
+  background: transparent;
+  color: var(--band-mustard-ink);
+  border: 1px solid rgba(26, 16, 12, 0.45);
+}
+.band-mustard .btn-primary:hover {
+  background: rgba(26, 16, 12, 0.08);
+  border-color: var(--band-mustard-ink);
+}
+.band-mustard a.link-underline {
+  color: var(--band-mustard-ink);
+}
+.band-mustard .contact-detail-row__icon {
+  border-color: rgba(26, 16, 12, 0.35);
+  color: var(--band-mustard-accent);
+}
+
 /* Site footer — deep chocolate (light) / near-black (dark) */
 .site-footer {
   background: #1a100c;
@@ -153,65 +258,6 @@ html.light .site-footer {
 }
 .site-footer a:hover {
   color: #f5efe8;
-}
-
-/* Full-bleed footer "Live" — same display serif, edge-to-edge, soft baseline kiss */
-.footer-live-mark {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  margin-top: -0.35rem;
-  line-height: 0;
-  user-select: none;
-  pointer-events: none;
-}
-.footer-live-mark__text {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin: 0;
-  padding: 0 clamp(0.25rem, 1.2vw, 1rem);
-  font-family: var(--font-display-lg);
-  font-weight: 700;
-  font-style: italic;
-  text-transform: uppercase;
-  font-size: clamp(6.5rem, 28vw, 22rem);
-  line-height: 0.78;
-  transform: translateY(0.06em);
-  padding-bottom: 0.02em;
-  color: color-mix(in srgb, #f5efe8 18%, transparent);
-  -webkit-text-stroke: 1.25px color-mix(in srgb, #f5efe8 32%, transparent);
-  paint-order: stroke fill;
-}
-.footer-live-mark__text span {
-  display: block;
-  flex: 1 1 0;
-  text-align: center;
-}
-.footer-live-mark::after {
-  content: "";
-  position: absolute;
-  left: 4%;
-  right: 4%;
-  top: 46%;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in srgb, #d4a574 50%, transparent) 12%,
-    color-mix(in srgb, #d4a574 50%, transparent) 88%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-@media (min-width: 768px) {
-  .footer-live-mark__text {
-    font-size: clamp(10rem, 26vw, 24rem);
-    -webkit-text-stroke-width: 2px;
-    padding: 0 clamp(0.5rem, 1.5vw, 1.5rem);
-    transform: translateY(0.05em);
-  }
 }
 
 /* Contact page — arched hero + floating card */
@@ -327,9 +373,15 @@ html.light .site-footer {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 1.25rem 1rem;
+  padding: 0.85rem 0.5rem;
   border: 1px solid color-mix(in srgb, var(--color-outline-variant) 50%, transparent);
   background: var(--color-background);
+}
+
+@media (min-width: 768px) {
+  .venue-stat-pill {
+    padding: 1.25rem 1rem;
+  }
 }
 
 /* Photo text stays readable via solid panels or drop-shadow — never foggy washes. */
@@ -915,6 +967,19 @@ html.dark .site-nav-wordmark:hover span:first-child {
 .site-nav-cta {
   border-radius: 0;
   letter-spacing: 0.22em;
+}
+.site-nav-mobile-link {
+  color: var(--color-on-background);
+  border-left: 2px solid transparent;
+}
+.site-nav-mobile-link:hover {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+}
+.site-nav-mobile-link--active {
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
 /* Legacy nav swap — kept for any remaining references */
@@ -1696,6 +1761,343 @@ html.dark .venue-room-card__body {
   pointer-events: none;
 }
 
+/* Homepage — upcoming events wipe carousel */
+.home-events-swap {
+  background: #131313;
+  color: #f5efe8;
+  padding-bottom: 2.5rem;
+}
+.home-events-swap__frame {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: min(78svh, 720px);
+}
+@media (min-width: 900px) {
+  .home-events-swap__frame {
+    grid-template-columns: 1fr 1fr;
+    min-height: min(82svh, 780px);
+  }
+}
+.home-events-swap__panel {
+  display: flex;
+  align-items: center;
+  order: 2;
+  padding: clamp(2rem, 5vw, 4.5rem);
+  background: #2c1810;
+}
+@media (min-width: 900px) {
+  .home-events-swap__panel {
+    order: 1;
+  }
+  .home-events-swap__panel--right {
+    order: 2;
+  }
+  .home-events-swap__media--left {
+    order: 1;
+  }
+}
+.home-events-swap__copy {
+  width: 100%;
+  max-width: 34rem;
+}
+.home-events-swap__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+.home-events-swap__eyebrow {
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #d4a574;
+}
+.home-events-swap__pager {
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: rgba(245, 239, 232, 0.45);
+}
+.home-events-swap__pager-sep {
+  margin: 0 0.35rem;
+  opacity: 0.5;
+}
+.home-events-swap__subtitle {
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245, 239, 232, 0.55);
+  margin-bottom: 0.75rem;
+}
+.home-events-swap__title {
+  font-family: var(--font-bodoni-moda), serif;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.home-events-swap__meta,
+.home-events-swap__room {
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: rgba(245, 239, 232, 0.72);
+}
+.home-events-swap__room {
+  margin-top: 0.35rem;
+  color: #d4a574;
+}
+.home-events-swap__body {
+  margin-top: 1.25rem;
+  max-width: 32rem;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(245, 239, 232, 0.7);
+}
+.home-events-swap__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(212, 165, 116, 0.28);
+}
+.home-events-swap__price {
+  font-family: var(--font-bodoni-moda), serif;
+  font-size: 1.35rem;
+  color: #d8b632;
+}
+.home-events-swap__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.85rem 1.35rem;
+  background: #d8b632;
+  color: #050505;
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: background 0.35s ease, opacity 0.35s ease;
+}
+.home-events-swap__cta:hover {
+  background: #f6d24c;
+}
+.home-events-swap__media {
+  position: relative;
+  order: 1;
+  min-height: 280px;
+  overflow: hidden;
+  background: #1a100c;
+}
+@media (min-width: 900px) {
+  .home-events-swap__media {
+    order: 2;
+    min-height: 100%;
+  }
+}
+.home-events-swap__photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  will-change: transform;
+}
+.home-events-swap__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #2c1810;
+  transform: scaleX(0);
+  will-change: transform;
+  pointer-events: none;
+}
+.home-events-swap__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: var(--spacing-container-max, 1280px);
+  margin: 0 auto;
+  padding: 1.5rem var(--spacing-margin-mobile, 20px) 0;
+}
+@media (min-width: 768px) {
+  .home-events-swap__controls {
+    padding-left: var(--spacing-gutter, 40px);
+    padding-right: var(--spacing-gutter, 40px);
+  }
+}
+.home-events-swap__dots {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.home-events-swap__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(245, 239, 232, 0.28);
+  transition: width 0.35s ease, background 0.35s ease;
+}
+.home-events-swap__dot--active {
+  width: 28px;
+  background: #d8b632;
+}
+.home-events-swap__arrows {
+  position: absolute;
+  z-index: 5;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+@media (min-width: 900px) {
+  .home-events-swap__arrows {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+  }
+}
+.home-events-swap__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  background: #1a100c;
+  border: 1px solid rgba(212, 165, 116, 0.45);
+  color: #f5efe8;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+.home-events-swap__arrow:hover:not(:disabled) {
+  background: #d8b632;
+  border-color: #d8b632;
+  color: #1a100c;
+}
+.home-events-swap__arrow:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.home-events-swap__all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(245, 239, 232, 0.7);
+  transition: color 0.3s ease;
+}
+.home-events-swap__all:hover {
+  color: #d8b632;
+}
+.home-events-swap__panel.event-split__panel--chocolate {
+  background: #2c1810;
+}
+.home-events-swap__panel.event-split__panel--chocolate-warm {
+  background: #3a2218;
+}
+.home-events-swap__panel.event-split__panel--chocolate-deep {
+  background: #24140f;
+}
+.home-events-swap__panel.event-split__panel--chocolate-gold {
+  background: #322016;
+}
+
+/* Light theme — cream panels + chocolate ink (matches site light palette) */
+html.light .home-events-swap {
+  background: var(--color-background);
+  color: var(--color-on-background);
+}
+html.light .home-events-swap__panel {
+  background: #faf6f1;
+}
+html.light .home-events-swap__panel.event-split__panel--chocolate {
+  background: #faf6f1;
+}
+html.light .home-events-swap__panel.event-split__panel--chocolate-warm {
+  background: #f0e8df;
+}
+html.light .home-events-swap__panel.event-split__panel--chocolate-deep {
+  background: #ebe3da;
+}
+html.light .home-events-swap__panel.event-split__panel--chocolate-gold {
+  background: #f5efe8;
+}
+html.light .home-events-swap__pager,
+html.light .home-events-swap__subtitle {
+  color: rgba(44, 24, 16, 0.45);
+}
+html.light .home-events-swap__meta {
+  color: rgba(44, 24, 16, 0.72);
+}
+html.light .home-events-swap__body {
+  color: rgba(44, 24, 16, 0.7);
+}
+html.light .home-events-swap__room,
+html.light .home-events-swap__eyebrow {
+  color: #8a5a32;
+}
+html.light .home-events-swap__title {
+  color: #2c1810;
+}
+html.light .home-events-swap__footer {
+  border-top-color: rgba(92, 51, 23, 0.22);
+}
+html.light .home-events-swap__price {
+  color: #5c3317;
+}
+html.light .home-events-swap__cta {
+  background: #2c1810;
+  color: #f5efe8;
+}
+html.light .home-events-swap__cta:hover {
+  background: #5c3317;
+  color: #faf6f1;
+}
+html.light .home-events-swap__media {
+  background: #e8dfd4;
+}
+html.light .home-events-swap__shade {
+  background: #f5efe8;
+}
+html.light .home-events-swap__dot {
+  background: rgba(44, 24, 16, 0.22);
+}
+html.light .home-events-swap__dot--active {
+  background: #5c3317;
+}
+html.light .home-events-swap__arrow {
+  background: #faf6f1;
+  border-color: rgba(92, 51, 23, 0.35);
+  color: #2c1810;
+  box-shadow: 0 6px 20px rgba(44, 24, 16, 0.12);
+}
+html.light .home-events-swap__arrow:hover:not(:disabled) {
+  background: #2c1810;
+  border-color: #2c1810;
+  color: #f5efe8;
+}
+html.light .home-events-swap__all {
+  color: rgba(44, 24, 16, 0.65);
+}
+html.light .home-events-swap__all:hover {
+  color: #5c3317;
+}
+
+/* Homepage — live nights: gradient wash, curved stage, diamond collage */
 /* Admin login — Doxa-style layered card (chocolate over white, different heights) */
 .admin-login__frame {
   isolation: isolate;
@@ -2343,30 +2745,6 @@ html.admin-route body {
   }
 }
 
-/* ---------------------------------------------------------------
-   Neon logo plate.
-   The supplied artwork is a glowing white wordmark on a SOLID BLACK
-   ground (no alpha), so it can't simply be dropped onto a surface.
-   `screen` discards the black and keeps the glow on dark surfaces;
-   in the light theme the artwork is inverted first so `multiply` can
-   discard the (now white) ground instead.
-   --------------------------------------------------------------- */
-.logo-neon {
-  mix-blend-mode: screen;
-}
-html.light .logo-neon {
-  filter: invert(1);
-  mix-blend-mode: multiply;
-}
-
-/* Variant for surfaces that stay dark in BOTH themes — the chocolate
-   footer and the nav when it floats over hero photography. These must
-   keep screening, so the light-theme inversion is explicitly undone. */
-.logo-neon-dark,
-html.light .logo-neon-dark {
-  filter: none;
-  mix-blend-mode: screen;
-}
 
 /* Luxury loader — wavy gold dots, no spinners */
 .luxury-loader {
@@ -2491,4 +2869,3 @@ html.light .logo-neon-dark {
     visibility: hidden;
   }
 }
-

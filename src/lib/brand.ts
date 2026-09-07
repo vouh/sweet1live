@@ -29,9 +29,15 @@ export const SITE_ADDRESS_SINGLE_LINE = SITE_ADDRESS_LINES.join(", ");
 
 export const SITE_MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(SITE_ADDRESS_SINGLE_LINE)}`;
 
+export const SITE_SOCIAL = [
+  { label: "Instagram", href: "https://www.instagram.com/ssweet1ne/" },
+  { label: "Facebook", href: "https://www.facebook.com/sweet1ne" },
+  { label: "TikTok", href: "https://www.tiktok.com/@sweet1ne" },
+] as const;
+
 export const SITE_CONTACT_DETAILS = [
   { icon: "call", label: "Telephone", value: SITE_CONTACT.phone },
   { icon: "mail", label: "Email", value: SITE_CONTACT.email, href: `mailto:${SITE_CONTACT.email}` },
   { icon: "location_on", label: "Visit", value: SITE_ADDRESS_SINGLE_LINE, href: SITE_MAPS_URL },
-  { icon: "schedule", label: "Concierge", value: "Tue – Sun, from 4pm" },
+  { icon: "schedule", label: "Hours", value: "Tue – Sun, from 4pm" },
 ] as const;

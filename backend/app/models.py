@@ -739,11 +739,6 @@ class StaffForgotPasswordResponse(SQLModel):
     message: str
 
 
-class StaffDevPrefill(SQLModel):
-    email: str
-    password: str
-
-
 # One row per "change my password while signed in" attempt. The new password
 # is hashed and stored immediately, so confirming only needs the emailed code
 # — never a second copy of the password over the wire.

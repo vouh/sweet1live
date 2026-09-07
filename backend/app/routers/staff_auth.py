@@ -23,7 +23,6 @@ from app.models import (
     StaffAuthResponse,
     StaffChangePasswordConfirm,
     StaffChangePasswordRequest,
-    StaffDevPrefill,
     StaffForgotPassword,
     StaffForgotPasswordResponse,
     StaffInvite,
@@ -76,28 +75,6 @@ def _token_hash(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-def _dev_prefill_enabled() -> bool:
-    return settings.dev_login_prefill_enabled
-
-
-@router.get("/dev-prefill", response_model=StaffDevPrefill)
-def staff_dev_prefill(db: Session = Depends(get_db)):
-    """Local testing only — prefill login when bootstrap super admin exists in DB."""
-    if not _dev_prefill_enabled():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not available.")
-
-    email = (settings.super_admin_email or "").strip().lower()
-    password = settings.super_admin_password or ""
-    if not email or not password:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not configured.")
-
-    staff = db.exec(select(StaffMember).where(StaffMember.email == email)).first()
-    if staff is None or staff.status != "active":
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found.")
-
-    return StaffDevPrefill(email=email, password=password)
-
-
 def _serialize_staff(db: Session, staff: StaffMember) -> StaffPublic:
     roles = staff_roles(db, staff.id)
     perms = sorted(staff_permissions(db, staff.id))
@@ -144,7 +121,9 @@ def staff_login(payload: StaffLogin, request: Request, db: Session = Depends(get
     # Credential check itself happens with the auth provider — it raises 401
     # on a bad password without telling us anything more specific than that.
     try:
-        access_token, _identity_id = sign_in_with_password(email, password)
+        access_token, identity_id = sign_in_with_password(email, password)
+        if identity_id != staff.identity_id:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
     except HTTPException:
         auth_failure(ip=client_ip(request), endpoint="/auth/staff/login", reason="invalid_credentials")
         raise

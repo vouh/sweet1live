@@ -3,7 +3,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import Parallax from "@/components/Parallax";
-import ConversionBand from "@/components/ConversionBand";
+import MustardCtaBand from "@/components/MustardCtaBand";
 import BrandCloser, { FooterFlyover } from "@/components/BrandCloser";
 import SplitReveal from "@/components/motion/SplitReveal";
 import MaskReveal from "@/components/motion/MaskReveal";
@@ -167,10 +167,15 @@ export default async function MenusPage() {
 
           <FoodCollectionCart items={items} />
 
-          <ConversionBand
+          <MustardCtaBand
             eyebrow="The kitchen is ready"
             title="Book the table, we'll handle the rest"
+            accentWord="table"
             body="Tell us the occasion and our team will shape the evening around it — from the first pour to the last course."
+            primaryHref="/reservations"
+            primaryLabel="Reserve a table"
+            secondaryHref="/contact"
+            secondaryLabel="Start a conversation"
           />
         </div>
         <BrandCloser />

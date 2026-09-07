@@ -1,6 +1,6 @@
 /**
  * Sweet1ne LIVE venue photography — flat /public/images/s1.webp … s41.webp
- * Logo stays /images/logo.png
+ * Logo stays /images/sweet1nelive_logo.png
  *
  * WebP (not AVIF): best fit for CSS background-image — fast decode, one file per
  * shot, excellent browser support. Run `npm run images:webp` to regenerate.
@@ -8,7 +8,7 @@
 
 export const s = (n: number) => `/images/s${n}.webp`;
 
-export const LOGO = "/images/logo.png";
+export const LOGO = "/images/sweet1nelive_logo.png";
 
 /** Home hero background loop (landscape 16:9, from SWEET1NE FINAL) */
 export const HERO_VIDEO = "/videos/brunch-vibes.mp4?v=3";
@@ -16,7 +16,7 @@ export const HERO_VIDEO = "/videos/brunch-vibes.mp4?v=3";
 /** Full catalogue — for assigning across pages, not sliders */
 export const ALL_PHOTOS = Array.from({ length: 41 }, (_, i) => s(i + 1));
 
-/** Horizontal slider strips — 12 picks only */
+/** Horizontal slider strips — 10 picks only */
 export const GALLERY_STRIP = [
   s(7),
   s(10),
@@ -28,8 +28,6 @@ export const GALLERY_STRIP = [
   s(9),
   s(16),
   s(11),
-  s(14),
-  s(18),
 ];
 
 /** Editorial picks for heroes, cards, and panels */

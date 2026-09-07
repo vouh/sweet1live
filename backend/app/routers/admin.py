@@ -7,6 +7,7 @@ rather than a guest JWT: the back office is not a guest account.
 Money is integer pence throughout, matching the rest of the codebase.
 """
 
+from collections import defaultdict
 from datetime import date as date_type, datetime, timedelta
 import json
 from typing import Literal
@@ -26,6 +27,7 @@ from app.models import (
     ContactMessage,
     Event,
     MailingListSubscriber,
+    MailingListSubscriberPublic,
     MenuCategory,
     MenuCategoryCreate,
     MenuCategoryPublic,
@@ -1040,6 +1042,23 @@ def list_guests(
     return rows
 
 
+@router.get(
+    "/mailing-list",
+    response_model=list[MailingListSubscriberPublic],
+    dependencies=[require_permission("guests.view")],
+)
+def list_mailing_list(db: Session = Depends(get_db), q: str | None = None):
+    """Raw footer newsletter signups — the same rows feed the `mailing_list`
+    flag on /guests, but this returns just the subscriber list for export."""
+    rows = db.exec(
+        select(MailingListSubscriber).order_by(MailingListSubscriber.created_at.desc())
+    ).all()
+    if q:
+        needle = q.strip().lower()
+        rows = [row for row in rows if needle in row.email.lower() or needle in row.name.lower()]
+    return rows
+
+
 # =====================================================================
 # Finance
 # =====================================================================
@@ -1425,7 +1444,7 @@ def notifications(db: Session = Depends(get_db), limit: int = Query(default=40, 
             AdminNotification(
                 id=f"contact:{row.id}",
                 kind="enquiry",
-                severity="info",
+                severity="action",
                 title=f"New message — {row.subject}",
                 detail=f"{row.name} · {row.email}",
                 at=row.created_at,
@@ -1440,7 +1459,7 @@ def notifications(db: Session = Depends(get_db), limit: int = Query(default=40, 
             AdminNotification(
                 id=f"venue-enquiry:{row.id}",
                 kind="enquiry",
-                severity="info",
+                severity="action",
                 title=f"Hire enquiry — {row.name}",
                 detail=f"{row.event_type.replace('-', ' ')} · {row.guests} guests · {row.date:%a %d %b}",
                 at=row.created_at,
@@ -1448,11 +1467,38 @@ def notifications(db: Session = Depends(get_db), limit: int = Query(default=40, 
             )
         )
 
-    rooms = {room.id: room for room in db.exec(select(Room)).all()}
-    for event in db.exec(
-        select(Event).where(Event.starts_at >= now, Event.status == "published")
+    for row in db.exec(
+        select(MailingListSubscriber).order_by(MailingListSubscriber.created_at.desc()).limit(limit)
     ).all():
-        types = db.exec(select(TicketType).where(TicketType.event_id == event.id)).all()
+        out.append(
+            AdminNotification(
+                id=f"mailing-list:{row.id}",
+                kind="guest",
+                severity="info",
+                title=f"Mailing list signup — {row.email}",
+                detail="Footer newsletter",
+                at=row.created_at,
+                href="/staff-dashboard/guests",
+            )
+        )
+
+    rooms = {room.id: room for room in db.exec(select(Room)).all()}
+    upcoming_events = db.exec(
+        select(Event).where(Event.starts_at >= now, Event.status == "published")
+    ).all()
+    # One query for every event's ticket types instead of one query per event —
+    # this loop used to be the single biggest cost on this endpoint, and this
+    # endpoint gets polled every 30s from every admin page, not just this one.
+    types_by_event: dict[str, list[TicketType]] = defaultdict(list)
+    if upcoming_events:
+        event_ids = [event.id for event in upcoming_events]
+        for ticket_type in db.exec(
+            select(TicketType).where(TicketType.event_id.in_(event_ids))
+        ).all():
+            types_by_event[ticket_type.event_id].append(ticket_type)
+
+    for event in upcoming_events:
+        types = types_by_event.get(event.id, [])
         if not types:
             continue
         available = sum(t.quantity_available for t in types)
@@ -1501,6 +1547,25 @@ def notifications(db: Session = Depends(get_db), limit: int = Query(default=40, 
                     href="/staff-dashboard/finance",
                 )
             )
+
+    for row in db.exec(
+        select(Order)
+        .where(Order.status == "paid")
+        .order_by(Order.paid_at.desc(), Order.created_at.desc())
+        .limit(limit)
+    ).all():
+        paid_at = row.paid_at or row.created_at
+        out.append(
+            AdminNotification(
+                id=f"order-paid:{row.id}",
+                kind="order",
+                severity="success",
+                title=f"Payment received — {row.reference}",
+                detail=f"{row.customer_name} · {row.subtotal_pence / 100:.2f} {row.currency.upper()}",
+                at=paid_at,
+                href="/staff-dashboard/finance",
+            )
+        )
 
     out.sort(key=lambda item: item.at, reverse=True)
     return out[:limit]

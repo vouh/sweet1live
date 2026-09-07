@@ -11,7 +11,7 @@ const DEFAULT_IMAGE = DEFAULT_LIFESTYLE;
 export default function ConversionBand({
   eyebrow = "Tonight is reserved for the decisive",
   title = "Tables fill before the first set",
-  body = "Secure your evening now — or start a conversation with our concierge for private dining and celebrations.",
+  body = "Secure your evening now — or talk to our team about private dining and celebrations.",
   image = DEFAULT_IMAGE,
   primaryHref = "/reservations",
   primaryLabel = "Reserve a table",

@@ -15,7 +15,7 @@ export default function BrandCloser() {
       id="brand-closer"
       className="sticky top-0 z-0 min-h-[58svh] flex flex-col items-center justify-center bg-surface-container-lowest pt-12 md:pt-16 pb-8 md:pb-10 overflow-hidden"
     >
-      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 opacity-[0.06] overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 flex items-center opacity-[0.06] overflow-hidden pointer-events-none">
         <ScrollMarquee
           text="SWEET1NE · LATE NIGHT ·"
           className="font-display-lg text-[18vw] leading-none uppercase tracking-[0.06em]"
@@ -23,16 +23,13 @@ export default function BrandCloser() {
       </div>
       <Reveal variant="scale" className="relative z-10 text-center px-margin-mobile">
         <Image
-          src="/images/logo.png"
-          alt="Sweet1ne"
-          width={1536}
-          height={1024}
+          src="/images/sweet1nelive_logo-transparent.png"
+          alt="Sweet1ne Live"
+          width={1774}
+          height={887}
           sizes="(max-width: 768px) 88vw, 62vw"
-          className="logo-neon w-[88vw] sm:w-[74vw] md:w-[62vw] max-w-[900px] h-auto mx-auto"
+          className="w-[88vw] sm:w-[74vw] md:w-[62vw] max-w-[900px] h-auto mx-auto object-contain"
         />
-        <p className="font-label-caps text-label-caps text-primary uppercase tracking-[0.55em] -mt-2 md:-mt-4">
-          Live
-        </p>
         <DrawLine className="mx-auto mt-8 h-px w-40 text-primary" orientation="horizontal" />
         <BrandTagline variant="closer" className="mt-6" />
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -42,7 +39,7 @@ export default function BrandCloser() {
             </Link>
           </Magnetic>
           <Link href="/contact" className="btn-primary font-label-caps text-label-caps px-8 py-4">
-            Talk to concierge
+            Talk to us
           </Link>
         </div>
       </Reveal>

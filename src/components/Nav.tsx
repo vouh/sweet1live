@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { PUBLIC_ACCOUNTS_ENABLED } from "@/lib/features";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/components/AuthProvider";
 import { useAuthModal } from "@/components/AuthModalProvider";
@@ -54,6 +55,65 @@ function NavLinks({
   );
 }
 
+function MobileMenuButton({
+  onClick,
+  tone = "default",
+}: {
+  onClick: () => void;
+  tone?: "default" | "onMedia";
+}) {
+  const toneCls =
+    tone === "onMedia"
+      ? "text-white hover:text-[#d4a574]"
+      : "text-on-background hover:text-primary";
+
+  return (
+    <button
+      type="button"
+      className={`lg:hidden inline-flex h-10 w-10 items-center justify-center shrink-0 transition-colors ${toneCls}`}
+      onClick={onClick}
+      aria-label="Open menu"
+    >
+      <span className="material-symbols-outlined text-[26px]">menu</span>
+    </button>
+  );
+}
+
+function MobileNavLink({
+  href,
+  label,
+  active,
+  onNavigate,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+  onNavigate: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
+      className={`site-nav-mobile-link group flex items-center justify-between gap-4 py-3.5 pl-4 pr-3 border-b border-outline-variant/15 transition-colors ${
+        active ? "site-nav-mobile-link--active" : ""
+      }`}
+    >
+      <span className="font-label-caps text-[13px] font-medium uppercase tracking-[0.28em]">
+        {label}
+      </span>
+      <span
+        className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${
+          active ? "text-primary" : "text-on-background/25 group-hover:text-primary group-hover:translate-x-0.5"
+        }`}
+        aria-hidden
+      >
+        arrow_forward
+      </span>
+    </Link>
+  );
+}
+
 function NavLink({
   href,
   label,
@@ -91,7 +151,6 @@ function Wordmark({
   tone?: "default" | "onMedia";
 }) {
   const name = tone === "onMedia" ? "text-white" : "text-on-background";
-  const live = tone === "onMedia" ? "text-[#d4a574]" : "text-primary";
 
   return (
     <Link
@@ -100,23 +159,16 @@ function Wordmark({
       className={`site-nav-wordmark group flex flex-col items-center leading-none ${name}`}
     >
       <Image
-        src="/images/logo.png"
-        alt="Sweet1ne"
-        width={1536}
-        height={1024}
+        src="/images/sweet1nelive_logo-transparent.png"
+        alt="Sweet1ne Live"
+        width={1774}
+        height={887}
         priority
         sizes="(max-width: 768px) 150px, 200px"
-        className={`logo-neon ${
-          tone === "onMedia" ? "logo-neon-dark" : ""
-        } w-auto object-contain transition-[height] duration-400 ${
+        className={`w-auto object-contain transition-[height] duration-400 ${
           scrolled ? "h-9 md:h-11" : "h-11 md:h-14"
-        }`}
+        } ${tone === "onMedia" ? "drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)]" : ""}`}
       />
-      <span
-        className={`font-label-caps text-[9px] md:text-[10px] font-semibold tracking-[0.55em] uppercase -mt-1 ${live}`}
-      >
-        Live
-      </span>
     </Link>
   );
 }
@@ -153,17 +205,28 @@ export default function Nav({ active, overlay = false }: { active: string; overl
             </div>
           </div>
 
-          <div className="site-nav-bar mx-auto flex min-h-[3.5rem] w-full max-w-container-max items-center justify-between overflow-x-clip px-gutter">
-            <NavLinks
-              links={LINKS_LEFT}
-              active={active}
-              tone="onMedia"
-              className="justify-start min-w-0"
-            />
+          <div className="site-nav-bar site-nav-bar--mobile-split mx-auto grid min-h-[3.5rem] w-full max-w-container-max grid-cols-[1fr_auto_1fr] items-center overflow-x-clip px-gutter">
+            <div className="flex min-w-0 items-center justify-start gap-4">
+              <NavLinks
+                links={LINKS_LEFT}
+                active={active}
+                tone="onMedia"
+                className="justify-start min-w-0"
+              />
+              {/* Mobile only — theme stays left of the logo */}
+              <div className="lg:hidden">
+                <ThemeToggle className="!text-white/80 hover:!text-white shrink-0" />
+              </div>
+            </div>
+
+            <div aria-hidden className="min-w-0" />
 
             <div className="flex min-w-0 items-center justify-end gap-4 xl:gap-6">
-              <ThemeToggle className="!text-white/80 hover:!text-white shrink-0" />
-              {ready && user ? (
+              {/* Desktop — theme sits to the right of the logo */}
+              <div className="hidden lg:block">
+                <ThemeToggle className="!text-white/80 hover:!text-white shrink-0" />
+              </div>
+              {PUBLIC_ACCOUNTS_ENABLED && (ready && user ? (
                 <button
                   type="button"
                   onClick={signOut}
@@ -179,21 +242,14 @@ export default function Nav({ active, overlay = false }: { active: string; overl
                 >
                   Sign in
                 </button>
-              )}
+              ))}
               <Link
                 href="/reservations"
-                className={`site-nav-cta hidden sm:inline-flex ${NAV_LINK} px-5 py-2.5 border border-white/35 text-white hover:bg-white hover:text-[#1a100c] transition-colors duration-300`}
+                className={`site-nav-cta hidden sm:inline-flex ${NAV_LINK} px-5 py-2.5 bg-[#d8b632] text-[#231b00] hover:bg-[#e4c44a] transition-colors duration-300`}
               >
                 Reserve
               </Link>
-              <button
-                type="button"
-                className="lg:hidden text-white shrink-0"
-                onClick={() => setOpen(true)}
-                aria-label="Open menu"
-              >
-                <span className="material-symbols-outlined text-[28px]">menu</span>
-              </button>
+              <MobileMenuButton onClick={() => setOpen(true)} tone="onMedia" />
             </div>
           </div>
         </header>
@@ -211,16 +267,23 @@ export default function Nav({ active, overlay = false }: { active: string; overl
         </div>
       </div>
 
-      <div className="site-nav-bar mx-auto flex min-h-[3.5rem] w-full max-w-container-max items-center justify-between overflow-x-clip px-gutter">
-        <NavLinks
-          links={LINKS_LEFT}
-          active={active}
-          className="justify-start min-w-0"
-        />
+      <div className="site-nav-bar site-nav-bar--mobile-split mx-auto grid min-h-[3.5rem] w-full max-w-container-max grid-cols-[1fr_auto_1fr] items-center overflow-x-clip px-gutter">
+        <div className="flex min-w-0 items-center justify-start gap-4">
+          <NavLinks links={LINKS_LEFT} active={active} className="justify-start min-w-0" />
+          {/* Mobile only — theme stays left of the logo */}
+          <div className="lg:hidden">
+            <ThemeToggle className="shrink-0" />
+          </div>
+        </div>
+
+        <div aria-hidden className="min-w-0" />
 
         <div className="flex min-w-0 items-center justify-end gap-4 xl:gap-6">
-          <ThemeToggle className="shrink-0" />
-          {ready && user ? (
+          {/* Desktop — theme sits to the right of the logo */}
+          <div className="hidden lg:block">
+            <ThemeToggle className="shrink-0" />
+          </div>
+          {PUBLIC_ACCOUNTS_ENABLED && (ready && user ? (
             <button
               type="button"
               onClick={signOut}
@@ -237,21 +300,14 @@ export default function Nav({ active, overlay = false }: { active: string; overl
             >
               Sign in
             </button>
-          )}
+          ))}
           <Link
             href="/reservations"
-            className={`site-nav-cta hidden sm:inline-flex ${NAV_LINK} px-5 py-2.5 bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity duration-300`}
+            className={`site-nav-cta hidden sm:inline-flex ${NAV_LINK} px-5 py-2.5 bg-[#d8b632] text-[#231b00] hover:bg-[#e4c44a] transition-colors duration-300`}
           >
             Reserve
           </Link>
-          <button
-            type="button"
-            className="lg:hidden text-on-background hover:text-primary transition-colors shrink-0"
-            onClick={() => setOpen(true)}
-            aria-label="Open menu"
-          >
-            <span className="material-symbols-outlined text-[28px]">menu</span>
-          </button>
+          <MobileMenuButton onClick={() => setOpen(true)} />
         </div>
       </div>
 
@@ -264,7 +320,6 @@ function MobileMenu({
   open,
   setOpen,
   active,
-  tone,
 }: {
   open: boolean;
   setOpen: (v: boolean) => void;
@@ -276,79 +331,74 @@ function MobileMenu({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-background z-[60] flex flex-col px-margin-mobile overflow-y-auto">
-      <div className="flex items-center justify-between py-5 border-b border-outline-variant/20">
-        <Wordmark scrolled={false} tone={tone === "dark" ? "default" : "default"} />
+    <div className="site-nav-mobile fixed inset-0 z-[60] flex flex-col bg-background overflow-y-auto">
+      <div className="flex items-center justify-between px-margin-mobile py-4 border-b border-outline-variant/20">
+        <Wordmark scrolled={false} />
         <button
           type="button"
           onClick={() => setOpen(false)}
           aria-label="Close menu"
-          className="text-on-background p-2 hover:text-primary transition-colors"
+          className="inline-flex h-10 w-10 items-center justify-center text-on-background hover:text-primary transition-colors"
         >
-          <span className="material-symbols-outlined text-3xl">close</span>
+          <span className="material-symbols-outlined text-[26px]">close</span>
         </button>
       </div>
 
-      <nav className="flex flex-col gap-1 py-8 flex-1">
+      <nav className="flex flex-col flex-1 px-margin-mobile py-6">
+        <p className="font-label-caps text-[10px] uppercase tracking-[0.32em] text-on-surface-variant mb-4">
+          Explore
+        </p>
         {MOBILE_LINKS.map((link) => (
-          <Link
+          <MobileNavLink
             key={link.href}
             href={link.href}
-            onClick={() => setOpen(false)}
-            className={`font-headline-md text-[28px] uppercase tracking-[0.04em] py-4 border-b border-outline-variant/15 ${
-              active === link.href
-                ? "text-primary"
-                : "text-on-background hover:text-primary"
-            } transition-colors`}
-          >
-            {link.label}
-          </Link>
+            label={link.label}
+            active={active === link.href}
+            onNavigate={() => setOpen(false)}
+          />
         ))}
       </nav>
 
-      <div className="py-8 flex flex-col gap-4 border-t border-outline-variant/20">
-        <div className="flex items-center justify-between">
-          <ThemeToggle />
-          {ready && user ? (
+      <div className="px-margin-mobile py-6 flex flex-col gap-4 border-t border-outline-variant/20">
+        {PUBLIC_ACCOUNTS_ENABLED && (ready && user ? (
+          <button
+            type="button"
+            onClick={() => {
+              signOut();
+              setOpen(false);
+            }}
+            className={`self-start ${NAV_LINK} text-on-background/70 hover:text-primary transition-colors`}
+          >
+            Sign out
+          </button>
+        ) : (
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
             <button
               type="button"
               onClick={() => {
-                signOut();
                 setOpen(false);
+                openAuth("signin");
               }}
               className={`${NAV_LINK} text-on-background/70 hover:text-primary transition-colors`}
             >
-              Sign out
+              Sign in
             </button>
-          ) : (
-            <div className="flex gap-6">
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  openAuth("signin");
-                }}
-                className={`${NAV_LINK} text-on-background/70 hover:text-primary transition-colors`}
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  openAuth("signup");
-                }}
-                className={`${NAV_LINK} text-on-background/70 hover:text-primary transition-colors`}
-              >
-                Join
-              </button>
-            </div>
-          )}
-        </div>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                openAuth("signup");
+              }}
+              className={`${NAV_LINK} text-on-background/70 hover:text-primary transition-colors`}
+            >
+              Join
+            </button>
+          </div>
+        ))}
         <Link
           href="/reservations"
           onClick={() => setOpen(false)}
-          className={`site-nav-cta w-full text-center ${NAV_LINK} px-6 py-4 bg-primary-container text-on-primary-container`}
+          className={`site-nav-cta w-full text-center ${NAV_LINK} px-6 py-4 bg-[#d8b632] text-[#231b00] hover:bg-[#e4c44a] transition-colors`}
         >
           Reserve a table
         </Link>

@@ -8,6 +8,7 @@ import AuthModal from "@/components/AuthModal";
 import SmoothScroll from "@/components/motion/SmoothScroll";
 import ScrollProgress from "@/components/motion/ScrollProgress";
 import Analytics from "@/components/Analytics";
+import { TrackingHead, TrackingNoScript } from "@/components/TrackingTags";
 import { BRAND_TAGLINE } from "@/lib/brand";
 import { resolveTheme, THEME_STORAGE_KEY } from "@/lib/theme";
 import "./globals.css";
@@ -31,12 +32,24 @@ export const metadata: Metadata = {
     "Premium dining, handcrafted drinks and unforgettable live experiences in one nocturnal setting.",
   icons: {
     icon: [
-      { url: "/images/logo.png", type: "image/png" },
-      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icons/favicon-64x64.png", sizes: "64x64", type: "image/png" },
+      { url: "/icons/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/icons/favicon-128x128.png", sizes: "128x128", type: "image/png" },
+      { url: "/icons/favicon-256x256.png", sizes: "256x256", type: "image/png" },
+      { url: "/icons/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: "/images/logo.png",
-    apple: "/images/logo.png",
+    shortcut: ["/favicon.ico", "/icons/favicon-64x64.png"],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
+  manifest: "/site.webmanifest",
 };
 
 export default async function RootLayout({
@@ -54,6 +67,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <TrackingHead />
         {/* Material Symbols is an icon font with no next/font support; loaded globally here. */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
@@ -62,6 +76,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col overflow-x-clip selection:bg-primary-container selection:text-on-primary-container">
+        <TrackingNoScript accepted={cookieStore.get("sweet1ne_cookie_consent")?.value === "accepted"} />
         <Analytics />
         <ThemeProvider initialTheme={theme}>
           <AuthProvider>

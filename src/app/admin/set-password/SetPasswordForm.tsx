@@ -106,7 +106,7 @@ export default function SetPasswordForm({ accessToken }: { accessToken?: string 
               <button
                 type="submit"
                 disabled={pending}
-                className="self-center rounded-full bg-[#c45c3a] text-white font-label-caps text-[12px] tracking-[0.22em] uppercase px-12 py-3.5 shadow-[0_14px_28px_-8px_rgba(196,92,58,0.7)] hover:opacity-95 disabled:opacity-60"
+                className="self-center rounded-full bg-[#c45c3a] text-white font-label-caps text-[12px] tracking-[0.22em] uppercase px-8 sm:px-12 py-3.5 shadow-[0_14px_28px_-8px_rgba(196,92,58,0.7)] hover:opacity-95 disabled:opacity-60"
               >
                 {pending ? "Saving…" : "Save password"}
               </button>
@@ -117,16 +117,13 @@ export default function SetPasswordForm({ accessToken }: { accessToken?: string 
         <aside className="admin-login__brand relative z-20 md:absolute md:left-0 md:top-0 md:bottom-0 md:w-[46%] mb-[-1.25rem] md:mb-0 rounded-[28px] bg-gradient-to-b from-[#3d281f] via-[#2c1810] to-[#1a100c] text-[#f5efe8] px-8 py-10 md:px-9 md:py-11 flex flex-col items-center justify-between shadow-[12px_0_40px_-18px_rgba(26,16,12,0.55)]">
           <div className="admin-login__logo flex-1 w-full flex flex-col items-center justify-center min-h-[180px] md:min-h-0">
             <Image
-              src="/images/logo.png"
-              alt="Sweet1ne"
-              width={1536}
-              height={1024}
+              src="/images/sweet1nelive_logo-transparent.png"
+              alt="Sweet1ne Live"
+              width={1774}
+              height={887}
               priority
               className="w-[78%] max-w-[280px] h-auto max-h-[48%] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
             />
-            <span className="font-label-caps text-[10px] md:text-[11px] font-semibold tracking-[0.55em] uppercase text-[#d4a574] -mt-1">
-              Live
-            </span>
           </div>
           <p className="shrink-0 font-label-caps text-[12px] md:text-[13px] tracking-[0.35em] uppercase text-[#d4a574] text-center pb-1">
             Staff portal

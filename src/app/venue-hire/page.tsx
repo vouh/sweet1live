@@ -17,33 +17,33 @@ import { trackEvent } from "@/lib/analytics";
 import BrandTagline from "@/components/BrandTagline";
 import { IMG } from "@/lib/images";
 
-const SPACES = [
+const CELEBRATIONS = [
   {
     no: "01",
-    tag: "Full takeover",
-    title: "Corporate Events",
-    body: "Impress clients with cinematic atmosphere, state-of-the-art AV, and bespoke catering for high-end gatherings.",
-    capacity: "Up to 250 guests",
+    tag: "Your birthday, your people",
+    title: "Birthday Parties",
+    body: "Bring your favourite people together for a birthday at Sweet1ne. Tell us your guest numbers and the kind of evening you have in mind, and we will talk through the restaurant booking options.",
+    capacity: "Plan your party",
     icon: "groups",
     image: IMG.venueSpace1,
     reverse: false,
   },
   {
     no: "02",
-    tag: "The Alcove",
-    title: "Private Dinners",
-    body: "Secluded elegance for intimate tasting menus, milestone toasts, and conversations that deserve the room.",
-    capacity: "Up to 24 guests",
+    tag: "Around the table",
+    title: "Celebration Dinners",
+    body: "An anniversary, a family occasion, or simply a reason to get everyone together. Celebrate over dinner and drinks in the restaurant with the people who matter.",
+    capacity: "Dine together",
     icon: "restaurant",
     image: IMG.venueSpace2,
     reverse: true,
   },
   {
     no: "03",
-    tag: "Lounge reserve",
-    title: "Milestone Birthdays",
-    body: "Curated bottle service, premium booths, and live rhythm — celebrate with sophistication and energy.",
-    capacity: "Up to 80 guests",
+    tag: "Make it an occasion",
+    title: "Private Celebrations",
+    body: "Planning a bigger gathering? Enquire about hiring the restaurant for your celebration. We will confirm availability, the right arrangement for your group, and what is possible on your date.",
+    capacity: "Restaurant hire",
     icon: "local_bar",
     image: IMG.venueSpace3,
     reverse: false,
@@ -52,26 +52,26 @@ const SPACES = [
 
 const FACILITIES = [
   {
-    icon: "mic_external_on",
-    title: "Stage & AV",
-    text: "Industry sound, dynamic lighting, and a dedicated stage for speeches, jazz, or DJ sets.",
+    icon: "restaurant",
+    title: "Food for your gathering",
+    text: "Talk to us about menu options, dietary requirements, and how you would like to dine together.",
   },
   {
     icon: "room_service",
-    title: "Bespoke catering",
-    text: "Canapés to multi-course tasting menus — shaped to the tone of your evening.",
+    title: "Drinks & atmosphere",
+    text: "From a toast over dinner to a birthday night out, tell us the mood you have in mind.",
   },
   {
     icon: "vpn_key",
-    title: "Concierge & security",
-    text: "Private entry, dedicated host, and a door team for a seamless arrival.",
+    title: "Help with the details",
+    text: "Our team will discuss your date, guest numbers, seating, and any special requests before you book.",
   },
 ];
 
 const STATS = [
-  { value: "250", label: "Max capacity" },
-  { value: "3", label: "Distinct spaces" },
-  { value: "24/7", label: "Event concierge" },
+  { value: "Dine", label: "Bring everyone together" },
+  { value: "Toast", label: "Mark the occasion" },
+  { value: "Enjoy", label: "Make it your night" },
 ];
 
 const initialState: ActionState = { success: false, message: "" };
@@ -95,14 +95,14 @@ export default function VenueHirePage() {
             <Reveal variant="blur">
               <BrandTagline variant="eyebrow" onMedia className="mb-5" />
               <span className="font-label-caps text-label-caps text-[#d4a574] uppercase tracking-[0.45em] block mb-6">
-                Private events
+                Parties & celebrations
               </span>
               <h1 className="font-display-lg text-[40px] sm:text-[68px] md:text-[96px] leading-[0.92] uppercase tracking-[0.02em] text-white drop-shadow-[0_4px_40px_rgba(0,0,0,0.55)]">
-                Make it yours
+                Celebrate with us
               </h1>
               <p className="font-headline-md text-[16px] md:text-[19px] leading-relaxed text-white/85 mt-6 max-w-xl mx-auto">
-                From intimate private dinners to full venue takeovers — a cinematic backdrop for
-                nights your guests never forget.
+                Birthdays, anniversaries, and get-togethers with your favourite people.
+                Book the restaurant for your celebration and make a night of it at Sweet1ne.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-6">
                 <Magnetic>
@@ -110,7 +110,7 @@ export default function VenueHirePage() {
                     href="#enquire"
                     className="btn-ink inline-flex items-center gap-2 font-label-caps text-label-caps px-7 py-4"
                   >
-                    Start an enquiry
+                    Plan your celebration
                     <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
                   </a>
                 </Magnetic>
@@ -119,7 +119,7 @@ export default function VenueHirePage() {
                     href="/contact"
                     className="inline-flex items-center gap-2 font-headline-md text-[17px] md:text-[20px] text-white underline underline-offset-[10px] decoration-white/45 hover:decoration-white transition-colors"
                   >
-                    Speak to concierge
+                    Talk to us
                     <span className="material-symbols-outlined text-[20px]">arrow_outward</span>
                   </Link>
                 </Magnetic>
@@ -149,7 +149,7 @@ export default function VenueHirePage() {
         {/* Marquee */}
         <div className="border-y border-outline-variant/25 py-6 overflow-hidden bg-background mb-4">
           <ScrollMarquee
-            text="FULL TAKEOVER · PRIVATE DINING · LOUNGE RESERVE · BESPOKE MENUS · LIVE MUSIC ·"
+            text="BIRTHDAY PARTIES / CELEBRATION DINNERS / ANNIVERSARIES / FAMILY & FRIENDS / RESTAURANT HIRE"
             className="font-headline-lg text-[22px] md:text-[36px] uppercase tracking-[0.1em] text-on-surface-variant/20 whitespace-nowrap"
           />
         </div>
@@ -158,11 +158,11 @@ export default function VenueHirePage() {
         <section className="relative z-10 bg-[#f5efe8] py-section-gap-mobile md:py-section-gap-desktop overflow-x-clip">
           <ArrowCarousel
             variant="chocolate"
-            title="Our spaces"
-            subtitle="Three distinct settings — tell us the brief and we will shape the room, menu, and rhythm around it."
+            title="Your reason to celebrate"
+            subtitle="A birthday dinner, a family get-together, or a private party. Tell us what you are celebrating and we will help you plan your restaurant booking."
             trackClassName="max-w-container-max mx-auto px-margin-mobile md:px-gutter"
           >
-            {SPACES.map((space, i) => (
+            {CELEBRATIONS.map((space, i) => (
               <Reveal
                 key={space.no}
                 delay={i * 90}
@@ -212,28 +212,28 @@ export default function VenueHirePage() {
           </ArrowCarousel>
         </section>
 
-        {/* What's included — chocolate band */}
-        <section className="relative z-10 bg-primary-container text-on-primary-container py-section-gap-mobile md:py-section-gap-desktop px-margin-mobile md:px-gutter">
+        {/* What's included — mustard gold accent band */}
+        <section className="band-mustard relative z-10 py-section-gap-mobile md:py-section-gap-desktop px-margin-mobile md:px-gutter">
           <div className="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <div>
               <SplitReveal
                 as="h2"
-                text="What's included"
-                accentWord="included"
-                className="font-headline-lg text-[28px] md:text-[44px] uppercase tracking-[0.04em] mb-10 text-[#f5efe8]"
+                text="Plan your night with us"
+                accentWord="night"
+                className="band-mustard__title font-headline-lg text-[28px] md:text-[44px] uppercase tracking-[0.04em] mb-10"
               />
               <ul className="space-y-8">
                 {FACILITIES.map((f, i) => (
                   <Reveal key={f.icon} delay={i * 100}>
                     <li className="flex gap-5">
-                      <span className="material-symbols-outlined text-[#d4a574] text-[28px] shrink-0">
+                      <span className="material-symbols-outlined band-mustard__icon text-[28px] shrink-0">
                         {f.icon}
                       </span>
                       <div>
-                        <h4 className="font-headline-md text-[18px] uppercase tracking-[0.06em] mb-2 text-[#f5efe8]">
+                        <h4 className="font-headline-md text-[18px] uppercase tracking-[0.06em] mb-2 band-mustard__title">
                           {f.title}
                         </h4>
-                        <p className="font-body-md text-body-md text-white/70">{f.text}</p>
+                        <p className="font-body-md text-body-md band-mustard__muted">{f.text}</p>
                       </div>
                     </li>
                   </Reveal>
@@ -270,7 +270,7 @@ export default function VenueHirePage() {
                       </span>
                       <h2 className="font-headline-md text-headline-md">Enquiry received</h2>
                       <p className="font-body-md text-body-md text-on-surface-variant max-w-sm">
-                        Thank you — our Events Concierge will be in touch shortly.
+                        Thank you. Our team will be in touch to discuss your celebration and availability.
                       </p>
                       <Magnetic>
                         <Link href="/" className="btn-ink font-label-caps text-label-caps px-7 py-4 mt-2">
@@ -287,8 +287,9 @@ export default function VenueHirePage() {
                         className="font-headline-lg text-[26px] md:text-[34px] uppercase tracking-[0.04em] mb-2"
                       />
                       <p className="font-body-md text-body-md text-on-surface-variant mb-10">
-                        Share the brief — our Events Concierge will follow up with availability, menu
-                        options, and a tailored quote. No online deposit required.
+                        Tell us the occasion, your preferred date, and how many people are coming.
+                        Our team will follow up with availability, dining options, and pricing.
+                        Sending an enquiry does not confirm a booking.
                       </p>
                       <form action={formAction} className="flex flex-col gap-6 relative">
                         <FormSecurityFields />
@@ -314,7 +315,7 @@ export default function VenueHirePage() {
                               className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.2em]"
                               htmlFor="eventType"
                             >
-                              Event type
+                              What are you celebrating?
                             </label>
                             <select
                               id="eventType"
@@ -324,12 +325,11 @@ export default function VenueHirePage() {
                               className="w-full bg-surface-container-lowest border border-outline-variant text-on-background px-4 py-3 focus:ring-0 focus:border-primary appearance-none transition-colors"
                             >
                               <option disabled value="">
-                                Select type
+                                Choose an occasion
                               </option>
-                              <option value="corporate">Corporate event</option>
-                              <option value="birthday">Milestone birthday</option>
-                              <option value="private-dinner">Private dinner</option>
-                              <option value="other">Other</option>
+                              <option value="birthday">Birthday party</option>
+                              <option value="private-dinner">Celebration dinner</option>
+                              <option value="other">Anniversary or other celebration</option>
                             </select>
                             {state.fieldErrors?.event_type && (
                               <p className="text-error text-sm">{state.fieldErrors.event_type[0]}</p>
@@ -360,7 +360,7 @@ export default function VenueHirePage() {
                             id="details"
                             name="details"
                             rows={4}
-                            placeholder="Catering preferences, AV needs, timing…"
+                            placeholder="Tell us about the occasion, preferred time, dining plans, and any special requests"
                             className="w-full bg-surface-container-lowest border border-outline-variant text-on-background p-4 focus:ring-0 focus:border-primary transition-colors resize-none"
                           />
                         </div>
@@ -389,11 +389,11 @@ export default function VenueHirePage() {
           image={IMG.toast}
           eyebrow="Need a table instead?"
           title="Book for tonight"
-          body="Not hiring the full room? Reserve a table under the music."
+          body="Just joining us for dinner? Reserve a table and enjoy an evening at Sweet1ne."
           primaryHref="/reservations"
           primaryLabel="Reserve a table"
           secondaryHref="/contact"
-          secondaryLabel="Message concierge"
+          secondaryLabel="Talk to us"
         />
         <BrandCloser />
       </main>

@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { PUBLIC_ACCOUNTS_ENABLED } from "@/lib/features";
+
 export type AuthModalView = "signin" | "signup" | "forgot" | null;
 
 type AuthModalContextValue = {
@@ -23,7 +25,9 @@ const AuthModalContext = createContext<AuthModalContextValue | null>(null);
 export function AuthModalProvider({ children }: { children: ReactNode }) {
   const [view, setView] = useState<AuthModalView>(null);
 
-  const open = useCallback((next: Exclude<AuthModalView, null>) => setView(next), []);
+  const open = useCallback((next: Exclude<AuthModalView, null>) => {
+    if (PUBLIC_ACCOUNTS_ENABLED) setView(next);
+  }, []);
   const close = useCallback(() => setView(null), []);
 
   useEffect(() => {

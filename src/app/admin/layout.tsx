@@ -4,11 +4,12 @@ export const metadata: Metadata = {
   title: "Staff Sign In | Sweet1ne Live",
   icons: {
     icon: [
-      { url: "/images/logo.png", type: "image/png" },
-      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
     ],
-    shortcut: "/images/logo.png",
-    apple: "/images/logo.png",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
 };
 

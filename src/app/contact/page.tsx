@@ -35,7 +35,7 @@ export default function ContactPage() {
             <Reveal variant="blur">
               <BrandTagline variant="eyebrow" onMedia className="mb-5" />
               <span className="font-label-caps text-label-caps text-[#d4a574] uppercase tracking-[0.45em] block mb-6">
-                Concierge
+                Talk to us
               </span>
               <h1 className="font-display-lg text-[40px] sm:text-[64px] md:text-[88px] leading-[0.95] uppercase tracking-[0.02em] text-white drop-shadow-[0_4px_40px_rgba(0,0,0,0.55)]">
                 Have a question?
@@ -136,22 +136,22 @@ export default function ContactPage() {
                     className="contact-side-image flex-1 bg-cover bg-center min-h-[220px]"
                     style={{ backgroundImage: `url('${LIFESTYLE}')` }}
                   />
-                  <div className="p-8 md:p-10 bg-primary-container text-on-primary-container">
-                    <h3 className="font-headline-md text-[22px] uppercase tracking-[0.06em] mb-8">
+                  <div className="band-mustard p-8 md:p-10">
+                    <h3 className="font-headline-md text-[22px] uppercase tracking-[0.06em] mb-8 band-mustard__title">
                       Get in touch
                     </h3>
                     <ul className="space-y-6">
                       {SITE_CONTACT_DETAILS.map((d) => (
                         <li key={d.icon} className="contact-detail-row">
-                          <span className="contact-detail-row__icon">
+                          <span className="contact-detail-row__icon band-mustard__icon">
                             <span className="material-symbols-outlined text-[20px]">{d.icon}</span>
                           </span>
                           <div>
-                            <span className="font-label-caps text-[10px] tracking-[0.28em] uppercase opacity-70 block mb-1">
+                            <span className="font-label-caps text-[10px] tracking-[0.28em] uppercase band-mustard__muted block mb-1">
                               {d.label}
                             </span>
                             {"href" in d && d.href ? (
-                              <a href={d.href} className="font-body-md text-body-md hover:text-[#f5efe8] transition-colors">
+                              <a href={d.href} className="font-body-md text-body-md hover:opacity-80 transition-opacity">
                                 {d.value}
                               </a>
                             ) : (
@@ -163,7 +163,7 @@ export default function ContactPage() {
                     </ul>
                     <Link
                       href="/reservations"
-                      className="inline-flex items-center gap-2 mt-10 font-label-caps text-label-caps uppercase tracking-[0.25em] text-[#d4a574] hover:text-[#f5efe8] transition-colors"
+                      className="inline-flex items-center gap-2 mt-10 font-label-caps text-label-caps uppercase tracking-[0.25em] band-mustard__accent hover:opacity-80 transition-opacity"
                     >
                       Or reserve a table
                       <span className="material-symbols-outlined text-[18px]">arrow_outward</span>

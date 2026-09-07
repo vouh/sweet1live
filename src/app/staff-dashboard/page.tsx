@@ -130,7 +130,7 @@ export default function StaffDashboardPage() {
 
         <section className="admin-panel p-6 md:p-7">
           <h3 className="font-headline-md text-[20px] mb-5">Action needed</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
             {allowed("/staff-dashboard/reservations") && <QueueCard
               href={route("/staff-dashboard/reservations?status=pending")}
               icon="event_seat"

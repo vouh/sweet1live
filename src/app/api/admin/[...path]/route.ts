@@ -25,6 +25,7 @@ const ALLOWED = [
   "enquiries",
   "guests",
   "finance",
+  "collection-orders",
   "orders",
   "settings",
   "notifications",

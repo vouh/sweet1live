@@ -2,6 +2,7 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const STAFF_KEY = "sweet1ne-staff-session";
+export const STAFF_AUTH_INVALID_EVENT = "sweet1ne:staff-auth-invalid";
 
 export type StaffUser = {
   id: string;
@@ -56,6 +57,18 @@ export function setStaffSession(user: StaffUser) {
 
 export function clearStaffSession() {
   window.localStorage.removeItem(STAFF_KEY);
+}
+
+/**
+ * Put the whole staff UI back into its signed-out state when an authenticated
+ * API request is rejected. Keeping this in one place prevents individual
+ * pages from rendering a misleading in-dashboard 401 error while the shell
+ * still displays the staff member from localStorage.
+ */
+export function invalidateStaffSession() {
+  if (typeof window === "undefined") return;
+  clearStaffSession();
+  window.dispatchEvent(new Event(STAFF_AUTH_INVALID_EVENT));
 }
 
 export function staffAuthHeaders(): HeadersInit {
@@ -160,21 +173,6 @@ export async function staffForgotPassword(email: string): Promise<string> {
     throw new Error(typeof data.detail === "string" ? data.detail : "Could not send reset link.");
   }
   return data.message ?? "Reset link sent. Check your inbox.";
-}
-
-/** Dev-only — prefill login when bootstrap super admin exists in the database. */
-export async function staffDevPrefill(): Promise<{ email: string; password: string } | null> {
-  if (process.env.NODE_ENV === "production") return null;
-
-  try {
-    const response = await fetch(`${API_URL}/auth/staff/dev-prefill`, { cache: "no-store" });
-    if (!response.ok) return null;
-    const data = (await response.json()) as { email?: string; password?: string };
-    if (!data.email || !data.password) return null;
-    return { email: data.email, password: data.password };
-  } catch {
-    return null;
-  }
 }
 
 /** Starts a logged-in password change — a confirmation code is emailed, nothing changes yet. */

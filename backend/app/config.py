@@ -76,18 +76,6 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("TURNSTILE_SECRET_KEY"),
     )
-    allow_dev_login_prefill: bool = Field(
-        default=False,
-        validation_alias=AliasChoices("ALLOW_DEV_LOGIN_PREFILL"),
-    )
-
-    @property
-    def dev_login_prefill_enabled(self) -> bool:
-        if self.allow_dev_login_prefill:
-            return True
-        site = self.public_site_url.lower()
-        return "localhost" in site or "127.0.0.1" in site
-
     @model_validator(mode="after")
     def _require_postgres_database(self) -> "Settings":
         import os

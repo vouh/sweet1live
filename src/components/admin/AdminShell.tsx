@@ -18,8 +18,13 @@ import {
 } from "@/lib/staffPermissions";
 import { adminApi, type AdminNotification } from "@/lib/adminApi";
 import {
+  loadSeenNotificationIds,
+  markNotificationsSeen,
+} from "@/lib/adminNotifications";
+import {
   clearStaffSession,
   getStaffSession,
+  STAFF_AUTH_INVALID_EVENT,
   refreshStaffSession,
   staffDisplayRole,
   type StaffUser,
@@ -29,25 +34,11 @@ const SIDEBAR_MIN = 200;
 const SIDEBAR_MAX = 300;
 const SIDEBAR_DEFAULT = 236;
 const SIDEBAR_RAIL = 72;
-const NOTIFICATIONS_POLL_MS = 30_000;
-const SEEN_NOTIFICATIONS_KEY = "sweet1ne-admin-seen-notifications";
-
-function loadSeenIds(): Set<string> {
-  try {
-    const raw = window.localStorage.getItem(SEEN_NOTIFICATIONS_KEY);
-    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function saveSeenIds(ids: Set<string>) {
-  try {
-    window.localStorage.setItem(SEEN_NOTIFICATIONS_KEY, JSON.stringify([...ids]));
-  } catch {
-    // Storage can be unavailable (private browsing, quota) — toasts just won't dedupe.
-  }
-}
+// Background toast alerts don't need sub-minute latency — this runs on every
+// open admin page, so a tighter interval means the (fairly expensive,
+// several-query) /admin/notifications endpoint gets hit that much more often
+// across every staff member's browser at once.
+const NOTIFICATIONS_POLL_MS = 45_000;
 
 type Toast = { title: string; detail: string; severity: AdminNotification["severity"] };
 
@@ -99,7 +90,21 @@ export default function AdminShell({
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
   const dragging = useRef(false);
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [toast, setToast] = useState<Toast | null>(null);
+  const seenRef = useRef<Set<string>>(new Set());
+  const bootstrappedRef = useRef(false);
+
+  useEffect(() => {
+    const handleInvalidSession = () => {
+      setReady(false);
+      setStaff(null);
+      router.replace("/admin/login");
+    };
+
+    window.addEventListener(STAFF_AUTH_INVALID_EVENT, handleInvalidSession);
+    return () => window.removeEventListener(STAFF_AUTH_INVALID_EVENT, handleInvalidSession);
+  }, [router]);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,8 +116,19 @@ export default function AdminShell({
         return;
       }
 
-      const fresh = (await refreshStaffSession()) ?? session;
+      // refreshStaffSession() returns the stale session on a network error
+      // (backend unreachable) but null once it has confirmed the token is
+      // invalid — and clears it from localStorage in that case. Falling back
+      // to the now-cleared `session` here would render the dashboard as
+      // signed in while every subsequent API call goes out with no
+      // Authorization header, surfacing as a confusing per-page auth error
+      // instead of sending the user back to sign in.
+      const fresh = await refreshStaffSession();
       if (cancelled) return;
+      if (!fresh) {
+        router.replace("/admin/login");
+        return;
+      }
 
       if (superAdminOnly && !fresh.is_super_admin) {
         router.replace(firstAllowedPath(fresh.permissions, "/portal", false));
@@ -147,21 +163,23 @@ export default function AdminShell({
     return () => html.classList.remove("admin-route");
   }, []);
 
-  // Polls the same computed-notifications feed the Notifications page reads,
-  // and toasts whatever wasn't there last time — a booking, a payment, a new
-  // enquiry. "Seen" ids persist in localStorage so a refresh doesn't re-toast
-  // things already surfaced.
+  // Poll notifications — toast and badge count anything not yet marked seen.
+  // Seen ids persist in localStorage; opening the notifications page clears the badge.
   useEffect(() => {
     if (!ready || !staff) return;
-    if (!staff.is_super_admin && !staff.permissions.includes("notifications.view")) {
+    const canPoll =
+      staff.is_super_admin || staff.permissions.includes("notifications.view");
+    if (!canPoll) {
       setNotifications([]);
+      setUnreadCount(0);
       return;
     }
+
     let cancelled = false;
-    let firstRun = true;
-    const seen = loadSeenIds();
 
     async function poll() {
+      seenRef.current = loadSeenNotificationIds();
+
       let items: AdminNotification[];
       try {
         items = await adminApi.notifications();
@@ -169,27 +187,35 @@ export default function AdminShell({
         return;
       }
       if (cancelled) return;
-      setNotifications(items);
 
-      if (!firstRun) {
-        const fresh = items.filter((item) => !seen.has(item.id));
-        if (fresh.length === 1) {
-          setToast({
-            title: fresh[0].title,
-            detail: fresh[0].detail,
-            severity: fresh[0].severity,
-          });
-        } else if (fresh.length > 1) {
-          setToast({
-            title: `${fresh.length} new updates`,
-            detail: "New activity just landed in the notifications inbox.",
-            severity: worstSeverity(fresh),
-          });
+      const unseen = items.filter((item) => !seenRef.current.has(item.id));
+      setNotifications(items);
+      setUnreadCount(unseen.length);
+
+      if (!bootstrappedRef.current) {
+        bootstrappedRef.current = true;
+        // First dashboard open with no history: baseline the inbox so only
+        // items that arrive after this session trigger badge + toast.
+        if (seenRef.current.size === 0 && items.length > 0) {
+          seenRef.current = markNotificationsSeen(items.map((item) => item.id));
+          setUnreadCount(0);
         }
+        return;
       }
-      firstRun = false;
-      items.forEach((item) => seen.add(item.id));
-      saveSeenIds(seen);
+
+      if (unseen.length === 1) {
+        setToast({
+          title: unseen[0].title,
+          detail: unseen[0].detail,
+          severity: unseen[0].severity,
+        });
+      } else if (unseen.length > 1) {
+        setToast({
+          title: `${unseen.length} new updates`,
+          detail: "New activity just landed in the notifications inbox.",
+          severity: worstSeverity(unseen),
+        });
+      }
     }
 
     poll();
@@ -199,6 +225,17 @@ export default function AdminShell({
       window.clearInterval(interval);
     };
   }, [ready, staff]);
+
+  const markNotificationsRead = useCallback(() => {
+    if (notifications.length === 0) return;
+    seenRef.current = markNotificationsSeen(notifications.map((item) => item.id));
+    setUnreadCount(0);
+  }, [notifications]);
+
+  useEffect(() => {
+    if (!pathname.includes("/notifications")) return;
+    markNotificationsRead();
+  }, [pathname, notifications, markNotificationsRead]);
 
   useEffect(() => {
     if (!toast) return;
@@ -323,19 +360,14 @@ export default function AdminShell({
           >
             <div className="admin-sidebar__logo-ring flex items-center justify-center overflow-visible shrink-0">
               <Image
-                src="/images/logo.png"
-                alt="Sweet1ne"
-                width={1536}
-                height={1024}
-                className="logo-neon-dark w-full h-auto object-contain"
+                src="/images/sweet1nelive_logo-transparent.png"
+                alt="Sweet1ne Live"
+                width={1774}
+                height={887}
+                className="w-full h-auto object-contain"
                 priority
               />
             </div>
-            {!rail && (
-              <span className="font-label-caps text-[10px] md:text-[11px] font-semibold tracking-[0.55em] uppercase text-[#d4a574] mt-2">
-                Live
-              </span>
-            )}
           </Link>
         </div>
 
@@ -464,13 +496,14 @@ export default function AdminShell({
               <Link
                 href={notificationsHref}
                 aria-label="Notifications"
+                onClick={markNotificationsRead}
                 className="admin-icon-btn relative"
               >
                 <span className="material-symbols-outlined text-[20px]">notifications</span>
-                {notifications.some(
-                  (item) => item.severity === "action" || item.severity === "warning"
-                ) && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#c45c3a]" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#c45c3a] text-[#f5efe8] text-[10px] font-bold leading-[18px] text-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
                 )}
               </Link>
               <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-[var(--admin-border)]">
@@ -508,11 +541,12 @@ export default function AdminShell({
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[80] w-full max-w-sm">
+        <div className="fixed bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-[80] sm:w-full sm:max-w-sm">
           <button
             type="button"
             onClick={() => {
               setToast(null);
+              markNotificationsRead();
               router.push(notificationsHref);
             }}
             style={{ borderLeft: `4px solid ${TOAST_ACCENT[toast.severity]}` }}

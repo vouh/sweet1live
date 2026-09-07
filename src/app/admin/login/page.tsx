@@ -4,7 +4,7 @@ import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { firstAllowedPath } from "@/lib/staffPermissions";
-import { getStaffSession, staffDevPrefill, staffForgotPassword, staffLogin } from "@/lib/staffAuth";
+import { getStaffSession, staffForgotPassword, staffLogin } from "@/lib/staffAuth";
 import {
   INPUT_LIMITS,
   validateLoginEmail,
@@ -30,18 +30,6 @@ export default function AdminLoginPage() {
       router.replace(session.is_super_admin ? "/staff-dashboard" : firstAllowedPath(session.permissions, "/portal", false));
     }
   }, [router]);
-
-  useEffect(() => {
-    let cancelled = false;
-    staffDevPrefill().then((defaults) => {
-      if (cancelled || !defaults) return;
-      setEmail(defaults.email);
-      setPassword(defaults.password);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   function switchView(next: View) {
     setView(next);
@@ -117,7 +105,7 @@ export default function AdminLoginPage() {
                   type="email"
                   required
                   maxLength={INPUT_LIMITS.email}
-                  autoComplete="email"
+                  autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value.slice(0, INPUT_LIMITS.email))}
                   className="admin-login__input mt-2"
@@ -130,7 +118,7 @@ export default function AdminLoginPage() {
                     type={showPassword ? "text" : "password"}
                     required
                     maxLength={INPUT_LIMITS.password}
-                    autoComplete="current-password"
+                    autoComplete="off"
                     value={password}
                     onChange={(e) => setPassword(e.target.value.slice(0, INPUT_LIMITS.password))}
                     className="admin-login__input"
@@ -149,7 +137,7 @@ export default function AdminLoginPage() {
               <button
                 type="submit"
                 disabled={pending}
-                className="self-center rounded-full bg-[#c45c3a] text-white font-label-caps text-[12px] tracking-[0.22em] uppercase px-12 py-3.5 shadow-[0_14px_28px_-8px_rgba(196,92,58,0.7)] hover:opacity-95 disabled:opacity-60"
+                className="self-center rounded-full bg-[#c45c3a] text-white font-label-caps text-[12px] tracking-[0.22em] uppercase px-8 sm:px-12 py-3.5 shadow-[0_14px_28px_-8px_rgba(196,92,58,0.7)] hover:opacity-95 disabled:opacity-60"
               >
                 {pending ? "Signing in…" : "Sign in"}
               </button>
@@ -162,7 +150,7 @@ export default function AdminLoginPage() {
                   type="email"
                   required
                   maxLength={INPUT_LIMITS.email}
-                  autoComplete="email"
+                  autoComplete="off"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value.slice(0, INPUT_LIMITS.email))}
                   className="admin-login__input mt-2"
@@ -173,7 +161,7 @@ export default function AdminLoginPage() {
               <button
                 type="submit"
                 disabled={pending}
-                className="self-center rounded-full bg-[#c45c3a] text-white font-label-caps text-[12px] tracking-[0.22em] uppercase px-12 py-3.5 disabled:opacity-60"
+                className="self-center rounded-full bg-[#c45c3a] text-white font-label-caps text-[12px] tracking-[0.22em] uppercase px-8 sm:px-12 py-3.5 disabled:opacity-60"
               >
                 {pending ? "Sending…" : "Send reset link"}
               </button>
@@ -195,8 +183,7 @@ export default function AdminLoginPage() {
 
         <aside className="admin-login__brand relative z-20 md:absolute md:left-0 md:top-0 md:bottom-0 md:w-[46%] mb-[-1.25rem] md:mb-0 rounded-[28px] bg-gradient-to-b from-[#3d281f] via-[#2c1810] to-[#1a100c] text-[#f5efe8] px-8 py-10 md:px-9 md:py-11 flex flex-col items-center justify-between shadow-[12px_0_40px_-18px_rgba(26,16,12,0.55)]">
           <div className="admin-login__logo flex-1 w-full flex flex-col items-center justify-center min-h-[180px] md:min-h-0">
-            <Image src="/images/logo.png" alt="Sweet1ne" width={1536} height={1024} priority className="w-[78%] max-w-[280px] h-auto max-h-[48%] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]" />
-            <span className="font-label-caps text-[10px] md:text-[11px] font-semibold tracking-[0.55em] uppercase text-[#d4a574] -mt-1">Live</span>
+            <Image src="/images/sweet1nelive_logo-transparent.png" alt="Sweet1ne Live" width={1774} height={887} priority className="w-[78%] max-w-[280px] h-auto max-h-[48%] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]" />
           </div>
           <p className="shrink-0 font-label-caps text-[12px] md:text-[13px] tracking-[0.35em] uppercase text-[#d4a574] text-center pb-1">Staff login</p>
         </aside>

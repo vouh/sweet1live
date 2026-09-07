@@ -4,6 +4,7 @@ import EventCinematicHero from "@/components/EventCinematicHero";
 import EventsClosingSection from "@/components/EventsClosingSection";
 import EventsSplitStack from "@/components/EventsSplitStack";
 import BrandCloser, { FooterFlyover } from "@/components/BrandCloser";
+import MustardCtaBand from "@/components/MustardCtaBand";
 import { DEMO_EVENTS } from "@/lib/demoEvents";
 import { lineupWithoutTop, pickTopEvent } from "@/lib/eventLineup";
 import { IMG } from "@/lib/images";
@@ -28,6 +29,17 @@ export default async function LiveEventsPage() {
         <EventsClosingSection
           imageSrc={IMG.dining}
           panelBody="Book a table for a performance night and keep it through the last set — no queue, no standing, no rush to leave."
+        />
+
+        <MustardCtaBand
+          eyebrow="Stay for the set"
+          title="Table reserved through the last note"
+          accentWord="reserved"
+          body="Book dining for a performance night and keep your seat — no queue, no standing, no rush to leave."
+          primaryHref="/reservations"
+          primaryLabel="Reserve a table"
+          secondaryHref="/contact"
+          secondaryLabel="Private lounge enquiry"
         />
 
         <BrandCloser />
