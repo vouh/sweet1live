@@ -31,17 +31,17 @@ const BEST_SELLERS = [
 const STRIP = GALLERY_STRIP;
 
 const EXPERIENCES = [
-  { image: IMG.jazz, label: "Live Lounge Sets", href: "/live-events", caption: "below" as const, tilt: "left" as const, level: "low" as const },
-  { image: IMG.liveJazz, label: "Ticketed Jazz Nights", href: "/live-events", caption: "above" as const, tilt: "none" as const, level: "high" as const },
-  { image: IMG.bar, label: "Late Night Atmosphere", href: "/live-events", caption: "below" as const, tilt: "none" as const, level: "low" as const },
+  { image: IMG.jazz, label: "Live Lounge Sets", href: "/whats-on", caption: "below" as const, tilt: "left" as const, level: "low" as const },
+  { image: IMG.liveJazz, label: "Ticketed Jazz Nights", href: "/whats-on", caption: "above" as const, tilt: "none" as const, level: "high" as const },
+  { image: IMG.bar, label: "Late Night Atmosphere", href: "/whats-on", caption: "below" as const, tilt: "none" as const, level: "low" as const },
   { image: IMG.alcove, label: "Private Dining Rooms", href: "/venue-hire", caption: "above" as const, tilt: "none" as const, level: "high" as const },
-  { image: IMG.bandA, label: "Brass & Soul Lineups", href: "/live-events", caption: "below" as const, tilt: "right" as const, level: "low" as const },
-  { image: IMG.experience5, label: "After-Dark Energy", href: "/live-events", caption: "above" as const, tilt: "none" as const, level: "high" as const },
+  { image: IMG.bandA, label: "Brass & Soul Lineups", href: "/whats-on", caption: "below" as const, tilt: "right" as const, level: "low" as const },
+  { image: IMG.experience5, label: "After-Dark Energy", href: "/whats-on", caption: "above" as const, tilt: "none" as const, level: "high" as const },
   { image: IMG.experience6, label: "Celebrations & Toasts", href: "/reservations", caption: "below" as const, tilt: "left" as const, level: "low" as const },
 ];
 
 export default async function HomePage() {
-  const fromApi = (await getEvents()).filter((event) => event.slug !== "ticket-demo");
+  const fromApi = (await getEvents({ eventType: "in_house" })).filter((event) => event.slug !== "ticket-demo");
   const pool = fromApi.length > 0 ? fromApi.slice(0, 6) : DEMO_EVENTS;
   const top = pickTopEvent(pool);
   const rest = lineupWithoutTop(pool, top);
@@ -147,7 +147,7 @@ export default async function HomePage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Magnetic>
-                  <Link href="/live-events" className="btn-ink font-label-caps text-label-caps px-7 py-4 inline-block text-center">
+                  <Link href="/whats-on" className="btn-ink font-label-caps text-label-caps px-7 py-4 inline-block text-center">
                     See what&apos;s on
                   </Link>
                 </Magnetic>
@@ -180,7 +180,7 @@ export default async function HomePage() {
             footer={
               <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter mt-8 md:mt-10 flex flex-wrap gap-3">
                 <Link
-                  href="/live-events"
+                  href="/whats-on"
                   className="btn-ink font-label-caps text-label-caps px-6 py-3"
                 >
                   See what&apos;s on

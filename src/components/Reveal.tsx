@@ -39,22 +39,27 @@ export default function Reveal({
     const el = ref.current;
     if (!el) return;
 
-    // No reduced-motion branch needed here: the `prefers-reduced-motion`
-    // block in globals.css already pins .reveal to its resting state, so
-    // the observer simply never has a visible effect for those users.
+    // Failsafe: Lenis / sticky layouts can prevent IntersectionObserver from
+    // firing — never leave content permanently at opacity 0.
+    const failsafe = window.setTimeout(() => setVisible(true), 1400 + delay);
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setVisible(true);
           observer.disconnect();
+          window.clearTimeout(failsafe);
         }
       },
-      { threshold: 0.08, rootMargin: "0px 0px -8% 0px" }
+      { threshold: 0.01, rootMargin: "0px 0px -4% 0px" }
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+    return () => {
+      window.clearTimeout(failsafe);
+      observer.disconnect();
+    };
+  }, [delay]);
 
   return (
     <Tag

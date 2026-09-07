@@ -10,6 +10,9 @@ from app.inventory import on_sale
 from app.models import Event, EventPublic, Room, TicketType, TicketTypePublic
 
 router = APIRouter(prefix="/events", tags=["events"])
+EVENT_TYPES = ("in_house", "external")
+SWEET1NE_VENUE = "Sweet1ne Live"
+SWEET1NE_ADDRESS = "218 High Road, Chadwell Heath, RM6 6LS"
 
 
 def _event_images(event: Event) -> list[str]:
@@ -54,6 +57,9 @@ def serialize_event(db: Session, event: Event) -> EventPublic:
         title=event.title,
         subtitle=event.subtitle,
         description=event.description,
+        event_type=event.event_type,
+        venue_name=event.venue_name or (room.name if room else SWEET1NE_VENUE),
+        venue_address=event.venue_address or SWEET1NE_ADDRESS,
         image_url=_event_images(event)[0] if _event_images(event) else "",
         images=_event_images(event),
         room_name=room.name if room else "",
@@ -74,10 +80,14 @@ def serialize_event(db: Session, event: Event) -> EventPublic:
 def list_events(
     db: Session = Depends(get_db),
     room: str | None = Query(default=None, description="Filter by room slug"),
+    event_type: str | None = Query(default=None, pattern="^(in_house|external)$"),
     include_past: bool = False,
     limit: int = Query(default=50, ge=1, le=200),
 ):
     statement = select(Event).where(Event.status == "published")
+
+    if event_type:
+        statement = statement.where(Event.event_type == event_type)
 
     if not include_past:
         statement = statement.where(Event.starts_at >= datetime.utcnow())

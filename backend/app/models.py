@@ -247,6 +247,10 @@ class Event(SQLModel, table=True):
     title: str
     subtitle: str = ""
     description: str = ""
+    # in_house = held at Sweet1ne Live; external = hosted at another venue.
+    event_type: str = Field(default="in_house", index=True)
+    venue_name: str = ""
+    venue_address: str = ""
     room_id: str = Field(foreign_key="rooms.id", index=True)
     image_url: str = ""
     doors_at: datetime | None = None
@@ -298,6 +302,9 @@ class EventPublic(SQLModel):
     title: str
     subtitle: str
     description: str
+    event_type: str
+    venue_name: str
+    venue_address: str
     image_url: str
     images: list[str] = []
     room_name: str

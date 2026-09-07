@@ -23,6 +23,9 @@ export type VenueEvent = {
   title: string;
   subtitle: string;
   description: string;
+  event_type: "in_house" | "external";
+  venue_name: string;
+  venue_address: string;
   image_url: string;
   room_name: string;
   room_slug: string;
@@ -158,9 +161,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<Result<T>> 
 // Catalogue (read from Server Components)
 // ---------------------------------------------------------------------
 
-export async function getEvents(roomSlug?: string): Promise<VenueEvent[]> {
-  const query = roomSlug ? `?room=${encodeURIComponent(roomSlug)}` : "";
-  const result = await request<VenueEvent[]>(`/events${query}`);
+export async function getEvents(filters?: { room?: string; eventType?: "in_house" | "external" }): Promise<VenueEvent[]> {
+  const query = new URLSearchParams();
+  if (filters?.room) query.set("room", filters.room);
+  if (filters?.eventType) query.set("event_type", filters.eventType);
+  const result = await request<VenueEvent[]>(`/events${query.size ? `?${query}` : ""}`);
   return result.ok ? result.data : [];
 }
 
@@ -263,6 +268,15 @@ export async function getOrder(
 // ---------------------------------------------------------------------
 // Formatting
 // ---------------------------------------------------------------------
+
+/**
+ * Default eyebrow shown when an event has no subtitle. Must not claim an
+ * external (off-site) event is "Live at Sweet1ne" — it isn't.
+ */
+export function eventEyebrow(event: Pick<VenueEvent, "subtitle" | "event_type">): string {
+  if (event.subtitle) return event.subtitle;
+  return event.event_type === "external" ? "A Sweet1ne event, on the road" : "Live at Sweet1ne";
+}
 
 export function formatPrice(pence: number, currency = "gbp"): string {
   return new Intl.NumberFormat("en-GB", {

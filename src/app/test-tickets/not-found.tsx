@@ -7,7 +7,7 @@ import Reveal from "@/components/Reveal";
 export default function TestTicketsNotFound() {
   return (
     <>
-      <Nav active="/live-events" />
+      <Nav active="/whats-on" />
       <main className="flex-grow bg-background">
         <section className="max-w-2xl mx-auto px-margin-mobile md:px-gutter pt-20 md:pt-28 pb-section-gap-mobile md:pb-section-gap-desktop text-center">
           <Reveal>
@@ -22,8 +22,8 @@ export default function TestTicketsNotFound() {
               venv\scripts\activate{"\n"}
               python -m app.seed
             </pre>
-            <Link href="/live-events" className="btn-ink font-label-caps text-label-caps px-7 py-4">
-              Back to live events
+            <Link href="/whats-on" className="btn-ink font-label-caps text-label-caps px-7 py-4">
+              Back to what&apos;s on
             </Link>
           </Reveal>
         </section>

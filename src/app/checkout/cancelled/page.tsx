@@ -17,7 +17,7 @@ export default async function CheckoutCancelledPage({ searchParams }: PageProps)
 
   return (
     <>
-      <Nav active="/live-events" />
+      <Nav active="/whats-on" />
       <main className="flex-grow bg-background">
         <section className="max-w-2xl mx-auto px-margin-mobile md:px-gutter pt-20 md:pt-28 pb-section-gap-mobile md:pb-section-gap-desktop">
           <Reveal>
@@ -39,8 +39,8 @@ export default async function CheckoutCancelledPage({ searchParams }: PageProps)
               )}
 
               <div className="flex flex-col sm:flex-row items-center gap-5 mt-4">
-                <Link href="/live-events" className="btn-ink font-label-caps text-label-caps px-7 py-4">
-                  Back to events
+                <Link href="/whats-on" className="btn-ink font-label-caps text-label-caps px-7 py-4">
+                  Back to what&apos;s on
                 </Link>
                 <Link
                   href="/venue-hire"

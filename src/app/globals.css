@@ -1718,6 +1718,22 @@ html.dark .venue-room-card__body {
   color: rgba(247, 243, 234, 0.75);
   margin-top: -0.35rem;
 }
+.event-split__external-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  background: rgba(216, 182, 50, 0.14);
+  border: 1px solid rgba(216, 182, 50, 0.4);
+  font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d8b632;
+}
 .event-split__copy {
   font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
   font-size: 15px;

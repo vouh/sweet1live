@@ -8,6 +8,7 @@ import { useGSAP } from "@gsap/react";
 import { DEMO_EVENT_ACCENTS, DEMO_EVENT_PHOTOS } from "@/lib/demoEvents";
 import { eventPhoto } from "@/lib/images";
 import {
+  eventEyebrow,
   formatEventDate,
   formatEventTime,
   formatPrice,
@@ -79,12 +80,19 @@ function EventSplitRow({
       className={["event-split", reverse ? "event-split--reverse" : ""].filter(Boolean).join(" ")}
     >
       <div className={`event-split__text ${accent}`}>
-        <p className="event-split__eyebrow">{event.subtitle || "Live at Sweet1ne"}</p>
+        <p className="event-split__eyebrow">{eventEyebrow(event)}</p>
         <h2 className="event-split__title">{event.title}</h2>
         <p className="event-split__meta">
           {formatEventDate(event.starts_at)} · Doors {formatEventTime(doors)}
         </p>
-        <p className="event-split__room">{event.room_name}</p>
+        <p className="event-split__room">{event.venue_name || event.room_name}</p>
+        <p className="event-split__room">{event.venue_address}</p>
+        {event.event_type === "external" && (
+          <p className="event-split__external-note">
+            <span className="material-symbols-outlined text-[13px]">info</span>
+            Not held at Sweet1ne Live
+          </p>
+        )}
         {event.description && <p className="event-split__copy">{event.description}</p>}
         <div className="event-split__footer">
           <span className="event-split__price">{priceLabel(event)}</span>

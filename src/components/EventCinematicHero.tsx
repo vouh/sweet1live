@@ -9,6 +9,7 @@ import Magnetic from "@/components/motion/Magnetic";
 import { DEMO_EVENT_PHOTOS } from "@/lib/demoEvents";
 import { eventPhoto } from "@/lib/images";
 import {
+  eventEyebrow,
   formatEventDate,
   formatEventTime,
   formatPrice,
@@ -113,7 +114,7 @@ export default function EventCinematicHero({ event }: { event: VenueEvent }) {
             {event.title}
           </h1>
           <p className="font-body-md mx-auto mt-5 max-w-lg text-[16px] text-[#cfc6af] md:text-[18px]">
-            {event.subtitle || "Live at Sweet1ne"} · {formatEventDate(event.starts_at)}
+            {eventEyebrow(event)} · {formatEventDate(event.starts_at)}
           </p>
         </div>
 
@@ -142,7 +143,7 @@ export default function EventCinematicHero({ event }: { event: VenueEvent }) {
                     <div className="absolute inset-3 border border-[#f7f3ea]/14" aria-hidden="true" />
                     <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
                       <span className="font-label-caps text-[10px] uppercase tracking-[0.32em] text-[#f7f3ea]/65">
-                        {event.room_name}
+                        {event.venue_name || event.room_name}
                       </span>
                       <span className="h-px flex-1 bg-[#f7f3ea]/20" aria-hidden="true" />
                       <span className="font-label-caps text-[10px] uppercase tracking-[0.32em] text-[#d8b632]/90">
@@ -165,7 +166,7 @@ export default function EventCinematicHero({ event }: { event: VenueEvent }) {
                 <div className="relative mx-auto w-full max-w-lg md:mx-0 text-[#f7f3ea]">
                   <div className="mb-5 flex items-center gap-4">
                     <span className="font-label-caps text-[11px] uppercase tracking-[0.38em] text-[#cfc6af]">
-                      {event.subtitle || "Live at Sweet1ne"}
+                      {eventEyebrow(event)}
                     </span>
                     <span className="h-px flex-1 bg-[#d8b632]/20" aria-hidden="true" />
                     <span className="font-label-caps text-[11px] uppercase tracking-[0.28em] text-[#d8b632]">
@@ -181,7 +182,14 @@ export default function EventCinematicHero({ event }: { event: VenueEvent }) {
                     <p className="font-body-md mb-2 text-sm text-[#d8b632] md:text-base">
                       {formatEventDate(event.starts_at)} · Doors {formatEventTime(doors)}
                     </p>
-                    <p className="font-body-md mb-6 text-sm text-[#cfc6af]">{event.room_name}</p>
+                    <p className="font-body-md mb-2 text-sm text-[#cfc6af]">{event.venue_name || event.room_name}</p>
+                    <p className={`font-body-md text-xs text-[#cfc6af] ${event.event_type === "external" ? "mb-2" : "mb-6"}`}>{event.venue_address}</p>
+                    {event.event_type === "external" && (
+                      <p className="event-split__external-note mb-6">
+                        <span className="material-symbols-outlined text-[13px]">info</span>
+                        Not held at Sweet1ne Live
+                      </p>
+                    )}
                     {event.description && (
                       <p className="font-body-md mb-8 max-w-md text-sm leading-relaxed text-[#cfc6af] md:text-base">
                         {event.description}

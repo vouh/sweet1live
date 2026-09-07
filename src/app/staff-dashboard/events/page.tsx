@@ -186,6 +186,7 @@ function EventCard({
           <div className="flex flex-wrap items-center gap-3">
             <h3 className="font-headline-md text-[20px]">{event.title}</h3>
             <StatusBadge status={event.status} />
+            <StatusBadge status={event.event_type === "external" ? "External" : "What's On"} tone={event.event_type === "external" ? "accent" : undefined} />
             {event.is_top_event && <StatusBadge status="top event" tone="accent" />}
             {event.available === 0 && event.capacity > 0 && (
               <StatusBadge status="sold out" tone="accent" />
@@ -204,7 +205,8 @@ function EventCard({
             <span className="material-symbols-outlined text-[16px] align-[-3px] mr-1 text-[var(--admin-gold)]">
               location_on
             </span>
-            {event.room_name}
+            {event.venue_name || event.room_name}
+            {event.venue_address && <span className="block pl-6 text-xs text-[var(--admin-muted)]">{event.venue_address}</span>}
           </p>
 
           <div className="mt-4">
@@ -285,7 +287,7 @@ function EventCard({
   );
 }
 
-type EventDraft = Pick<AdminEvent, "title" | "subtitle" | "description" | "images">;
+type EventDraft = Pick<AdminEvent, "title" | "subtitle" | "description" | "images" | "event_type" | "venue_name" | "venue_address">;
 
 function EventEditor({ event, onClose, onSave }: { event: AdminEvent; onClose: () => void; onSave: (id: string, changes: Partial<AdminEvent>) => Promise<void> }) {
   const storageKey = `sweet1ne-event-draft:${event.id}`;
@@ -294,7 +296,7 @@ function EventEditor({ event, onClose, onSave }: { event: AdminEvent; onClose: (
       const saved = window.localStorage.getItem(storageKey);
       if (saved) try { return JSON.parse(saved) as EventDraft; } catch { /* ignore corrupt draft */ }
     }
-    return { title: event.title, subtitle: event.subtitle, description: event.description, images: event.images ?? [] };
+    return { title: event.title, subtitle: event.subtitle, description: event.description, images: event.images ?? [], event_type: event.event_type, venue_name: event.venue_name, venue_address: event.venue_address };
   });
   const [progress, setProgress] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -320,6 +322,7 @@ function EventEditor({ event, onClose, onSave }: { event: AdminEvent; onClose: (
 
   async function submit() {
     if (!draft.title.trim()) { setError("Add an event name."); return; }
+    if (draft.event_type === "external" && (!draft.venue_name.trim() || !draft.venue_address.trim())) { setError("Add the external venue name and full address."); return; }
     setSaving(true); setError("");
     try {
       await onSave(event.id, { ...draft, title: draft.title.trim(), subtitle: draft.subtitle.trim(), description: draft.description.trim() });
@@ -335,6 +338,9 @@ function EventEditor({ event, onClose, onSave }: { event: AdminEvent; onClose: (
         <label><span className="admin-label">Event name</span><input className="admin-input" value={draft.title} maxLength={200} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
         <label><span className="admin-label">Subtitle</span><input className="admin-input" value={draft.subtitle} maxLength={240} onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })} /></label>
         <label><span className="admin-label">Description / notes</span><textarea className="admin-input min-h-32" value={draft.description} maxLength={3000} onChange={(e) => setDraft({ ...draft, description: e.target.value })} /></label>
+        <label><span className="admin-label">Public listing</span><select className="admin-input" value={draft.event_type} onChange={(e) => setDraft({ ...draft, event_type: e.target.value as EventDraft["event_type"] })}><option value="in_house">What's On — at Sweet1ne Live</option><option value="external">Events — at another venue</option></select></label>
+        <label><span className="admin-label">Venue name</span><input className="admin-input" value={draft.venue_name} maxLength={200} placeholder={draft.event_type === "external" ? "e.g. Studio 338" : "Sweet1ne Live"} onChange={(e) => setDraft({ ...draft, venue_name: e.target.value })} /></label>
+        <label><span className="admin-label">Full event address</span><textarea className="admin-input min-h-20" value={draft.venue_address} maxLength={500} placeholder="Street, town/city, postcode" onChange={(e) => setDraft({ ...draft, venue_address: e.target.value })} /></label>
         <div><span className="admin-label">Images ({draft.images.length}/4)</span><div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">{draft.images.map((url) => <div key={url} className="relative aspect-video rounded-xl overflow-hidden bg-[var(--admin-border)]"><img src={url} alt="Event" className="w-full h-full object-cover" /><button type="button" aria-label="Remove image" onClick={() => setDraft({ ...draft, images: draft.images.filter((image) => image !== url) })} className="absolute top-1 right-1 rounded-full bg-black/70 text-white w-7 h-7">×</button></div>)}</div>
           {draft.images.length < 4 && <label className="admin-btn-ghost text-sm inline-flex mt-3 cursor-pointer"><input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(e) => addImages(e.target.files)} />Add images</label>}
           {progress !== null && <div className="mt-3"><div className="flex justify-between text-xs text-[var(--admin-muted)]"><span>Compressing and uploading</span><span>{progress}%</span></div><div className="h-2 mt-1 rounded-full bg-[var(--admin-border)] overflow-hidden"><div className="h-full bg-[var(--admin-accent)]" style={{ width: `${progress}%` }} /></div></div>}

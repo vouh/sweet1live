@@ -326,11 +326,15 @@ Same shape: `POST /checkout/room` → hold booking → Stripe → webhook confir
 | Component | Where | Notes |
 |-----------|-------|-------|
 | Frontend | **Vercel** | `vercel.json` at repo root; set `NEXT_PUBLIC_API_URL` |
-| Backend | Railway, Render, Fly, etc. | Not built by Vercel |
-| Database | **Supabase Postgres** | Run `alembic upgrade head` against production URL once per release |
-| Stripe | Stripe Dashboard | Live keys + webhook endpoint pointing at production API |
+| Backend | **Hetzner VPS** (Ubuntu + nginx + systemd + uvicorn) | Not built by Vercel |
+| Database | **Supabase Postgres** | Run `alembic upgrade head` on the VPS (or via GitHub Actions deploy) |
+| DNS | **GoDaddy** (`sweetlive.com`) | Apex/`www` → Vercel; `api` → Hetzner |
+| CI/CD | **GitHub Actions** + Vercel | Actions deploy API to Hetzner; Vercel deploys frontend on push |
+| Stripe | Stripe Dashboard | Live keys + webhook → `https://api.sweetlive.com/stripe/webhook` |
 
-After deploy, set `CORS_ORIGINS` and `PUBLIC_SITE_URL` on the API to your Vercel domain.
+**Full beginner step-by-step:** [DEPLOY-HETZNER-VERCEL.md](./DEPLOY-HETZNER-VERCEL.md)
+
+After deploy, set `CORS_ORIGINS` and `PUBLIC_SITE_URL` on the API to `https://sweetlive.com` (and `www`).
 
 ---
 
@@ -347,6 +351,7 @@ After deploy, set `CORS_ORIGINS` and `PUBLIC_SITE_URL` on the API to your Vercel
 
 | Document | Contents |
 |----------|----------|
+| [DEPLOY-HETZNER-VERCEL.md](./DEPLOY-HETZNER-VERCEL.md) | Production deploy (Hetzner + Vercel + GoDaddy + Actions) |
 | [DATA-MODEL.md](./DATA-MODEL.md) | All tables, columns, PKs, FKs, ERDs |
 | [DESIGN.md](./DESIGN.md) | Visual / UX design notes |
 | [../README.md](../README.md) | Quick start, payments summary, deploy checklist |

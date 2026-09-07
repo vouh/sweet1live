@@ -10,6 +10,9 @@ export const DEMO_EVENTS: VenueEvent[] = [
     subtitle: "Modal jazz · Hard bop",
     description:
       "Modal jazz and hard bop from leading session musicians. Doors at 20:00, first set at 20:30 — intimate, precise, and gone before you want it to be.",
+    event_type: "in_house",
+    venue_name: "Sweet1ne Live",
+    venue_address: "218 High Road, Chadwell Heath, RM6 6LS",
     image_url: "",
     room_name: "The Main Room",
     room_slug: "main-room",
@@ -30,6 +33,9 @@ export const DEMO_EVENTS: VenueEvent[] = [
     subtitle: "Soul · R&B",
     description:
       "Reimagined soul and R&B at a slower tempo, played to a room lit for lingering. The perfect companion to a late dinner and a second bottle.",
+    event_type: "in_house",
+    venue_name: "Sweet1ne Live",
+    venue_address: "218 High Road, Chadwell Heath, RM6 6LS",
     image_url: "",
     room_name: "The Lounge",
     room_slug: "the-lounge",
@@ -49,6 +55,9 @@ export const DEMO_EVENTS: VenueEvent[] = [
     subtitle: "Acoustic · Tasting",
     description:
       "Unamplified acoustic sets in the brick cellar, paired with a four-glass flight chosen by our sommelier. Forty-five seats, no phones.",
+    event_type: "in_house",
+    venue_name: "Sweet1ne Live",
+    venue_address: "218 High Road, Chadwell Heath, RM6 6LS",
     image_url: "",
     room_name: "The Cellar",
     room_slug: "the-cellar",
@@ -68,6 +77,9 @@ export const DEMO_EVENTS: VenueEvent[] = [
     subtitle: "Standards · Late set",
     description:
       "Standards until close — brass, brushes, and nowhere else to be. The room stays open for one more round.",
+    event_type: "in_house",
+    venue_name: "Sweet1ne Live",
+    venue_address: "218 High Road, Chadwell Heath, RM6 6LS",
     image_url: "",
     room_name: "The Main Room",
     room_slug: "main-room",
@@ -87,6 +99,9 @@ export const DEMO_EVENTS: VenueEvent[] = [
     subtitle: "New Orleans jazz · Brass band",
     description:
       "A wall of horns and a rhythm section that won't quit — parade energy in a candlelit room. Two sets, no seats left empty for long.",
+    event_type: "in_house",
+    venue_name: "Sweet1ne Live",
+    venue_address: "218 High Road, Chadwell Heath, RM6 6LS",
     image_url: "",
     room_name: "The Gallery",
     room_slug: "the-gallery",

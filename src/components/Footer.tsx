@@ -129,7 +129,8 @@ export default function Footer() {
             links={[
               { href: "/", label: "Home" },
               { href: "/menus", label: "Menus" },
-              { href: "/live-events", label: "Live & Events" },
+              { href: "/whats-on", label: "What's On" },
+              { href: "/events", label: "External Events" },
               { href: "/reservations", label: "Reservations" },
               { href: "/venue-hire", label: "Venue Hire" },
             ]}
@@ -139,7 +140,7 @@ export default function Footer() {
             links={[
               { href: "/contact", label: "Contact" },
               { href: "/venue-hire", label: "Private dining" },
-              { href: "/live-events", label: "What's on" },
+              { href: "/whats-on", label: "What's on" },
             ]}
           />
           <div>

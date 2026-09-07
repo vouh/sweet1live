@@ -11,7 +11,7 @@ export default function HomeLiveNights() {
           <p className="night-poster__label">Live nights &amp; restaurant celebrations</p>
           <h2 id="night-poster-title">GO OUT.<br /><span>GO ALL IN.</span></h2>
           <p className="night-poster__intro">A date for your diary. A table for your people. Find your next night at Sweet1ne.</p>
-          <Link href="/live-events" className="night-poster__cta">See upcoming events <span aria-hidden>↗</span></Link>
+          <Link href="/whats-on" className="night-poster__cta">See upcoming events <span aria-hidden>↗</span></Link>
           <a className="night-poster__updates" href="#event-updates">Get event updates <span aria-hidden>↗</span></a>
         </Reveal>
         <Reveal className="night-poster__visual" variant="clip" delay={120}>
@@ -22,7 +22,7 @@ export default function HomeLiveNights() {
       </div>
       <div className="night-poster__bottom">
         <Reveal delay={80}>
-          <Link href="/live-events" className="night-poster__route"><span className="night-poster__number">01</span><div><small>Join a night</small><h3>What&apos;s coming up?</h3><p>Browse the lineup and explore tickets.</p></div><span className="night-poster__route-arrow" aria-hidden>↗</span></Link>
+          <Link href="/whats-on" className="night-poster__route"><span className="night-poster__number">01</span><div><small>Join a night</small><h3>What&apos;s coming up?</h3><p>Browse the lineup and explore tickets.</p></div><span className="night-poster__route-arrow" aria-hidden>↗</span></Link>
         </Reveal>
         <Reveal delay={180}>
           <Link href="/venue-hire" className="night-poster__route"><span className="night-poster__number">02</span><div><small>Make it your occasion</small><h3>Bring the celebration.</h3><p>Birthdays, private parties and restaurant hire.</p></div><span className="night-poster__route-arrow" aria-hidden>↗</span></Link>

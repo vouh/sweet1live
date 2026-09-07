@@ -20,14 +20,14 @@ type Props = {
 
 export default function EventTicketLayout({ event, testMode = false }: Props) {
   const hero = event.image_url || IMG.liveHero;
-  const dateLine = `${formatEventDate(event.starts_at)} · ${event.room_name}`;
+  const dateLine = `${formatEventDate(event.starts_at)} · ${event.venue_name || event.room_name}`;
   const timeLine = event.doors_at
     ? `Doors ${formatEventTime(event.doors_at)} · On at ${formatEventTime(event.starts_at)}`
     : `Starts ${formatEventTime(event.starts_at)}`;
 
   return (
     <>
-      <Nav active="/live-events" />
+      <Nav active={event.event_type === "external" ? "/events" : "/whats-on"} />
       <main className="flex-grow bg-background">
         <section className="relative">
           <div className="sticky top-0 z-0 h-[72svh] md:h-[78svh] overflow-hidden">
@@ -51,6 +51,13 @@ export default function EventTicketLayout({ event, testMode = false }: Props) {
               <p className="font-label-caps text-[11px] uppercase tracking-[0.22em] text-white/65 mt-5">
                 {timeLine}
               </p>
+              <p className="mt-3 max-w-xl text-sm text-white/80"><span className="font-semibold text-[#d4a574]">Location:</span> {event.venue_name || event.room_name} · {event.venue_address}</p>
+              {event.event_type === "external" && (
+                <p className="event-split__external-note mt-2">
+                  <span className="material-symbols-outlined text-[13px]">info</span>
+                  Not held at Sweet1ne Live
+                </p>
+              )}
               {event.from_price_pence != null && !event.sold_out && (
                 <p className="numeral font-price-display text-[22px] text-[#d4a574] mt-6">
                   From {formatPrice(event.from_price_pence, event.currency)}
@@ -94,10 +101,10 @@ export default function EventTicketLayout({ event, testMode = false }: Props) {
                 )}
 
                 <Link
-                  href="/live-events"
+                  href={event.event_type === "external" ? "/events" : "/whats-on"}
                   className="link-underline font-label-caps text-label-caps uppercase tracking-[0.25em] text-on-surface-variant hover:text-primary transition-colors w-fit"
                 >
-                  ← All live events
+                  ← {event.event_type === "external" ? "All external events" : "What's on"}
                 </Link>
               </Reveal>
 

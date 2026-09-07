@@ -179,7 +179,7 @@ export default function HomeEventsSwap({ events }: { events: VenueEvent[] }) {
             <p className="home-events-swap__meta">
               {formatEventDate(event.starts_at)} · Doors {formatEventTime(doors)}
             </p>
-            <p className="home-events-swap__room">{event.room_name}</p>
+            <p className="home-events-swap__room">{event.venue_name || event.room_name}</p>
             {event.description && (
               <p className="home-events-swap__body">{event.description}</p>
             )}
@@ -250,7 +250,7 @@ export default function HomeEventsSwap({ events }: { events: VenueEvent[] }) {
           ))}
         </div>
 
-        <Link href="/live-events" className="home-events-swap__all">
+        <Link href="/whats-on" className="home-events-swap__all">
           All events
           <span className="material-symbols-outlined text-[16px]">arrow_outward</span>
         </Link>

@@ -12,15 +12,17 @@ import { useAuthModal } from "@/components/AuthModalProvider";
 const LINKS_LEFT = [
   { href: "/", label: "Home" },
   { href: "/menus", label: "Menu" },
-  { href: "/live-events", label: "Events" },
-  { href: "/venue-hire", label: "Venue" },
+  { href: "/whats-on", label: "What's On" },
+  { href: "/events", label: "Events" },
+  { href: "/venue-hire", label: "Venue Hire" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
 const MOBILE_LINKS = [
   { href: "/", label: "Home" },
   { href: "/menus", label: "Menu" },
-  { href: "/live-events", label: "Events" },
+  { href: "/whats-on", label: "What's On" },
+  { href: "/events", label: "Events" },
   { href: "/reservations", label: "Reserve" },
   { href: "/venue-hire", label: "Venue Hire" },
   { href: "/contact", label: "Contact" },

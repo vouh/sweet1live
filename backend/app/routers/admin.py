@@ -368,6 +368,9 @@ class AdminEvent(SQLModel):
     title: str
     subtitle: str
     description: str
+    event_type: str
+    venue_name: str
+    venue_address: str
     status: str
     is_top_event: bool
     room_name: str
@@ -416,6 +419,9 @@ def _admin_event(db: Session, event: Event, rooms: dict[str, Room]) -> AdminEven
         title=event.title,
         subtitle=event.subtitle,
         description=event.description,
+        event_type=event.event_type,
+        venue_name=event.venue_name or (room.name if room else "Sweet1ne Live"),
+        venue_address=event.venue_address or "218 High Road, Chadwell Heath, RM6 6LS",
         status=event.status,
         is_top_event=event.is_top_event,
         room_name=room.name if room else "",
@@ -478,6 +484,9 @@ class EventAdminUpdate(SQLModel):
     title: str | None = Field(default=None, min_length=1, max_length=200)
     subtitle: str | None = Field(default=None, max_length=240)
     description: str | None = Field(default=None, max_length=3000)
+    event_type: str | None = None
+    venue_name: str | None = Field(default=None, max_length=200)
+    venue_address: str | None = Field(default=None, max_length=500)
     images: list[str] | None = None
     status: str | None = None
     is_top_event: bool | None = None
@@ -494,11 +503,20 @@ def update_event(event_id: str, payload: EventAdminUpdate, db: Session = Depends
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Status must be one of {', '.join(EVENT_STATUSES)}",
         )
+    if payload.event_type is not None and payload.event_type not in ("in_house", "external"):
+        raise HTTPException(status_code=422, detail="Event type must be in_house or external")
     event = db.get(Event, event_id)
     if event is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
 
     changes = payload.model_dump(exclude_unset=True)
+    resulting_type = changes.get("event_type", event.event_type)
+    resulting_name = changes.get("venue_name", event.venue_name)
+    resulting_address = changes.get("venue_address", event.venue_address)
+    if resulting_type == "external" and (
+        not (resulting_name or "").strip() or not (resulting_address or "").strip()
+    ):
+        raise HTTPException(status_code=422, detail="External events require a venue name and address")
     if "images" in changes and len(changes["images"]) > 4:
         raise HTTPException(status_code=422, detail="An event can have up to 4 images.")
     images = changes.pop("images", None)

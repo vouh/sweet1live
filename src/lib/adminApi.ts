@@ -64,6 +64,9 @@ export type AdminEvent = {
   title: string;
   subtitle: string;
   description: string;
+  event_type: "in_house" | "external";
+  venue_name: string;
+  venue_address: string;
   status: string;
   is_top_event: boolean;
   room_name: string;
@@ -389,7 +392,7 @@ export const adminApi = {
     request<AdminEvent[]>("events", { query }),
   setEventStatus: (id: string, status: string) =>
     request<AdminEvent>(`events/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
-  updateEvent: (id: string, body: Partial<Pick<AdminEvent, "title" | "subtitle" | "description" | "images" | "status" | "is_top_event">>) =>
+  updateEvent: (id: string, body: Partial<Pick<AdminEvent, "title" | "subtitle" | "description" | "images" | "status" | "is_top_event" | "event_type" | "venue_name" | "venue_address">>) =>
     request<AdminEvent>(`events/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
 
   menus: (query?: { course?: string; q?: string }) =>

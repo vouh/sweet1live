@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = siteUrl();
-  const pages = ["", "/menus", "/live-events", "/venue-hire", "/reservations", "/contact", "/privacy-policy", "/cookie-policy", "/terms"];
+  const pages = ["", "/menus", "/whats-on", "/events", "/venue-hire", "/reservations", "/contact", "/privacy-policy", "/cookie-policy", "/terms"];
   const events = await getEvents();
   const paths = new Set([
     ...pages,

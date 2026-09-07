@@ -35,7 +35,7 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <Nav active="/live-events" />
+      <Nav active="/whats-on" />
       <main className="flex-grow bg-background">
         <section className="max-w-3xl mx-auto px-margin-mobile md:px-gutter pt-20 md:pt-28 pb-section-gap-mobile md:pb-section-gap-desktop">
           {!result.ok ? (
@@ -148,7 +148,7 @@ function Confirmed({ order }: { order: Order }) {
       )}
 
       <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-5">
-        <Link href="/live-events" className="btn-ink font-label-caps text-label-caps px-7 py-4">
+        <Link href="/whats-on" className="btn-ink font-label-caps text-label-caps px-7 py-4">
           More nights
         </Link>
         <Link
@@ -177,7 +177,7 @@ function Processing({ order }: { order: Order }) {
         <p className="font-label-caps text-label-caps uppercase tracking-[0.25em] text-on-surface-variant">
           Reference <span className="numeral text-primary">{order.reference}</span>
         </p>
-        <Link href="/live-events" className="btn-ink font-label-caps text-label-caps px-7 py-4 mt-4">
+        <Link href="/whats-on" className="btn-ink font-label-caps text-label-caps px-7 py-4 mt-4">
           Back to events
         </Link>
       </div>
