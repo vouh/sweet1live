@@ -323,7 +323,7 @@ export default function AdminShell({
     setCollapsed((v) => !v);
   }
 
-  const rail = collapsed;
+  const rail = collapsed && !mobileOpen;
   const desktopWidth = rail ? SIDEBAR_RAIL : sidebarWidth;
   const title = pageTitle(pathname, navItems);
   const profileActive = pathname.startsWith(`${basePath}/profile`);
@@ -489,7 +489,7 @@ export default function AdminShell({
             </div>
 
             <div className="flex items-center gap-2 md:gap-3">
-              <span className="hidden sm:inline font-label-caps text-[10px] tracking-[0.18em] uppercase text-[var(--admin-muted)]">
+              <span className="hidden md:inline font-label-caps text-[10px] tracking-[0.18em] uppercase text-[var(--admin-muted)]">
                 {dateLabel}
               </span>
               <ThemeToggle className="admin-icon-btn !text-[var(--admin-ink)] hover:!text-[var(--admin-accent)]" />
@@ -506,7 +506,7 @@ export default function AdminShell({
                   </span>
                 )}
               </Link>
-              <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-[var(--admin-border)]">
+              <div className="hidden md:flex items-center gap-2 pl-2 border-l border-[var(--admin-border)]">
                 <div className="leading-tight text-right">
                   <p className="font-label-caps text-[10px] tracking-[0.16em] uppercase">
                     {staff.name}

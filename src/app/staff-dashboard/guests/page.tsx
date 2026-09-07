@@ -60,7 +60,7 @@ export default function AdminGuestsPage() {
         refreshing={refreshing}
       />
 
-      <StatGrid>
+      <StatGrid className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
         <StatCard icon="group" tone="terracotta" label="Known guests" value={totals.people} />
         <StatCard icon="badge" tone="gold" label="With accounts" value={totals.accounts} />
         <StatCard icon="mail" tone="rose" label="Mailing list" value={totals.mailingList} />

@@ -264,6 +264,7 @@ function EnquiryCard({
             </span>
             <span className="block text-sm text-[var(--admin-muted)] mt-1">
               {enquiry.name} · {enquiry.email}
+              <span className="sm:hidden"> · {formatRelative(enquiry.created_at)}</span>
             </span>
             {!expanded && enquiry.message && (
               <span className="block text-sm text-[var(--admin-muted)] mt-1.5 line-clamp-1 opacity-80">
@@ -271,7 +272,7 @@ function EnquiryCard({
               </span>
             )}
           </span>
-          <span className="shrink-0 text-xs text-[var(--admin-muted)] whitespace-nowrap pt-1">
+          <span className="hidden sm:block shrink-0 text-xs text-[var(--admin-muted)] whitespace-nowrap pt-1">
             {formatRelative(enquiry.created_at)}
           </span>
         </button>

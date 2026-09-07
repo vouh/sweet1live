@@ -14,7 +14,6 @@ import StickyMediaBg from "@/components/StickyMediaBg";
 import StripPhoto from "@/components/StripPhoto";
 import HeroVideo from "@/components/HeroVideo";
 import HomeEventsSwap from "@/components/HomeEventsSwap";
-import MustardCtaBand from "@/components/MustardCtaBand";
 import { HeroBookPanel } from "@/components/BrandTagline";
 import { DEMO_EVENTS } from "@/lib/demoEvents";
 import { pickTopEvent, lineupWithoutTop } from "@/lib/eventLineup";
@@ -286,16 +285,37 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <MustardCtaBand
-          eyebrow="Book the night"
-          title="Table, tickets, or both"
-          accentWord="tickets"
-          body="Lock in your evening — dining, live sets, or a celebration built around the room."
-          primaryHref="/reservations"
-          primaryLabel="Book your experience"
-          secondaryHref="/contact"
-          secondaryLabel="Start a conversation"
-        />
+        {/* ---------- Booking banner — sticky photo only; copy scrolls over then off ---------- */}
+        <StickyMediaBg image={IMG.bandB} align="center">
+          <Reveal
+            variant="blur"
+            className="on-media max-w-3xl mx-auto text-center drop-shadow-[0_2px_24px_rgba(0,0,0,0.85)]"
+          >
+            <h2 className="font-headline-lg text-[26px] leading-snug md:text-[46px] md:leading-[1.2] uppercase tracking-[0.04em] mb-8 text-white">
+              Book the night —
+              <br className="hidden md:block" /> table, tickets, or both
+            </h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Magnetic>
+                <Link
+                  href="/reservations"
+                  className="btn-ink font-label-caps text-label-caps px-8 py-4 !bg-[#f5efe8] !text-[#3a1f22]"
+                >
+                  Book your experience
+                </Link>
+              </Magnetic>
+              <Link
+                href="/contact"
+                className="link-underline group inline-flex items-center gap-2 font-label-caps text-label-caps uppercase tracking-widest text-white"
+              >
+                Or start a conversation
+                <span className="material-symbols-outlined text-[18px] transition-transform duration-400 group-hover:translate-x-1 group-hover:-translate-y-1">
+                  arrow_outward
+                </span>
+              </Link>
+            </div>
+          </Reveal>
+        </StickyMediaBg>
         </div>
 
         <BrandCloser />

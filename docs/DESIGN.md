@@ -137,7 +137,7 @@ Use the mustard field as a **mid-page accent**, not page chrome. Inspired by the
 - **Token / class:** `--band-mustard` (`#C4A12E`) via `.band-mustard` or `<MustardCtaBand />`
 - **On mustard:** Cream soft text (`--band-mustard-soft`), chocolate icons/accent words (`--band-mustard-accent`), muted cream body (`.band-mustard__muted`)
 - **Rule:** At most **one** mustard band per route. Keep surrounding sections cream or chocolate so the gold reads as a deliberate beat, not a theme wash.
-- **Good uses:** Venue facilities list, late-page CTAs (home / menus / reservations / contact / live events), contact “Get in touch” side panel.
+- **Good uses:** Home `.night-poster` (“GO OUT / GO ALL IN”), Venue facilities list, late-page CTAs (menus / reservations / live events), contact “Get in touch” side panel.
 - **Avoid:** Hero fills, nav, footer, and stacking two mustard bands back-to-back.
 
 ### Functional

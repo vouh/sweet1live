@@ -747,16 +747,16 @@ function DishFormModal({
               <label className="admin-label">Photos</label>
               <div className="flex flex-wrap items-center gap-3">
                 {draft.images.map((url) => (
-                  <div key={url} className="relative w-16 h-16 rounded-lg overflow-hidden group">
+                  <div key={url} className="relative w-16 h-16 rounded-lg overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element -- externally hosted Supabase Storage URLs */}
                     <img src={url} alt="" className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => onRemoveImage(url)}
                       aria-label="Remove photo"
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-0.5 right-0.5 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center"
                     >
-                      <span className="material-symbols-outlined text-[14px]">close</span>
+                      <span className="material-symbols-outlined text-[16px]">close</span>
                     </button>
                   </div>
                 ))}

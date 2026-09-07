@@ -157,9 +157,9 @@ export function StatCard({
   );
 }
 
-export function StatGrid({ children }: { children: ReactNode }) {
+export function StatGrid({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">{children}</div>
+    <div className={className ?? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8"}>{children}</div>
   );
 }
 

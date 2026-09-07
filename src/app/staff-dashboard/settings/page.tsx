@@ -162,9 +162,9 @@ function AuditPanel({
         </button>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[850px] text-left">
+        <table className="w-full min-w-[680px] text-left">
           <thead className="font-label-caps text-[10px] tracking-[0.15em] uppercase text-[var(--admin-muted)]">
-            <tr><th className="px-5 py-3">Time</th><th className="px-5 py-3">Action</th><th className="px-5 py-3">Account</th><th className="px-5 py-3">Target</th><th className="px-5 py-3">IP address</th></tr>
+            <tr><th className="px-5 py-3">Time</th><th className="px-5 py-3">Action</th><th className="px-5 py-3">Account</th><th className="px-5 py-3">Target</th><th className="px-5 py-3 hidden md:table-cell">IP address</th></tr>
           </thead>
           <tbody>
             {logs.map((log) => (
@@ -173,7 +173,7 @@ function AuditPanel({
                 <td className="px-5 py-4"><StatusBadge status={log.action.replaceAll(".", " ")} /></td>
                 <td className="px-5 py-4 text-sm">{log.actor_email || "System"}</td>
                 <td className="px-5 py-4 text-sm"><p>{log.target || "—"}</p>{log.detail && <p className="text-xs text-[var(--admin-muted)] mt-1">{log.detail}</p>}</td>
-                <td className="px-5 py-4 text-sm numeral">{log.ip_address || "—"}</td>
+                <td className="px-5 py-4 text-sm numeral hidden md:table-cell">{log.ip_address || "—"}</td>
               </tr>
             ))}
             {logs.length === 0 && <tr><td colSpan={5} className="px-5 py-10 text-center text-[var(--admin-muted)]">No audit activity recorded yet.</td></tr>}
@@ -602,7 +602,7 @@ function StaffRow({
       {editing && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/45" onClick={() => setEditing(false)} role="presentation">
           <form
-            className="admin-panel w-full max-w-lg p-6 shadow-2xl space-y-4"
+            className="admin-panel w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 shadow-2xl space-y-4"
             onClick={(e) => e.stopPropagation()}
             onSubmit={saveEdit}
           >
