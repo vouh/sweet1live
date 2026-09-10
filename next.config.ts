@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Produces the minimal self-contained Node server used by Docker.
+  output: "standalone",
   async headers() {
     return [
       {

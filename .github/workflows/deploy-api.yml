@@ -1,11 +1,12 @@
 name: Deploy API
 
+# Deploys the FastAPI backend to your Ubuntu VPS.
+# Only runs when backend code changes (or you click "Run workflow").
+# Requires GitHub secrets — until those exist, this job exits with a clear skip message.
+
+# Legacy non-Docker API deploy. Kept for rollback/reference, but manual-only so
+# it cannot race the full-stack deploy-hetzner workflow on a push to main.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "backend/**"
-      - ".github/workflows/deploy-api.yml"
   workflow_dispatch:
 
 concurrency:
@@ -17,12 +18,28 @@ jobs:
     name: Deploy to Ubuntu VPS
     runs-on: ubuntu-latest
     steps:
+      - name: Check deploy secrets
+        id: secrets
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+          KEY: ${{ secrets.HETZNER_SSH_KEY }}
+        run: |
+          if [ -z "$HOST" ] || [ -z "$USER" ] || [ -z "$KEY" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Deploy skipped — add GitHub secrets HETZNER_HOST, HETZNER_USER, HETZNER_SSH_KEY (see docs/CI-CD.md). This is not a code bug."
+            exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
       - name: Start SSH agent
+        if: steps.secrets.outputs.ready == 'true'
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.HETZNER_SSH_KEY }}
 
       - name: Add VPS host key
+        if: steps.secrets.outputs.ready == 'true'
         env:
           HOST: ${{ secrets.HETZNER_HOST }}
           PORT: ${{ secrets.HETZNER_SSH_PORT }}
@@ -33,6 +50,7 @@ jobs:
           ssh-keyscan -p "$PORT" -H "$HOST" >> ~/.ssh/known_hosts
 
       - name: Pull, migrate, restart API
+        if: steps.secrets.outputs.ready == 'true'
         env:
           HOST: ${{ secrets.HETZNER_HOST }}
           USER: ${{ secrets.HETZNER_USER }}

@@ -11,7 +11,12 @@ import { NextResponse } from "next/server";
  * treat these routes as unauthenticated until real staff sessions land.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Containers talk over their private Docker network. Browser-facing code uses
+// NEXT_PUBLIC_API_URL through the reverse proxy instead.
+const API_URL =
+  process.env.API_INTERNAL_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:8000";
 
 // Everything the dashboard is allowed to reach, so a bug in a page can never
 // turn this into an open proxy for the rest of the API.

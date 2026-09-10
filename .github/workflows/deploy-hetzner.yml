@@ -1,0 +1,122 @@
+name: Deploy Sweet1ne to Hetzner
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: sweet1live-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build production images
+    runs-on: ubuntu-latest
+    outputs:
+      image-prefix: ${{ steps.names.outputs.prefix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: names
+        name: Set lowercase image names
+        shell: bash
+        run: echo "prefix=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.web
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ steps.names.outputs.prefix }}-web:${{ github.sha }}
+            ${{ steps.names.outputs.prefix }}-web:latest
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://www.sweet1nelive.com/backend
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+            NEXT_PUBLIC_GTM_ID=GTM-PSGB37L9
+            NEXT_PUBLIC_META_PIXEL_ID=319679979824179
+            NEXT_PUBLIC_SUPABASE_URL=${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+
+      - name: Build and push API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.api
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ steps.names.outputs.prefix }}-api:${{ github.sha }}
+            ${{ steps.names.outputs.prefix }}-api:latest
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+  deploy:
+    name: Deploy isolated Compose stack
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.HETZNER_KNOWN_HOSTS }}
+        run: |
+          test -n "$SSH_KEY"
+          test -n "$KNOWN_HOSTS"
+          install -m 700 -d ~/.ssh
+          printf '%s' "$SSH_KEY" > ~/.ssh/hetzner
+          chmod 600 ~/.ssh/hetzner
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload scoped Compose definition
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+          PORT: ${{ secrets.HETZNER_SSH_PORT }}
+        run: |
+          PORT="${PORT:-22}"
+          ssh -i ~/.ssh/hetzner -p "$PORT" "${USER}@${HOST}" "mkdir -p /srv/sweet1live"
+          scp -i ~/.ssh/hetzner -P "$PORT" compose.prod.yml "${USER}@${HOST}:/srv/sweet1live/compose.prod.yml"
+
+      - name: Pull and start Sweet1ne only
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+          PORT: ${{ secrets.HETZNER_SSH_PORT }}
+          IMAGE_PREFIX: ${{ needs.build.outputs.image-prefix }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          PORT="${PORT:-22}"
+          ssh -i ~/.ssh/hetzner -p "$PORT" "${USER}@${HOST}" bash -s -- "$IMAGE_PREFIX" "$IMAGE_TAG" <<'REMOTE'
+          set -euo pipefail
+          export IMAGE_PREFIX="$1" IMAGE_TAG="$2"
+          cd /srv/sweet1live
+          test -f production.env
+          docker compose -p sweet1live -f compose.prod.yml pull
+          docker compose -p sweet1live -f compose.prod.yml up -d --remove-orphans --wait --wait-timeout 180
+          curl --fail --silent --show-error http://127.0.0.1:8100/health
+          curl --fail --silent --show-error http://127.0.0.1:3100/ > /dev/null
+          docker compose -p sweet1live -f compose.prod.yml ps
+          REMOTE
