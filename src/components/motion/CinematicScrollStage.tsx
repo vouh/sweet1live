@@ -117,8 +117,8 @@ export default function CinematicScrollStage({
             Live &amp; Events
           </h1>
           <p className="font-headline-md mx-auto mt-6 max-w-xl text-[17px] leading-relaxed text-white/88 drop-shadow-[0_2px_16px_rgba(0,0,0,0.5)] md:mt-8 md:text-[20px]">
-            Intimate jazz, headline lounge sets, and ticketed nights where the room, the music, and
-            the pour move together.
+            Live music, performances and ticketed nights — dinner with a show in a cosy, vibrant
+            room built for grown-up evenings out.
           </p>
           <div className="mt-10 md:mt-12">
             <HeroBookPanel href="/reservations" label="Book for the show" />

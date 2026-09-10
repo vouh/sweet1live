@@ -18,26 +18,27 @@ import { HeroBookPanel } from "@/components/BrandTagline";
 import { DEMO_EVENTS } from "@/lib/demoEvents";
 import { pickTopEvent, lineupWithoutTop } from "@/lib/eventLineup";
 import { GALLERY_STRIP, HERO_VIDEO, IMG } from "@/lib/images";
+import { SIGNATURE_DISHES } from "@/lib/brand";
 import { getEvents } from "@/lib/ticketing";
 
 export const dynamic = "force-dynamic";
 
 const BEST_SELLERS = [
-  { image: IMG.cellar, name: "Château Margaux", meta: "2015 · Bordeaux", price: "£240" },
-  { image: IMG.wagyu, name: "Dry-Aged Ribeye", meta: "35-day · 300g", price: "£55" },
-  { image: IMG.alcove, name: "Black Truffle Tagliatelle", meta: "Hand-rolled", price: "£28" },
+  { image: IMG.wagyu, name: SIGNATURE_DISHES[0].name, meta: SIGNATURE_DISHES[0].meta },
+  { image: IMG.alcove, name: SIGNATURE_DISHES[1].name, meta: SIGNATURE_DISHES[1].meta },
+  { image: IMG.cellar, name: SIGNATURE_DISHES[2].name, meta: SIGNATURE_DISHES[2].meta },
 ];
 
 const STRIP = GALLERY_STRIP;
 
 const EXPERIENCES = [
-  { image: IMG.jazz, label: "Live Lounge Sets", href: "/whats-on", caption: "below" as const, tilt: "left" as const, level: "low" as const },
-  { image: IMG.liveJazz, label: "Ticketed Jazz Nights", href: "/whats-on", caption: "above" as const, tilt: "none" as const, level: "high" as const },
-  { image: IMG.bar, label: "Late Night Atmosphere", href: "/whats-on", caption: "below" as const, tilt: "none" as const, level: "low" as const },
-  { image: IMG.alcove, label: "Private Dining Rooms", href: "/venue-hire", caption: "above" as const, tilt: "none" as const, level: "high" as const },
-  { image: IMG.bandA, label: "Brass & Soul Lineups", href: "/whats-on", caption: "below" as const, tilt: "right" as const, level: "low" as const },
-  { image: IMG.experience5, label: "After-Dark Energy", href: "/whats-on", caption: "above" as const, tilt: "none" as const, level: "high" as const },
-  { image: IMG.experience6, label: "Celebrations & Toasts", href: "/reservations", caption: "below" as const, tilt: "left" as const, level: "low" as const },
+  { image: IMG.jazz, label: "Live Music & Sets", href: "/whats-on", caption: "below" as const, tilt: "left" as const, level: "low" as const },
+  { image: IMG.liveJazz, label: "Ticketed Nights", href: "/whats-on", caption: "above" as const, tilt: "none" as const, level: "high" as const },
+  { image: IMG.bar, label: "Cosy & Vibrant Room", href: "/whats-on", caption: "below" as const, tilt: "none" as const, level: "low" as const },
+  { image: IMG.alcove, label: "Private Hire", href: "/venue-hire", caption: "above" as const, tilt: "none" as const, level: "high" as const },
+  { image: IMG.bandA, label: "Brunches & Roasts", href: "/whats-on", caption: "below" as const, tilt: "right" as const, level: "low" as const },
+  { image: IMG.experience5, label: "Adult Night Out", href: "/whats-on", caption: "above" as const, tilt: "none" as const, level: "high" as const },
+  { image: IMG.experience6, label: "Birthdays & Gatherings", href: "/venue-hire", caption: "below" as const, tilt: "left" as const, level: "low" as const },
 ];
 
 export default async function HomePage() {
@@ -70,14 +71,14 @@ export default async function HomePage() {
 
         <div className="relative z-10 border-y border-outline-variant/20 py-5 overflow-hidden bg-surface-container-lowest">
           <ScrollMarquee
-            text="LIVE JAZZ · LATE SETS · BRASS · SOUL · TICKETS · THE ROOM FILLS FAST ·"
+            text="LIVE MUSIC · PERFORMANCES · AFRO-CARIBBEAN · HOSPITALITY · BOOK A TABLE · THE ROOM FILLS FAST ·"
             className="font-headline-lg text-[20px] md:text-[34px] uppercase tracking-[0.12em] text-on-surface-variant/20 whitespace-nowrap"
           />
         </div>
 
         <HomeLiveNights />
 
-        {/* ---------- Best sellers ---------- */}
+        {/* ---------- Signature dishes ---------- */}
         <section className="relative z-10 py-section-gap-mobile md:py-section-gap-desktop bg-background">
           <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-gutter items-stretch">
@@ -88,15 +89,15 @@ export default async function HomePage() {
                   the set
                 </h2>
                 <p className="font-body-md text-body-md text-on-surface-variant mb-8">
-                  Dishes and pours guests order while the room warms up — then the lights drop and
-                  the night begins.
+                  A focused Sweet1ne menu for dinner with a show — favourites guests order while the
+                  room warms up.
                 </p>
                 <ArrowLink href="/menus">View Full Menu</ArrowLink>
               </Reveal>
 
               {BEST_SELLERS.map((item, i) => (
                 <Reveal key={item.name} delay={100 + i * 140} variant="up">
-                  <article className="lux-card group overflow-hidden hairline-gold flex flex-col h-full">
+                  <Link href="/menus" className="lux-card group overflow-hidden hairline-gold flex flex-col h-full">
                     <MaskReveal delay={80 + i * 80}>
                       <ImageHover className="relative aspect-[4/5]">
                         <div
@@ -113,18 +114,15 @@ export default async function HomePage() {
                         {item.meta}
                       </p>
                       <div className="flex items-center justify-between border-t border-outline-variant/40 pt-4 mt-auto">
-                        <span className="font-price-display text-price-display text-primary">
-                          {item.price}
-                        </span>
                         <span className="font-label-caps text-label-caps font-semibold uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors duration-400 inline-flex items-center gap-2">
-                          Add to Bag
+                          See the menu
                           <span className="material-symbols-outlined text-[16px] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-400">
                             arrow_outward
                           </span>
                         </span>
                       </div>
                     </div>
-                  </article>
+                  </Link>
                 </Reveal>
               ))}
             </div>
@@ -136,14 +134,14 @@ export default async function HomePage() {
           <Reveal variant="blur">
             <div className="max-w-xl bg-background p-8 md:p-12 hairline-gold">
               <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest block mb-4">
-                The stage, the set, the night
+                Dinner with a show
               </span>
               <h2 className="font-headline-lg text-[28px] md:text-[44px] leading-tight uppercase tracking-[0.03em] mb-5">
-                Nights worth dressing up for
+                Cosy. Vibrant. Adult-friendly.
               </h2>
               <p className="font-body-lg text-body-lg text-on-surface-variant mb-8">
-                Live acts, candlelit tables, and a room that knows how to hold a crowd. Come for the
-                music — stay because the evening still has somewhere to go.
+                Live music and performances, Afro-Caribbean flavour, and hospitality that feels like
+                home — for evenings when you want more than a meal.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Magnetic>
@@ -171,8 +169,8 @@ export default async function HomePage() {
                     A night in frames
                   </h2>
                   <p className="font-body-md text-body-md text-on-surface-variant mt-3">
-                    Keep scrolling — the band, the booths, the hush before the first note, and the
-                    glow after the last.
+                    The room, the stage, the plates, and the people — scenery that makes booking
+                    feel easy.
                   </p>
                 </div>
               </div>
@@ -266,22 +264,6 @@ export default async function HomePage() {
                 );
               })}
             </div>
-
-            <Reveal
-              delay={280}
-              className="mt-6 md:mt-10 text-center flex flex-col sm:flex-row items-center justify-center gap-4"
-            >
-              <Magnetic>
-                <Link href="/reservations" className="btn-ink font-label-caps text-label-caps px-8 py-4">
-                  Reserve a table
-                </Link>
-              </Magnetic>
-              <Magnetic>
-                <Link href="/contact" className="btn-primary font-label-caps text-label-caps px-8 py-4">
-                  Start a conversation
-                </Link>
-              </Magnetic>
-            </Reveal>
           </div>
         </section>
 
@@ -301,7 +283,7 @@ export default async function HomePage() {
                   href="/reservations"
                   className="btn-ink font-label-caps text-label-caps px-8 py-4 !bg-[#f5efe8] !text-[#3a1f22]"
                 >
-                  Book your experience
+                  Reserve a table
                 </Link>
               </Magnetic>
               <Link

@@ -14,6 +14,9 @@ const LINKS_LEFT = [
   { href: "/menus", label: "Menu" },
   { href: "/whats-on", label: "What's On" },
   { href: "/events", label: "Events" },
+] as const;
+
+const LINKS_RIGHT = [
   { href: "/venue-hire", label: "Venue Hire" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -224,6 +227,12 @@ export default function Nav({ active, overlay = false }: { active: string; overl
             <div aria-hidden className="min-w-0" />
 
             <div className="flex min-w-0 items-center justify-end gap-4 xl:gap-6">
+              <NavLinks
+                links={LINKS_RIGHT}
+                active={active}
+                tone="onMedia"
+                className="justify-end min-w-0"
+              />
               {/* Desktop — theme sits to the right of the logo */}
               <div className="hidden lg:block">
                 <ThemeToggle className="!text-white/80 hover:!text-white shrink-0" />
@@ -281,6 +290,7 @@ export default function Nav({ active, overlay = false }: { active: string; overl
         <div aria-hidden className="min-w-0" />
 
         <div className="flex min-w-0 items-center justify-end gap-4 xl:gap-6">
+          <NavLinks links={LINKS_RIGHT} active={active} className="justify-end min-w-0" />
           {/* Desktop — theme sits to the right of the logo */}
           <div className="hidden lg:block">
             <ThemeToggle className="shrink-0" />

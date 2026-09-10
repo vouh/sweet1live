@@ -41,8 +41,8 @@ export default function ContactPage() {
                 Have a question?
               </h1>
               <p className="font-headline-md text-[16px] md:text-[19px] leading-relaxed text-white/85 mt-6 max-w-lg mx-auto">
-                Private dining, celebrations, press — tell us the brief and we&apos;ll shape the
-                evening around it.
+                Reservations, private hire, press or a special request — tell us the brief and
+                we&apos;ll look after you.
               </p>
             </Reveal>
           </div>
@@ -91,7 +91,7 @@ export default function ContactPage() {
                           label="Subject"
                           name="subject"
                           type="text"
-                          placeholder="e.g. Private dining for 12"
+                          placeholder="e.g. Birthday dinner for 10"
                         />
                         <div className="flex flex-col gap-2">
                           <label

@@ -41,7 +41,7 @@ export default function Footer() {
               Join our community and get updates on live nights and what&apos;s next.
             </h3>
             <p className="font-body-md text-body-md text-white/65 mb-4 max-w-sm">
-              Late-night hospitality, live rhythm, and seasonal tasting notes — delivered with care.
+              Shows, brunches and hospitality updates — warm, friendly notes from Sweet1ne Live.
             </p>
             <BrandTagline variant="footer" className="mb-8 max-w-sm" />
             {joined ? (
@@ -106,7 +106,11 @@ export default function Footer() {
               sizes="180px"
               className="h-12 w-auto object-contain -ml-1 mb-3"
             />
-            <p className="font-body-md text-body-md text-white/70 mb-1">{SITE_CONTACT.phone}</p>
+            <p className="font-body-md text-body-md text-white/70 mb-1">
+              <a href={`tel:${SITE_CONTACT.phoneTel}`} className="hover:text-[#d4a574] transition-colors">
+                {SITE_CONTACT.phone}
+              </a>
+            </p>
             <p className="font-body-md text-body-md text-white/70 mb-1">
               <a href={`mailto:${SITE_CONTACT.email}`} className="hover:text-[#d4a574] transition-colors">
                 {SITE_CONTACT.email}
@@ -139,7 +143,7 @@ export default function Footer() {
             title="About"
             links={[
               { href: "/contact", label: "Contact" },
-              { href: "/venue-hire", label: "Private dining" },
+              { href: "/venue-hire", label: "Private hire" },
               { href: "/whats-on", label: "What's on" },
             ]}
           />

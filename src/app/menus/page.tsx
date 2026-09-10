@@ -55,8 +55,8 @@ export default async function MenusPage() {
             />
             <Reveal delay={260}>
               <p className="font-headline-md text-[17px] md:text-[20px] text-white/85 max-w-md mt-8">
-                Small plates and signature mains composed for the rhythm of the night — order for
-                collection or reserve the full table experience.
+                A smaller Sweet1ne menu built for dinner with a show — starters, mains and signature
+                pours. Order for collection or reserve the full table experience.
               </p>
             </Reveal>
             <Reveal delay={380}>

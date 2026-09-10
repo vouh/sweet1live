@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import { SITE_ADDRESS_SINGLE_LINE, SITE_CONTACT } from "@/lib/brand";
+import { RESERVATION_POLICY, SITE_ADDRESS_SINGLE_LINE, SITE_CONTACT } from "@/lib/brand";
 
 // Placeholder terms pending legal review — content to be replaced with the
 // venue's actual reviewed terms before this is relied on commercially.
@@ -25,10 +25,10 @@ export default function TermsPage() {
             please do not use the site or make a booking.
           </Policy>
           <Policy title="Reservations">
-            Table reservations are subject to availability and may require a deposit or card guarantee for larger
-            parties. Please arrive within 15 minutes of your booking time — after that we may release the table.
-            Cancellations or changes should be made as early as possible; repeated no-shows may affect your ability
-            to book online in future.
+            Table reservations can be made online for parties of up to {RESERVATION_POLICY.maxOnlineGuests}. Larger
+            groups require a staff availability check and confirmation — call {SITE_CONTACT.phone} or use our contact
+            form. Please arrive within 15 minutes of your booking time; after that we may release the table.{" "}
+            {RESERVATION_POLICY.cancellationNote}
           </Policy>
           <Policy title="Live events & ticketing">
             Tickets to live events are sold subject to availability and capacity limits. Unless an event is cancelled

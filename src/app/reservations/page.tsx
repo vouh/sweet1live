@@ -9,13 +9,14 @@ import MustardCtaBand from "@/components/MustardCtaBand";
 import BrandTagline from "@/components/BrandTagline";
 import SevenRoomsBooking from "@/components/SevenRoomsBooking";
 import { IMG } from "@/lib/images";
+import { RESERVATION_POLICY, SITE_CONTACT } from "@/lib/brand";
 
 const HERO = IMG.reservations;
 
 const NOTES = [
-  { icon: "schedule", text: "Tables held for 15 minutes past reservation time." },
-  { icon: "groups", text: "Parties of six or more — ask for a tailored seating plan." },
-  { icon: "music_note", text: "Live sets fill the room. Book early Fri & Sat." },
+  { icon: "groups", text: RESERVATION_POLICY.maxOnlineNote },
+  { icon: "event_busy", text: RESERVATION_POLICY.cancellationNote },
+  { icon: "music_note", text: "Live sets fill the room — book early for Friday and Saturday." },
 ];
 
 export default function ReservationsPage() {
@@ -39,7 +40,8 @@ export default function ReservationsPage() {
                 Reserve a table
               </h1>
               <p className="font-headline-md text-[17px] md:text-[20px] text-white/85 mt-6 max-w-lg">
-                Peak sets fill first — lock in your evening before the room sells out.
+                Peak sets fill first — lock in your evening before the room sells out. Prefer to
+                speak to us? Call {SITE_CONTACT.phone}.
               </p>
             </div>
           </div>
@@ -76,10 +78,10 @@ export default function ReservationsPage() {
           eyebrow="Still deciding?"
           title="Our team can shape the evening"
           accentWord="evening"
-          body="Celebrations, dietary notes, or the perfect booth for the first set — start a conversation."
+          body="Celebrations, dietary notes, or the perfect spot for the first set — start a conversation."
           primaryHref="/contact"
           primaryLabel="Talk to us"
-          secondaryHref="/live-events"
+          secondaryHref="/whats-on"
           secondaryLabel="See what's on"
         />
         <BrandCloser />

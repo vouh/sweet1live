@@ -9,9 +9,9 @@ const DEFAULT_IMAGE = DEFAULT_LIFESTYLE;
  * Sticky photo only — cream card scrolls over then off as the next section arrives.
  */
 export default function ConversionBand({
-  eyebrow = "Tonight is reserved for the decisive",
+  eyebrow = "Ready for your night?",
   title = "Tables fill before the first set",
-  body = "Secure your evening now — or talk to our team about private dining and celebrations.",
+  body = "Reserve now — or talk to our team about private hire, brunches and celebrations.",
   image = DEFAULT_IMAGE,
   primaryHref = "/reservations",
   primaryLabel = "Reserve a table",

@@ -3,6 +3,7 @@
 import Magnetic from "@/components/motion/Magnetic";
 import { SEVENROOMS_BOOKING_URL } from "@/lib/sevenrooms";
 import { trackEvent } from "@/lib/analytics";
+import { RESERVATION_POLICY, SITE_CONTACT } from "@/lib/brand";
 
 /**
  * Table booking goes through SevenRooms' hosted page.
@@ -20,8 +21,12 @@ export default function SevenRoomsBooking() {
           Book your table
         </h2>
         <p className="mt-3 font-body-md text-body-md text-on-surface-variant max-w-md">
-          Real-time seating through SevenRooms. You&apos;ll finish the booking on their secure
-          page — no card charge here for dining reservations.
+          Real-time seating through SevenRooms for parties of up to{" "}
+          {RESERVATION_POLICY.maxOnlineGuests}. You&apos;ll finish on their secure page. For larger
+          groups, call {SITE_CONTACT.phone}.
+        </p>
+        <p className="mt-3 font-body-md text-sm text-on-surface-variant max-w-md">
+          {RESERVATION_POLICY.cancellationNote}
         </p>
       </div>
 
@@ -38,7 +43,7 @@ export default function SevenRoomsBooking() {
           </a>
         </Magnetic>
         <p className="font-body-md text-sm text-on-surface-variant max-w-xs">
-          Opens the Sweet1ne SevenRooms booking page in a new tab.
+          Opens the Sweet1ne Live SevenRooms booking page in a new tab.
         </p>
       </div>
     </div>

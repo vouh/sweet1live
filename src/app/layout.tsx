@@ -9,7 +9,7 @@ import SmoothScroll from "@/components/motion/SmoothScroll";
 import ScrollProgress from "@/components/motion/ScrollProgress";
 import Analytics from "@/components/Analytics";
 import { TrackingHead, TrackingNoScript } from "@/components/TrackingTags";
-import { BRAND_TAGLINE } from "@/lib/brand";
+import { BRAND_TAGLINE, SITE_DESCRIPTION } from "@/lib/brand";
 import { resolveTheme, THEME_STORAGE_KEY } from "@/lib/theme";
 import "./globals.css";
 
@@ -28,8 +28,7 @@ const hankenGrotesk = Hanken_Grotesk({
 
 export const metadata: Metadata = {
   title: `Sweet1ne Live | ${BRAND_TAGLINE.replace(/\.$/, "")}`,
-  description:
-    "Premium dining, handcrafted drinks and unforgettable live experiences in one nocturnal setting.",
+  description: SITE_DESCRIPTION,
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

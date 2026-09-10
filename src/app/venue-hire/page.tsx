@@ -45,18 +45,18 @@ const CELEBRATIONS = [
 const FACILITIES = [
   {
     icon: "restaurant",
-    title: "Food for your gathering",
-    text: "Talk to us about menu options, dietary requirements, and how you would like to dine together.",
+    title: "A focused Sweet1ne menu",
+    text: "Live serves a smaller menu from the Sweet1ne kitchen — talk to us about dishes, dietary needs and how you want to dine.",
   },
   {
-    icon: "room_service",
-    title: "Drinks & atmosphere",
-    text: "From a toast over dinner to a birthday night out, tell us the mood you have in mind.",
+    icon: "music_note",
+    title: "Live music & atmosphere",
+    text: "Cosy, vibrant and adult-friendly — performances and a lively night out when the occasion calls for it.",
   },
   {
     icon: "vpn_key",
-    title: "Help with the details",
-    text: "Our team will discuss your date, guest numbers, seating, and any special requests before you book.",
+    title: "Private hire support",
+    text: "Available for private hire. We confirm date, guest numbers, seating and special requests before you book.",
   },
 ];
 
@@ -87,8 +87,8 @@ export default function VenueHirePage() {
                 Celebrate with us
               </h1>
               <p className="font-headline-md text-[16px] md:text-[19px] leading-relaxed text-white/85 mt-6 max-w-xl mx-auto">
-                Birthdays, anniversaries, and get-togethers with your favourite people. Book the
-                restaurant for your celebration and make a night of it at Sweet1ne.
+                Birthdays, brunches, Sunday roasts and private hire — plan a cosy, vibrant evening with
+                live energy at Sweet1ne Live.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-6">
                 <Magnetic>

@@ -17,7 +17,7 @@ export default function BrandCloser() {
     >
       <div className="absolute inset-0 flex items-center opacity-[0.06] overflow-hidden pointer-events-none">
         <ScrollMarquee
-          text="SWEET1NE · LATE NIGHT ·"
+          text="SWEET1NE LIVE · ALWAYS IN THE MOOD FOR YOU ·"
           className="font-display-lg text-[18vw] leading-none uppercase tracking-[0.06em]"
         />
       </div>
