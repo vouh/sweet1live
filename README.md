@@ -9,6 +9,7 @@ with Stripe-powered event ticketing and deposit-backed hire across the venue's s
 | ----- | ---------- |
 | [docs/BACKEND-SETUP.md](docs/BACKEND-SETUP.md) | **Run the backend**, env file, Stripe + webhook listener, testing |
 | [docs/DEPLOY-HETZNER-VERCEL.md](docs/DEPLOY-HETZNER-VERCEL.md) | **Production deploy** — Hetzner API, Vercel frontend, GoDaddy DNS, GitHub Actions |
+| [docs/CI-CD.md](docs/CI-CD.md) | **Push to main** — Vercel + GitHub Actions auto-deploy how-to |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, API overview, deploy |
 | [docs/DATA-MODEL.md](docs/DATA-MODEL.md) | All 14 tables, columns, PKs/FKs, ERDs |
 | [docs/DESIGN.md](docs/DESIGN.md) | Visual / UX design notes |

@@ -175,16 +175,17 @@ export default function Footer() {
             <h4 className="font-label-caps text-label-caps tracking-[0.18em] uppercase text-white/45 mb-5">
               Social
             </h4>
-            <ul className="space-y-3">
+            <ul className="flex items-center gap-4">
               {SITE_SOCIAL.map((s) => (
                 <li key={s.label}>
                   <a
                     href={s.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-body-md text-body-md"
+                    aria-label={s.label}
+                    className="inline-flex items-center justify-center text-white/55 hover:text-[#d4a574] transition-colors"
                   >
-                    {s.label}
+                    <SocialIcon name={s.label} />
                   </a>
                 </li>
               ))}
@@ -233,4 +234,42 @@ function FooterCol({
       </ul>
     </div>
   );
+}
+
+function SocialIcon({ name }: { name: string }) {
+  const common = {
+    width: 22,
+    height: 22,
+    viewBox: "0 0 24 24",
+    fill: "currentColor",
+    "aria-hidden": true as const,
+  };
+
+  if (name === "Instagram") {
+    return (
+      <svg {...common}>
+        <path d="M12 7.2A4.8 4.8 0 1 0 12 16.8 4.8 4.8 0 0 0 12 7.2Zm0 7.9A3.1 3.1 0 1 1 12 8.9a3.1 3.1 0 0 1 0 6.2Z" />
+        <path d="M16.95 2.1H7.05A4.95 4.95 0 0 0 2.1 7.05v9.9A4.95 4.95 0 0 0 7.05 21.9h9.9a4.95 4.95 0 0 0 4.95-4.95v-9.9A4.95 4.95 0 0 0 16.95 2.1Zm3.25 14.85a3.25 3.25 0 0 1-3.25 3.25H7.05a3.25 3.25 0 0 1-3.25-3.25v-9.9A3.25 3.25 0 0 1 7.05 3.8h9.9a3.25 3.25 0 0 1 3.25 3.25v9.9Z" />
+        <circle cx="17.45" cy="6.55" r="1.15" />
+      </svg>
+    );
+  }
+
+  if (name === "Facebook") {
+    return (
+      <svg {...common}>
+        <path d="M14.5 22v-8.2h2.75l.4-3.2H14.5V8.55c0-.93.26-1.56 1.6-1.56H17.8V4.12C17.4 4.06 16.1 3.95 14.6 3.95c-3.15 0-5.3 1.92-5.3 5.45v3.2H6.7v3.2h2.6V22h5.2Z" />
+      </svg>
+    );
+  }
+
+  if (name === "TikTok") {
+    return (
+      <svg {...common}>
+        <path d="M19.6 8.35a6.4 6.4 0 0 1-3.72-1.2v7.1a5.95 5.95 0 1 1-5.95-5.95c.3 0 .6.03.88.08v2.95a3.05 3.05 0 1 0 2.12 2.91V2.1h2.9c.14 1.55.9 2.95 2.05 3.9A6.3 6.3 0 0 0 19.6 7v1.35Z" />
+      </svg>
+    );
+  }
+
+  return null;
 }

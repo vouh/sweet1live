@@ -1,0 +1,65 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-api.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-api-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Ubuntu VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.HETZNER_SSH_KEY }}
+
+      - name: Add VPS host key
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          PORT: ${{ secrets.HETZNER_SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          PORT="${PORT:-22}"
+          ssh-keyscan -p "$PORT" -H "$HOST" >> ~/.ssh/known_hosts
+
+      - name: Pull, migrate, restart API
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          USER: ${{ secrets.HETZNER_USER }}
+          PORT: ${{ secrets.HETZNER_SSH_PORT }}
+        run: |
+          PORT="${PORT:-22}"
+          USER="${USER:-deploy}"
+          ssh -p "$PORT" -o StrictHostKeyChecking=yes "${USER}@${HOST}" bash -s <<'EOF'
+          set -euo pipefail
+          APP_DIR="${APP_DIR:-/var/www/sweet1live}"
+          cd "$APP_DIR"
+          git fetch origin
+          git reset --hard origin/main
+          cd backend
+          source .venv/bin/activate
+          pip install -r requirements.txt
+          if [ -f "$APP_DIR/.env.local" ]; then
+            set -a
+            # shellcheck disable=SC1091
+            . "$APP_DIR/.env.local"
+            set +a
+          fi
+          alembic upgrade head
+          sudo systemctl restart sweet1live-api
+          sudo systemctl is-active sweet1live-api
+          sleep 2
+          curl -fsS http://127.0.0.1:8000/health
+          echo
+          echo "API deploy OK"
+          EOF

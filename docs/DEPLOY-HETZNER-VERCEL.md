@@ -841,16 +841,21 @@ Must succeed without asking for a password.
 
 ---
 
-## N5. Workflow files (what they will contain)
+## N5. Workflow files (in the repo)
 
-These will be added under `.github/workflows/` when we execute. Exact contents:
+Already added under `.github/workflows/`:
+
+- `ci.yml` — lint + backend compile on push/PR  
+- `deploy-api.yml` — SSH deploy to Hetzner when `backend/**` changes on `main`
+
+Short how-to: [CI-CD.md](./CI-CD.md).
 
 ### A) `ci.yml` — safety checks on every push / PR
 
 What it does (simple):
 - Checks out the code  
-- Sets up Node 20 → `npm ci` → `npm run lint` (and optionally `npm run build` if you want a stronger gate)  
-- Sets up Python → install `backend/requirements.txt` → `python -c "import app"` smoke import **or** `pytest` if tests are reliable in CI  
+- Sets up Node 20 → `npm ci` → `npm run lint`  
+- Sets up Python → install `backend/requirements.txt` → `python -m compileall app`  
 
 Beginner meaning: if lint fails, you see a red X on GitHub before you trust the deploy.
 
@@ -874,13 +879,14 @@ git reset --hard origin/main
 cd backend
 source .venv/bin/activate
 pip install -r requirements.txt
+# load .env.local then:
 alembic upgrade head
 sudo systemctl restart sweet1live-api
 sudo systemctl is-active sweet1live-api
 curl -fsS http://127.0.0.1:8000/health
 ```
 
-5. If any command fails, the Actions run shows **red** and the old API may still be running (systemd restart only happens if earlier steps succeed — the script is ordered that way on purpose).
+5. If any command fails, the Actions run shows **red** and the restart only happens if earlier steps succeed.
 
 **Note:** `git reset --hard origin/main` makes the server match GitHub exactly. Do not edit code by hand on the server after this is live (always edit locally → push).
 
