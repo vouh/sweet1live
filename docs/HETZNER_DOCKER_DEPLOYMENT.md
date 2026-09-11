@@ -5,7 +5,13 @@ server's public ports and does not operate on another Compose project.
 
 ## Architecture
 
-- GitHub Actions builds multi-architecture images and pushes them to GHCR.
+- GitHub Actions builds multi-architecture images and pushes them to GHCR:
+
+  | Role | Image name | Container name |
+  |------|------------|----------------|
+  | Frontend (Next.js) | `ghcr.io/<github-owner>/sweet1ne-live-web` | `sweet1live-web` |
+  | Backend (FastAPI) | `ghcr.io/<github-owner>/sweet1ne-live-api` | `sweet1live-api` |
+
 - `compose.prod.yml` runs the stack under the fixed project name `sweet1live`.
 - Next.js listens only on `127.0.0.1:3100`.
 - FastAPI listens only on `127.0.0.1:8100`.
@@ -140,10 +146,17 @@ working SHA in GitHub Actions and run:
 
 ```bash
 cd /srv/sweet1live
-export IMAGE_PREFIX=ghcr.io/OWNER/REPOSITORY
+export IMAGE_PREFIX=ghcr.io/OWNER/sweet1ne-live
 export IMAGE_TAG=LAST_WORKING_GIT_SHA
 docker compose -p sweet1live -f compose.prod.yml pull
 docker compose -p sweet1live -f compose.prod.yml up -d --wait --wait-timeout 180
+```
+
+Example images after deploy:
+
+```text
+ghcr.io/OWNER/sweet1ne-live-web:latest
+ghcr.io/OWNER/sweet1ne-live-api:latest
 ```
 
 Database migrations need separate review before rolling back across a schema

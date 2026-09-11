@@ -3,6 +3,7 @@ name: sweet1live
 services:
   api:
     image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}-api:${IMAGE_TAG:-latest}
+    container_name: sweet1live-api
     restart: unless-stopped
     env_file:
       - ./production.env
@@ -17,6 +18,7 @@ services:
 
   web:
     image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}-web:${IMAGE_TAG:-latest}
+    container_name: sweet1live-web
     restart: unless-stopped
     environment:
       API_INTERNAL_URL: http://api:8000

@@ -23,9 +23,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - id: names
-        name: Set lowercase image names
+        name: Set image names
         shell: bash
-        run: echo "prefix=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+        # Clear brand names (not the raw GitHub repo path).
+        # Images: ghcr.io/<owner>/sweet1ne-live-web  and  .../sweet1ne-live-api
+        run: echo "prefix=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/sweet1ne-live" >> "$GITHUB_OUTPUT"
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
@@ -45,8 +47,8 @@ jobs:
           tags: |
             ${{ steps.names.outputs.prefix }}-web:${{ github.sha }}
             ${{ steps.names.outputs.prefix }}-web:latest
-          cache-from: type=gha,scope=web
-          cache-to: type=gha,mode=max,scope=web
+          cache-from: type=gha,scope=sweet1ne-live-web
+          cache-to: type=gha,mode=max,scope=sweet1ne-live-web
           build-args: |
             NEXT_PUBLIC_API_URL=https://www.sweet1nelive.com/backend
             NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
@@ -66,8 +68,8 @@ jobs:
           tags: |
             ${{ steps.names.outputs.prefix }}-api:${{ github.sha }}
             ${{ steps.names.outputs.prefix }}-api:latest
-          cache-from: type=gha,scope=api
-          cache-to: type=gha,mode=max,scope=api
+          cache-from: type=gha,scope=sweet1ne-live-api
+          cache-to: type=gha,mode=max,scope=sweet1ne-live-api
 
   deploy:
     name: Deploy isolated Compose stack
