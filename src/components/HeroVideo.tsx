@@ -1,9 +1,10 @@
 type HeroVideoProps = {
   src: string;
+  poster?: string;
 };
 
-/** Full-bleed hero — object-cover fills the section; proportions stay true (edges may crop). */
-export default function HeroVideo({ src }: HeroVideoProps) {
+/** Full-bleed hero — light preload so the page paints before the MP4 finishes. */
+export default function HeroVideo({ src, poster }: HeroVideoProps) {
   return (
     <div className="absolute inset-0 overflow-hidden">
       <video
@@ -12,7 +13,8 @@ export default function HeroVideo({ src }: HeroVideoProps) {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
+        poster={poster}
         aria-hidden
       >
         <source src={src} type="video/mp4" />

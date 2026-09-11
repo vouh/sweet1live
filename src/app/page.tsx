@@ -14,10 +14,11 @@ import StickyMediaBg from "@/components/StickyMediaBg";
 import StripPhoto from "@/components/StripPhoto";
 import HeroVideo from "@/components/HeroVideo";
 import HomeEventsSwap from "@/components/HomeEventsSwap";
+import LazyBackground from "@/components/LazyBackground";
 import { HeroBookPanel } from "@/components/BrandTagline";
 import { DEMO_EVENTS } from "@/lib/demoEvents";
 import { pickTopEvent, lineupWithoutTop } from "@/lib/eventLineup";
-import { GALLERY_STRIP, HERO_VIDEO, IMG } from "@/lib/images";
+import { GALLERY_STRIP, HERO_VIDEO, HERO_VIDEO_POSTER, IMG } from "@/lib/images";
 import { SIGNATURE_DISHES } from "@/lib/brand";
 import { getEvents } from "@/lib/ticketing";
 
@@ -54,7 +55,7 @@ export default async function HomePage() {
       <main>
         {/* ---------- Hero — sticky so following content flies over ---------- */}
         <section className="sticky top-0 z-0 h-[100svh] flex flex-col justify-end overflow-hidden pb-16 md:pb-24">
-          <HeroVideo src={HERO_VIDEO} />
+          <HeroVideo src={HERO_VIDEO} poster={HERO_VIDEO_POSTER} />
           <h1 className="sr-only">Sweet1ne Live</h1>
 
           <div className="relative z-10 w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter text-center flex flex-col items-center">
@@ -100,10 +101,7 @@ export default async function HomePage() {
                   <Link href="/menus" className="lux-card group overflow-hidden hairline-gold flex flex-col h-full">
                     <MaskReveal delay={80 + i * 80}>
                       <ImageHover className="relative aspect-[4/5]">
-                        <div
-                          className="absolute inset-0 bg-cover bg-center"
-                          style={{ backgroundImage: `url('${item.image}')` }}
-                        />
+                        <LazyBackground src={item.image} className="absolute inset-0 bg-cover bg-center" />
                       </ImageHover>
                     </MaskReveal>
                     <div className="bg-surface-container-low p-6 flex flex-col flex-grow">
@@ -247,10 +245,7 @@ export default async function HomePage() {
                         )}
                         <div className="lux-card order-2 relative aspect-[3/4] w-full overflow-hidden shadow-[0_18px_40px_-24px_rgba(58,31,34,0.45)]">
                           <ImageHover className="absolute inset-0" strength={8}>
-                            <div
-                              className="absolute inset-0 bg-cover bg-center"
-                              style={{ backgroundImage: `url('${item.image}')` }}
-                            />
+                            <LazyBackground src={item.image} className="absolute inset-0 bg-cover bg-center" />
                           </ImageHover>
                         </div>
                         {item.caption === "below" && (
@@ -273,7 +268,7 @@ export default async function HomePage() {
             variant="blur"
             className="on-media max-w-3xl mx-auto text-center drop-shadow-[0_2px_24px_rgba(0,0,0,0.85)]"
           >
-            <h2 className="font-headline-lg text-[26px] leading-snug md:text-[46px] md:leading-[1.2] uppercase tracking-[0.04em] mb-8 text-white">
+            <h2 className="font-headline-lg text-[26px] leading-snug md:text-[46px] md:leading-[1.2] uppercase tracking-[0.04em] mb-8 text-white drop-shadow-[0_4px_32px_rgba(0,0,0,0.95)]">
               Book the night —
               <br className="hidden md:block" /> table, tickets, or both
             </h2>

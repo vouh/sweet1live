@@ -11,13 +11,18 @@ export default function StickyMediaBg({
   className = "",
   align = "start",
   priority = false,
+  /** Darken bright venue lighting so white/cream type stays readable. */
+  veil = "auto",
 }: {
   image: string;
   children: ReactNode;
   className?: string;
   align?: "start" | "center";
   priority?: boolean;
+  veil?: "auto" | "soft" | "strong" | "none";
 }) {
+  const veilStrength = veil === "auto" ? (align === "center" ? "strong" : "soft") : veil;
+
   return (
     <section className={`relative ${className}`}>
       <div className="sticky top-0 z-0 h-[75svh] md:h-[85svh] overflow-hidden">
@@ -26,6 +31,12 @@ export default function StickyMediaBg({
           priority={priority}
           className="absolute inset-0 bg-cover bg-center"
         />
+        {veilStrength !== "none" && (
+          <div
+            className={`sticky-media-veil sticky-media-veil--${veilStrength}`}
+            aria-hidden
+          />
+        )}
       </div>
 
       <div className="relative z-10 -mt-[75svh] md:-mt-[85svh]">

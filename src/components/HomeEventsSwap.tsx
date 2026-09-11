@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import Magnetic from "@/components/motion/Magnetic";
 import { DEMO_EVENT_ACCENTS, DEMO_EVENT_PHOTOS } from "@/lib/demoEvents";
-import { eventPhoto } from "@/lib/images";
+import { eventPhoto, responsiveBgVars } from "@/lib/images";
 import {
   formatEventDate,
   formatEventTime,
@@ -203,8 +203,8 @@ export default function HomeEventsSwap({ events }: { events: VenueEvent[] }) {
         >
           <div
             ref={photoRef}
-            className="home-events-swap__photo"
-            style={{ backgroundImage: `url('${photoFor(event)}')` }}
+            className="home-events-swap__photo opt-bg opt-bg--on"
+            style={responsiveBgVars(photoFor(event))}
             role="img"
             aria-label={event.title}
           />

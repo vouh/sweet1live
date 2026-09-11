@@ -124,3 +124,34 @@ export const DEFAULT_LIFESTYLE = IMG.guests;
 
 /** Above-the-fold hero — preload in root layout */
 export const PRELOAD_HERO = IMG.hero;
+
+/** Hero video poster (lightweight still while MP4 buffers). */
+export const HERO_VIDEO_POSTER = "/videos/brunch-vibes-poster.webp";
+
+/**
+ * Responsive paths for a catalogue photo (`/images/s12.webp`).
+ * Falls back to the original if the src is not an sN.webp asset.
+ */
+export function responsiveSources(src: string): { sm: string; md: string; lg: string } {
+  const match = src.match(/^(.*\/s\d+)\.webp(\?.*)?$/i);
+  if (!match) {
+    return { sm: src, md: src, lg: src };
+  }
+  const base = match[1];
+  const query = match[2] ?? "";
+  return {
+    sm: `${base}-640.webp${query}`,
+    md: `${base}-1280.webp${query}`,
+    lg: `${base}.webp${query}`,
+  };
+}
+
+/** CSS custom props for `.opt-bg.opt-bg--on` (use when LazyBackground is not practical). */
+export function responsiveBgVars(src: string): Record<string, string> {
+  const sources = responsiveSources(src);
+  return {
+    "--opt-bg-sm": `url('${sources.sm}')`,
+    "--opt-bg-md": `url('${sources.md}')`,
+    "--opt-bg-lg": `url('${sources.lg}')`,
+  };
+}

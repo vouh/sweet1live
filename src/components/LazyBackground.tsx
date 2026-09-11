@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { responsiveSources } from "@/lib/images";
 
 type LazyBackgroundProps = {
   src: string;
@@ -11,7 +12,7 @@ type LazyBackgroundProps = {
   children?: ReactNode;
 };
 
-/** Defers background-image until near the viewport — keeps initial page load fast. */
+/** Defers background-image until near the viewport + serves responsive WebP sizes. */
 export default function LazyBackground({
   src,
   className = "",
@@ -21,6 +22,7 @@ export default function LazyBackground({
 }: LazyBackgroundProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(priority);
+  const sources = responsiveSources(src);
 
   useEffect(() => {
     if (priority || active) return;
@@ -34,7 +36,7 @@ export default function LazyBackground({
           observer.disconnect();
         }
       },
-      { rootMargin: "280px" },
+      { rootMargin: "320px" },
     );
     observer.observe(node);
     return () => observer.disconnect();
@@ -43,11 +45,13 @@ export default function LazyBackground({
   return (
     <div
       ref={ref}
-      className={className}
+      className={`opt-bg ${active ? "opt-bg--on" : ""} ${className}`.trim()}
       style={{
         ...style,
-        backgroundColor: active ? undefined : "var(--surface-container-low, #2c1810)",
-        backgroundImage: active ? `url('${src}')` : undefined,
+        backgroundColor: active ? style?.backgroundColor : "var(--surface-container-low, #2c1810)",
+        ["--opt-bg-sm" as string]: active ? `url('${sources.sm}')` : "none",
+        ["--opt-bg-md" as string]: active ? `url('${sources.md}')` : "none",
+        ["--opt-bg-lg" as string]: active ? `url('${sources.lg}')` : "none",
         backgroundSize: style?.backgroundSize ?? "cover",
         backgroundPosition: style?.backgroundPosition ?? "center",
       }}

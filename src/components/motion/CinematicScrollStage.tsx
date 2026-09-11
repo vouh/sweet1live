@@ -7,6 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Magnetic from "@/components/motion/Magnetic";
 import { HeroBookPanel } from "@/components/BrandTagline";
+import { responsiveBgVars } from "@/lib/images";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -107,8 +108,8 @@ export default function CinematicScrollStage({
     <div ref={rootRef} className="cinematic-scroll-stage relative z-10 w-full max-w-full overflow-hidden">
       <div className="cinematic-scroll-stage__pin relative h-[100svh] w-full max-w-full overflow-hidden bg-[#1a100c]">
         <div
-          className="cine-hero-media absolute inset-0 bg-cover bg-center will-change-transform"
-          style={{ backgroundImage: `url('${imageSrc}')`, transform: "scale(1.04)" }}
+          className="cine-hero-media absolute inset-0 bg-cover bg-center will-change-transform opt-bg opt-bg--on"
+          style={{ ...responsiveBgVars(imageSrc), transform: "scale(1.04)" }}
         />
         <div className="cine-veil absolute inset-0 hero-media-veil" aria-hidden="true" />
 
@@ -156,8 +157,8 @@ export default function CinematicScrollStage({
                   </div>
 
                   <div
-                    className="cine-image-frame relative aspect-[3/4] w-full max-h-[min(76vh,640px)] overflow-hidden bg-cover bg-center shadow-[0_28px_64px_-24px_rgba(0,0,0,0.55)]"
-                    style={{ backgroundImage: `url('${imageSrc}')` }}
+                    className="cine-image-frame relative aspect-[3/4] w-full max-h-[min(76vh,640px)] overflow-hidden bg-cover bg-center shadow-[0_28px_64px_-24px_rgba(0,0,0,0.55)] opt-bg opt-bg--on"
+                    style={responsiveBgVars(imageSrc)}
                   >
                     <div
                       className="absolute inset-0"

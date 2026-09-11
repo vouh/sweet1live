@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Responsive lazy backgrounds — phone → tablet → desktop WebP. */
+.opt-bg {
+  background-repeat: no-repeat;
+}
+.opt-bg--on {
+  background-image: var(--opt-bg-sm);
+}
+@media (min-width: 768px) {
+  .opt-bg--on {
+    background-image: var(--opt-bg-md);
+  }
+}
+@media (min-width: 1200px) {
+  .opt-bg--on {
+    background-image: var(--opt-bg-lg);
+  }
+}
+
 /* After-dark editorial poster on mustard gold band — selective home accent. */
 .night-poster {
   --np-ink: #1a100c;
@@ -57,10 +75,11 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
   margin: 0;
-  color: var(--np-soft);
+  color: var(--np-ink);
 }
 .night-poster h2 span {
-  color: var(--np-ink);
+  color: #1a100c;
+  text-shadow: 0 1px 0 rgba(245, 239, 232, 0.25);
 }
 .night-poster__intro {
   font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
@@ -238,13 +257,13 @@
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: 0.02em;
-  color: var(--np-soft);
+  color: var(--np-ink);
   margin: 0;
   transition: color 0.3s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .night-poster__route:hover h3,
 .night-poster__route:focus-visible h3 {
-  color: #ffffff;
+  color: #0f0907;
   transform: translateX(3px);
 }
 .night-poster__route p {
@@ -652,7 +671,32 @@ html.light .site-footer {
   --color-on-surface-variant: #cfc6af;
   --color-primary: #f6d24c;
   --color-outline: #98907b;
-  color: #e5e2e1;
+  color: #f5efe8;
+  text-shadow:
+    0 2px 28px rgba(0, 0, 0, 0.9),
+    0 1px 3px rgba(0, 0, 0, 0.95);
+}
+
+.sticky-media-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.sticky-media-veil--soft {
+  background: linear-gradient(
+    180deg,
+    rgba(26, 16, 12, 0.28) 0%,
+    rgba(26, 16, 12, 0.38) 55%,
+    rgba(26, 16, 12, 0.5) 100%
+  );
+}
+.sticky-media-veil--strong {
+  background: linear-gradient(
+    180deg,
+    rgba(26, 16, 12, 0.55) 0%,
+    rgba(26, 16, 12, 0.64) 45%,
+    rgba(26, 16, 12, 0.74) 100%
+  );
 }
 
 body {

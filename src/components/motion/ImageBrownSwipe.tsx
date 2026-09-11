@@ -4,6 +4,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { responsiveBgVars } from "@/lib/images";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -56,8 +57,8 @@ export default function ImageBrownSwipe({
   return (
     <div ref={rootRef} className={`events-image-swipe ${className}`}>
       <div
-        className="events-image-swipe__photo absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url('${imageSrc}')` }}
+        className="events-image-swipe__photo absolute inset-0 bg-cover bg-center opt-bg opt-bg--on"
+        style={responsiveBgVars(imageSrc)}
       />
       <div
         ref={shadeRef}

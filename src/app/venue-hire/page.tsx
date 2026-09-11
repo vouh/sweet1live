@@ -10,6 +10,7 @@ import ScrollMarquee from "@/components/motion/ScrollMarquee";
 import ConversionBand from "@/components/ConversionBand";
 import VenueEnquiryForm from "@/components/VenueEnquiryForm";
 import BrandTagline from "@/components/BrandTagline";
+import LazyBackground from "@/components/LazyBackground";
 import { IMG } from "@/lib/images";
 
 const CELEBRATIONS = [
@@ -72,10 +73,7 @@ export default function VenueHirePage() {
       <Nav active="/venue-hire" />
       <main className="bg-surface-container-lowest">
         <header className="contact-arch-hero">
-          <div
-            className="contact-arch-hero__image"
-            style={{ backgroundImage: `url('${IMG.venue}')` }}
-          />
+          <LazyBackground src={IMG.venue} priority className="contact-arch-hero__image" />
           <div className="contact-arch-hero__veil" />
           <div className="relative z-10 text-center px-margin-mobile md:px-gutter max-w-4xl mx-auto pt-24 pb-28">
             <Reveal variant="blur">
@@ -154,9 +152,9 @@ export default function VenueHirePage() {
               >
                 <article className="venue-room-card arrow-carousel__card flex flex-col overflow-hidden hairline-gold h-full w-full">
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <div
+                    <LazyBackground
+                      src={space.image}
                       className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                      style={{ backgroundImage: `url('${space.image}')` }}
                     />
                     <div className="venue-room-card__veil absolute inset-0" />
                     <span className="absolute top-4 left-4 font-label-caps text-[10px] uppercase tracking-[0.28em] text-[#d4a574] bg-[#1a100c]/85 px-3 py-1.5">
@@ -223,13 +221,13 @@ export default function VenueHirePage() {
               </ul>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div
+              <LazyBackground
+                src={IMG.collageA}
                 className="aspect-[3/4] bg-cover bg-center col-span-1"
-                style={{ backgroundImage: `url('${IMG.collageA}')` }}
               />
-              <div
+              <LazyBackground
+                src={IMG.collageB}
                 className="aspect-[3/4] bg-cover bg-center col-span-1 mt-8"
-                style={{ backgroundImage: `url('${IMG.collageB}')` }}
               />
             </div>
           </div>

@@ -13,6 +13,7 @@ import DrawLine from "@/components/motion/DrawLine";
 import Magnetic from "@/components/motion/Magnetic";
 import BrandTagline from "@/components/BrandTagline";
 import FoodCollectionCart from "@/components/FoodCollectionCart";
+import LazyBackground from "@/components/LazyBackground";
 import { formatPrice, getMenuItems, groupMenuByCourse } from "@/lib/menus";
 import { IMG } from "@/lib/images";
 
@@ -34,10 +35,7 @@ export default async function MenusPage() {
       <Nav active="/menus" />
       <main className="flex-grow w-full">
         <section className="sticky top-0 z-0 min-h-[74vh] flex items-center overflow-hidden">
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url('${HERO}')` }}
-          />
+          <LazyBackground src={HERO} priority className="absolute inset-0 bg-cover bg-center" />
           <div className="absolute inset-0 bg-[#1a100c]/30" />
 
           <div className="relative z-10 w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter">
@@ -104,10 +102,7 @@ export default async function MenusPage() {
                       <MaskReveal>
                         <ImageHover className="relative aspect-[4/5] hairline-gold">
                           <Parallax className="h-full w-full" speed={0.1}>
-                            <div
-                              className="h-full w-full bg-cover bg-center"
-                              style={{ backgroundImage: `url('${course.image}')` }}
-                            />
+                            <LazyBackground src={course.image} className="h-full w-full bg-cover bg-center" />
                           </Parallax>
                         </ImageHover>
                       </MaskReveal>

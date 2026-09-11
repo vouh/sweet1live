@@ -12,6 +12,7 @@ import ConversionBand from "@/components/ConversionBand";
 import { createContactMessage, type ActionState } from "@/lib/api";
 import BrandTagline from "@/components/BrandTagline";
 import FormSecurityFields from "@/components/FormSecurityFields";
+import LazyBackground from "@/components/LazyBackground";
 import { IMG } from "@/lib/images";
 import { SITE_CONTACT_DETAILS } from "@/lib/brand";
 
@@ -29,7 +30,7 @@ export default function ContactPage() {
       <main className="flex-grow w-full bg-surface-container-lowest">
         {/* Arched sticky hero — content flies over */}
         <header className="contact-arch-hero">
-          <div className="contact-arch-hero__image" style={{ backgroundImage: `url('${HERO}')` }} />
+          <LazyBackground src={HERO} priority className="contact-arch-hero__image" />
           <div className="contact-arch-hero__veil" />
           <div className="relative z-10 text-center px-margin-mobile md:px-gutter max-w-3xl mx-auto pt-24 pb-32">
             <Reveal variant="blur">
@@ -132,10 +133,10 @@ export default function ContactPage() {
 
                 {/* Visual + get in touch */}
                 <div className="flex flex-col">
-                  <div
-                    className="contact-side-image flex-1 bg-cover bg-center min-h-[220px]"
-                    style={{ backgroundImage: `url('${LIFESTYLE}')` }}
-                  />
+                    <LazyBackground
+                      src={LIFESTYLE}
+                      className="contact-side-image flex-1 bg-cover bg-center min-h-[220px]"
+                    />
                   <div className="band-mustard p-8 md:p-10">
                     <h3 className="font-headline-md text-[22px] uppercase tracking-[0.06em] mb-8 band-mustard__title">
                       Get in touch

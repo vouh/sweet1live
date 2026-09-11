@@ -8,6 +8,7 @@ import SplitReveal from "@/components/motion/SplitReveal";
 import MustardCtaBand from "@/components/MustardCtaBand";
 import BrandTagline from "@/components/BrandTagline";
 import SevenRoomsBooking from "@/components/SevenRoomsBooking";
+import LazyBackground from "@/components/LazyBackground";
 import { IMG } from "@/lib/images";
 import { RESERVATION_POLICY, SITE_CONTACT } from "@/lib/brand";
 
@@ -26,10 +27,7 @@ export default function ReservationsPage() {
       <main className="flex-grow">
         <section className="relative">
           <div className="sticky top-0 z-0 h-[100svh] overflow-hidden">
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url('${HERO}')` }}
-            />
+            <LazyBackground src={HERO} priority className="absolute inset-0 bg-cover bg-center" />
             <div className="absolute inset-0 bg-[#1a100c]/40" />
             <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-margin-mobile">
               <BrandTagline variant="eyebrow" onMedia className="mb-5" />
